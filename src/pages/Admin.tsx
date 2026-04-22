@@ -11,6 +11,7 @@ import { Loader2, Plus, Save, Trash2, ArrowUp, ArrowDown, LogOut, ExternalLink, 
 import { Upload } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { IconPicker } from "@/components/IconPicker";
+import { BlockMetricsBadge } from "@/components/BlockMetricsBadge";
 import {
   Select,
   SelectContent,
