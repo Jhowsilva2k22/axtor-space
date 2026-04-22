@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import * as LucideIcons from "lucide-react";
-import { Loader2, ArrowUpRight } from "lucide-react";
+import { Loader2, ArrowUpRight, Search, X } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import AmbientPlayer from "@/components/AmbientPlayer";
 import { trackPageView, trackBioClick } from "@/lib/analytics";
@@ -26,6 +26,15 @@ type Block = {
   position: number;
   use_brand_color: boolean;
   size?: "sm" | "md" | "lg" | null;
+  category_id?: string | null;
+};
+
+type Category = {
+  id: string;
+  name: string;
+  slug: string;
+  icon: string | null;
+  position: number;
 };
 
 // Cor original de cada marca (gradiente quando faz sentido)
