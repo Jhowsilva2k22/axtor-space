@@ -8,44 +8,84 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Noir & Gold — fundo preto profundo, dourado luxuoso */
-    --background: 0 0% 5%;
-    --foreground: 40 30% 95%;
+    /* ============================================
+       BRAND TOKENS — fonte única de verdade.
+       Templates futuros sobrescrevem APENAS estas variáveis.
+       Os tokens semânticos abaixo derivam destas.
+       ============================================ */
+    --brand-h: 43;
+    --brand-s: 55%;
+    --brand-l: 54%;
+    --brand-l-glow: 70%;
+    --brand-l-deep: 18%;
 
-    --card: 0 0% 8%;
-    --card-foreground: 40 30% 95%;
+    --surface-h: 0;
+    --surface-s: 0%;
+    --surface-l-bg: 5%;
+    --surface-l-card: 8%;
+    --surface-l-popover: 6%;
+    --surface-l-secondary: 12%;
+    --surface-l-muted: 14%;
+    --surface-l-input: 11%;
+    --surface-l-noir-top: 12%;
+    --surface-l-noir-bottom: 4%;
 
-    --popover: 0 0% 6%;
-    --popover-foreground: 40 30% 95%;
+    --foreground-h: 40;
+    --foreground-s: 30%;
+    --foreground-l: 95%;
+    --muted-fg-h: 40;
+    --muted-fg-s: 10%;
+    --muted-fg-l: 65%;
 
-    --primary: 43 55% 54%;            /* gold #c9a84c */
-    --primary-foreground: 0 0% 5%;
-    --primary-glow: 43 75% 70%;       /* light gold #f0d78c */
+    --font-display: 'Cormorant Garamond', 'Didot', 'Bodoni 72', serif;
+    --font-body: 'Manrope', system-ui, sans-serif;
+    --font-body-weight: 300;
 
-    --secondary: 0 0% 12%;
-    --secondary-foreground: 40 30% 95%;
+    --aurora-opacity-a: 0.22;
+    --aurora-opacity-b: 0.18;
+    --aurora-blur: 80px;
+    --halo-opacity: 0.35;
 
-    --muted: 0 0% 14%;
-    --muted-foreground: 40 10% 65%;
+    /* ============================================
+       SEMANTIC TOKENS — derivados (não duplique valores)
+       ============================================ */
+    --background: var(--surface-h) var(--surface-s) var(--surface-l-bg);
+    --foreground: var(--foreground-h) var(--foreground-s) var(--foreground-l);
 
-    --accent: 43 55% 54%;
-    --accent-foreground: 0 0% 5%;
+    --card: var(--surface-h) var(--surface-s) var(--surface-l-card);
+    --card-foreground: var(--foreground-h) var(--foreground-s) var(--foreground-l);
+
+    --popover: var(--surface-h) var(--surface-s) var(--surface-l-popover);
+    --popover-foreground: var(--foreground-h) var(--foreground-s) var(--foreground-l);
+
+    --primary: var(--brand-h) var(--brand-s) var(--brand-l);
+    --primary-foreground: var(--surface-h) var(--surface-s) var(--surface-l-bg);
+    --primary-glow: var(--brand-h) 75% var(--brand-l-glow);
+
+    --secondary: var(--surface-h) var(--surface-s) var(--surface-l-secondary);
+    --secondary-foreground: var(--foreground-h) var(--foreground-s) var(--foreground-l);
+
+    --muted: var(--surface-h) var(--surface-s) var(--surface-l-muted);
+    --muted-foreground: var(--muted-fg-h) var(--muted-fg-s) var(--muted-fg-l);
+
+    --accent: var(--brand-h) var(--brand-s) var(--brand-l);
+    --accent-foreground: var(--surface-h) var(--surface-s) var(--surface-l-bg);
 
     --destructive: 0 65% 50%;
-    --destructive-foreground: 40 30% 95%;
+    --destructive-foreground: var(--foreground-h) var(--foreground-s) var(--foreground-l);
 
-    --border: 43 25% 18%;
-    --input: 0 0% 11%;
-    --ring: 43 55% 54%;
+    --border: var(--brand-h) 25% var(--brand-l-deep);
+    --input: var(--surface-h) var(--surface-s) var(--surface-l-input);
+    --ring: var(--brand-h) var(--brand-s) var(--brand-l);
 
     --radius: 0.1875rem;
 
-    --gradient-gold: linear-gradient(135deg, hsl(43 55% 54%), hsl(43 75% 70%));
-    --gradient-gold-soft: linear-gradient(135deg, hsl(43 55% 54% / 0.18), hsl(43 75% 70% / 0.06));
-    --gradient-gold-edge: linear-gradient(135deg, hsl(43 55% 54% / 0.5), hsl(43 75% 70% / 0.1) 50%, hsl(43 55% 54% / 0.5));
-    --gradient-noir: radial-gradient(ellipse at top, hsl(0 0% 12%), hsl(0 0% 4%));
-    --shadow-gold: 0 20px 60px -20px hsl(43 55% 54% / 0.35);
-    --shadow-gold-lg: 0 30px 90px -20px hsl(43 55% 54% / 0.55), 0 0 0 1px hsl(43 55% 54% / 0.3);
+    --gradient-gold: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+    --gradient-gold-soft: linear-gradient(135deg, hsl(var(--primary) / 0.18), hsl(var(--primary-glow) / 0.06));
+    --gradient-gold-edge: linear-gradient(135deg, hsl(var(--primary) / 0.5), hsl(var(--primary-glow) / 0.1) 50%, hsl(var(--primary) / 0.5));
+    --gradient-noir: radial-gradient(ellipse at top, hsl(var(--surface-h) var(--surface-s) var(--surface-l-noir-top)), hsl(var(--surface-h) var(--surface-s) var(--surface-l-noir-bottom)));
+    --shadow-gold: 0 20px 60px -20px hsl(var(--primary) / 0.35);
+    --shadow-gold-lg: 0 30px 90px -20px hsl(var(--primary) / 0.55), 0 0 0 1px hsl(var(--primary) / 0.3);
     --shadow-deep: 0 30px 80px -20px hsl(0 0% 0% / 0.8);
 
     --sidebar-background: 0 0% 98%;
@@ -111,8 +151,8 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Manrope', system-ui, sans-serif;
-    font-weight: 300;
+    font-family: var(--font-body);
+    font-weight: var(--font-body-weight);
     font-feature-settings: "ss01", "ss02", "cv11";
     letter-spacing: 0;
     background: var(--gradient-noir);
@@ -120,7 +160,7 @@ All colors MUST be HSL.
   }
 
   h1, h2, h3, .font-display {
-    font-family: 'Cormorant Garamond', 'Didot', 'Bodoni 72', serif;
+    font-family: var(--font-display);
     font-weight: 400;
     letter-spacing: -0.015em;
     font-feature-settings: "lnum";
@@ -194,12 +234,12 @@ All colors MUST be HSL.
     overflow: hidden;
     background: var(--gradient-gold);
     color: hsl(var(--primary-foreground));
-    box-shadow: 0 10px 30px -10px hsl(43 55% 54% / 0.5), inset 0 1px 0 hsl(43 90% 85% / 0.4);
+    box-shadow: 0 10px 30px -10px hsl(var(--primary) / 0.5), inset 0 1px 0 hsl(var(--brand-h) 90% 85% / 0.4);
     transition: transform 0.35s cubic-bezier(.2,.8,.2,1), box-shadow 0.35s ease, filter 0.35s ease;
   }
   .btn-luxe:hover {
     transform: translateY(-2px);
-    box-shadow: 0 20px 50px -15px hsl(43 55% 54% / 0.7), inset 0 1px 0 hsl(43 90% 85% / 0.6);
+    box-shadow: 0 20px 50px -15px hsl(var(--primary) / 0.7), inset 0 1px 0 hsl(var(--brand-h) 90% 85% / 0.6);
     filter: brightness(1.05);
   }
   .btn-luxe:active { transform: translateY(0); }
@@ -233,7 +273,7 @@ All colors MUST be HSL.
     left: 0;
     width: 40%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, hsl(43 90% 85% / 0.25), transparent);
+    background: linear-gradient(90deg, transparent, hsl(var(--brand-h) 90% 85% / 0.25), transparent);
     transform: translateX(-150%) skewX(-20deg);
     animation: sheen-sweep 4.5s ease-in-out infinite;
     pointer-events: none;
@@ -266,8 +306,8 @@ All colors MUST be HSL.
     max-width: 900px;
     max-height: 900px;
     margin-left: -35vw;
-    background: radial-gradient(circle at center, hsl(var(--primary) / 0.22), transparent 60%);
-    filter: blur(80px);
+    background: radial-gradient(circle at center, hsl(var(--primary) / var(--aurora-opacity-a)), transparent 60%);
+    filter: blur(var(--aurora-blur));
     animation: aurora-drift 18s ease-in-out infinite;
     pointer-events: none;
   }
@@ -279,7 +319,7 @@ All colors MUST be HSL.
     height: 60vw;
     max-width: 800px;
     max-height: 800px;
-    background: radial-gradient(circle at center, hsl(var(--primary-glow) / 0.18), transparent 60%);
+    background: radial-gradient(circle at center, hsl(var(--primary-glow) / var(--aurora-opacity-b)), transparent 60%);
     filter: blur(90px);
     animation: aurora-drift-slow 22s ease-in-out infinite;
     pointer-events: none;
@@ -297,7 +337,7 @@ All colors MUST be HSL.
     width: 180%;
     height: 180%;
     transform: translate(-50%, -50%);
-    background: radial-gradient(circle, hsl(var(--primary) / 0.35), transparent 65%);
+    background: radial-gradient(circle, hsl(var(--primary) / var(--halo-opacity)), transparent 65%);
     filter: blur(30px);
     animation: halo-pulse 4s ease-in-out infinite;
     pointer-events: none;
