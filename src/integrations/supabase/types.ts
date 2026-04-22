@@ -14,6 +14,56 @@ export type Database = {
   }
   public: {
     Tables: {
+      bio_block_campaigns: {
+        Row: {
+          block_id: string
+          clicks_count: number
+          created_at: string
+          id: string
+          is_active: boolean
+          label: string
+          slug: string
+          updated_at: string
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          block_id: string
+          clicks_count?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label: string
+          slug: string
+          updated_at?: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          block_id?: string
+          clicks_count?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label?: string
+          slug?: string
+          updated_at?: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bio_block_campaigns_block_id_fkey"
+            columns: ["block_id"]
+            isOneToOne: false
+            referencedRelation: "bio_blocks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bio_blocks: {
         Row: {
           badge: string | null
@@ -74,6 +124,7 @@ export type Database = {
           block_kind: string | null
           block_label: string | null
           block_url: string | null
+          campaign_slug: string | null
           created_at: string
           device: string | null
           id: string
@@ -88,6 +139,7 @@ export type Database = {
           block_kind?: string | null
           block_label?: string | null
           block_url?: string | null
+          campaign_slug?: string | null
           created_at?: string
           device?: string | null
           id?: string
@@ -102,6 +154,7 @@ export type Database = {
           block_kind?: string | null
           block_label?: string | null
           block_url?: string | null
+          campaign_slug?: string | null
           created_at?: string
           device?: string | null
           id?: string
@@ -420,6 +473,18 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      resolve_campaign: {
+        Args: { _slug: string }
+        Returns: {
+          block_id: string
+          block_kind: string
+          block_label: string
+          block_url: string
+          utm_campaign: string
+          utm_medium: string
+          utm_source: string
+        }[]
       }
     }
     Enums: {
