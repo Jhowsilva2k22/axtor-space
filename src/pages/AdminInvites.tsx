@@ -12,6 +12,7 @@ import { ThemeToggle, useAdminLockedTheme } from "@/components/ThemeToggle";
 import { toast } from "sonner";
 import {
   Loader2, Plus, Copy, Mail, Link2, Trash2, ArrowLeft, Crown, FlaskConical, Send,
+  RefreshCw,
 } from "lucide-react";
 
 type InviteRow = {
