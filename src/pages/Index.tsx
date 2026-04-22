@@ -313,13 +313,17 @@ const ResultStep = ({ data, onRestart }: { data: DiagnosisData; onRestart: () =>
       </div>
 
       {/* Score hero */}
-      <div className="relative overflow-hidden rounded-sm border border-gold bg-gradient-to-br from-card to-background p-10 text-center shadow-deep">
+      <div className="relative overflow-hidden rounded-3xl border-gold-gradient p-10 text-center shadow-deep">
+        <div className="pointer-events-none absolute inset-0 bg-gradient-gold-soft opacity-60" />
+        <div className="pointer-events-none absolute -top-24 left-1/2 h-48 w-96 -translate-x-1/2 rounded-full bg-primary/20 blur-3xl" />
+        <div className="relative">
         <p className="text-xs uppercase tracking-[0.4em] text-muted-foreground">Sua nota geral</p>
         <div className="mt-4 font-display text-8xl text-gold sm:text-9xl">{score}</div>
         <p className="text-sm text-muted-foreground">de 100</p>
         <p className="mx-auto mt-6 max-w-2xl text-base italic text-foreground/90 sm:text-lg">
           "{d.veredicto}"
         </p>
+        </div>
       </div>
 
       {/* Scores breakdown */}
@@ -339,7 +343,7 @@ const ResultStep = ({ data, onRestart }: { data: DiagnosisData; onRestart: () =>
       </div>
 
       {/* Plano de ação */}
-      <div className="rounded-sm border border-gold bg-card/60 p-8">
+      <div className="rounded-3xl border-gold-gradient p-8">
         <h3 className="font-display text-2xl">Seu plano de ação <span className="text-gold">priorizado</span></h3>
         <ol className="mt-6 space-y-4">
           {d.plano_acao?.map((step, i) => (
@@ -352,14 +356,50 @@ const ResultStep = ({ data, onRestart }: { data: DiagnosisData; onRestart: () =>
       </div>
 
       {/* CTA final */}
-      <div className="rounded-sm border border-gold bg-gradient-to-br from-primary/10 to-transparent p-10 text-center">
-        <h3 className="font-display text-3xl sm:text-4xl">Quer parar de <span className="text-gold italic">analisar</span> e começar a <span className="text-gold italic">executar</span>?</h3>
-        <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
-          Em breve você poderá montar sua bio inteligente, link in bio, captura de leads, agenda e analytics — tudo no mesmo lugar.
-        </p>
-        <Button onClick={onRestart} size="lg" className="mt-6 h-14 gap-2 bg-gradient-to-r from-primary to-primary-glow font-medium text-primary-foreground hover:opacity-90">
-          Analisar outro perfil <ArrowRight className="h-4 w-4" />
-        </Button>
+      <div className="relative overflow-hidden rounded-3xl border-gold-gradient p-10 text-center">
+        <div className="pointer-events-none absolute inset-0 bg-gradient-gold-soft" />
+        <div className="relative">
+          <span className="inline-flex items-center gap-2 rounded-full border border-gold bg-background/40 px-4 py-1.5 text-[10px] uppercase tracking-[0.3em] text-primary">
+            <Sparkles className="h-3 w-3" /> próximo passo
+          </span>
+          <h3 className="mt-5 font-display text-3xl sm:text-5xl">
+            Pare de <span className="text-gold italic">analisar</span>.<br />Comece a <span className="text-gold italic">executar</span>.
+          </h3>
+          <p className="mx-auto mt-5 max-w-xl text-muted-foreground">
+            Veja como ficou minha bio inteligente — e monte a sua em minutos. Link in bio, captura de leads, analytics e agenda, tudo num lugar só.
+          </p>
+          <a
+            href="https://joanderson-links.vercel.app"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-luxe mt-7 inline-flex h-14 items-center gap-2 rounded-2xl px-8 text-base font-semibold"
+          >
+            Ver bio do Joanderson e criar a minha <ArrowRight className="h-4 w-4" />
+          </a>
+          <p className="mt-3 text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
+            disponível agora · cadastro em 1 minuto
+          </p>
+
+          <div className="mx-auto mt-8 flex max-w-md items-center gap-4 rounded-2xl border border-gold/40 bg-card/40 p-4 text-left">
+            <Instagram className="h-6 w-6 shrink-0 text-primary" />
+            <div className="flex-1 text-sm">
+              <p className="font-medium text-foreground">Curtiu o diagnóstico?</p>
+              <p className="text-xs text-muted-foreground">Me segue no Instagram pra mais análises e estratégias.</p>
+            </div>
+            <a
+              href="https://instagram.com/eusoujoanderson"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-xl border border-gold bg-background/50 px-3 py-2 text-xs font-semibold uppercase tracking-wider text-primary transition-all hover:bg-gradient-gold-soft"
+            >
+              Seguir
+            </a>
+          </div>
+
+          <button onClick={onRestart} className="mt-6 text-xs uppercase tracking-[0.3em] text-muted-foreground transition-colors hover:text-primary">
+            ou analisar outro perfil →
+          </button>
+        </div>
       </div>
     </div>
   );
