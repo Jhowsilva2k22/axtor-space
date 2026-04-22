@@ -63,6 +63,11 @@ const AdminLogin = () => {
         <Button type="submit" disabled={submitting} className="btn-luxe mt-6 h-12 w-full rounded-sm text-sm font-semibold uppercase tracking-[0.15em]">
           {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Entrar"}
         </Button>
+        <div className="mt-3 text-center">
+          <Link to="/forgot-password" className="text-xs uppercase tracking-[0.2em] text-muted-foreground hover:text-primary">
+            esqueci minha senha
+          </Link>
+        </div>
         <p className="mt-4 text-center text-xs text-muted-foreground">
           ainda não tem conta? <Link to="/signup" className="text-primary hover:underline">criar grátis</Link>
         </p>

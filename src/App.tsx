@@ -13,6 +13,8 @@ import SharePage from "./pages/Share.tsx";
 import Bio from "./pages/Bio.tsx";
 import AdminLogin from "./pages/AdminLogin.tsx";
 import Admin from "./pages/Admin.tsx";
+import ForgotPassword from "./pages/ForgotPassword.tsx";
+import ResetPassword from "./pages/ResetPassword.tsx";
 import AdminAnalytics from "./pages/AdminAnalytics.tsx";
 import AdminBlockMetrics from "./pages/AdminBlockMetrics.tsx";
 import AdminTemplates from "./pages/AdminTemplates.tsx";
@@ -42,6 +44,8 @@ const App = () => (
             <Route path="/d/:id" element={<SharePage />} />
             <Route path="/bio" element={<Bio />} />
             <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/admin/analytics" element={<AdminAnalytics />} />
             <Route path="/admin/blocks/:id" element={<AdminBlockMetrics />} />
