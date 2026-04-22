@@ -18,6 +18,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  // Marca quando já temos uma resposta definitiva da sessão (do getSession()).
+  // Antes disso NUNCA devemos considerar o usuário como deslogado, senão um
+  // hard refresh (Ctrl+Shift+R) joga o cara pra /admin/login indevidamente
+  // só porque o listener ainda não rodou.
+  const [sessionResolved, setSessionResolved] = useState(false);
 
   const checkAdmin = async (uid: string | undefined) => {
     if (!uid) return false;
@@ -43,17 +48,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     let unmounted = false;
     let authCheckVersion = 0;
 
-    const syncAuthState = (s: Session | null) => {
+    const syncAuthState = (s: Session | null, fromGetSession = false) => {
       const currentVersion = ++authCheckVersion;
 
       setSession(s);
       setUser(s?.user ?? null);
+      if (fromGetSession) setSessionResolved(true);
 
       window.setTimeout(() => {
         void checkAdmin(s?.user?.id).then((admin) => {
           if (unmounted || currentVersion !== authCheckVersion) return;
           setIsAdmin(admin);
-          setLoading(false);
+          // Só liberamos `loading` depois que o getSession() respondeu.
+          // Caso contrário, eventos transitórios do listener podem nos
+          // fazer renderizar a árvore com user=null e disparar redirect.
+          if (fromGetSession) setLoading(false);
         });
       }, 0);
     };
@@ -61,22 +70,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Listener primeiro (síncrono). Roda também no INITIAL_SESSION.
     const { data: sub } = supabase.auth.onAuthStateChange((_evt, s) => {
       if (unmounted) return;
-      syncAuthState(s);
+      syncAuthState(s, false);
     });
 
-    // Fallback: se por algum motivo o auth não responder rápido, libera o app
-    // (assim a página não fica eternamente em "loading" após hard refresh).
+    // Fallback de segurança: se o getSession() travar muito tempo,
+    // libera o app SEM forçar logout (mantém user/session do listener).
     const safety = setTimeout(() => {
-      if (!unmounted) setLoading(false);
-    }, 4000);
+      if (!unmounted) {
+        setSessionResolved(true);
+        setLoading(false);
+      }
+    }, 8000);
 
     // Garante que pegamos a sessão mesmo se o evento já passou
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       if (unmounted) return;
-      syncAuthState(s);
+      syncAuthState(s, true);
     }).catch(() => {
       if (unmounted) return;
       setIsAdmin(false);
+      setSessionResolved(true);
       setLoading(false);
     });
 
