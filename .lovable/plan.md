@@ -1,65 +1,36 @@
-# Fase 2 — Rota pública por subdomínio + Admin único
 
-Decidido na Fase 1:
-- **Público:** `joanderson.axtor.space` (subdomínio wildcard, padrão Linktree/Beacons/Vercel)
-- **Admin:** `axtor.space/admin` único, detecta tenant pelo user logado (padrão Stripe/Linear/Notion)
 
-## O que será feito
+# Decisão de arquitetura: como rotear clientes em escala
 
-### 1. Resolver tenant pelo subdomínio (frontend)
-Criar `useTenant()` hook que:
-- Lê `window.location.hostname`
-- Extrai subdomínio (`joanderson` de `joanderson.axtor.space`)
-- Chama `resolve_tenant_by_slug(slug)` (já existe no banco)
-- Expõe `{ tenant, loading, error }` pro app inteiro
-- Casos especiais:
-  - `axtor.space` / `www.axtor.space` → landing (Fase 4) ou redirect pro tenant default por enquanto
-  - `id-preview-*.lovable.app` (ambiente Lovable) → usa `?tenant=slug` query string como fallback pra dev
-  - `localhost` → usa `?tenant=slug` ou tenant default
+A Lovable não suporta wildcard nem API de domínios. Cada subdomínio que você adicionar exige cadastro manual + 2FA da Hostinger + espera de SSL — inviável acima de 5-10 clientes. Precisamos decidir o modelo de roteamento **agora**, antes de você ficar preso.
 
-### 2. Refatorar `Bio.tsx` pra usar tenant do contexto
-Trocar todas as queries de `bio_config / bio_blocks / bio_categories` pra filtrar por `tenant_id` vindo do `useTenant()`. Hoje busca o singleton; vai passar a buscar pelo tenant resolvido.
+## Opções
 
-### 3. Admin único em `/admin` detecta tenant pelo user logado
-- `useAuth` já dá `user.id`
-- Criar `useCurrentTenant()` que faz `SELECT * FROM tenants WHERE owner_user_id = auth.uid() AND status='active' LIMIT 1`
-- Todas as páginas admin (`Admin`, `AdminAnalytics`, `AdminBlockMetrics`, `AdminTemplates`, `AdminImprovements`) passam a usar esse tenant como contexto pras queries
-- Super admin (você, role `admin`) ganha um seletor de tenant no topo do painel pra trocar de visão (importante pra suporte)
+**A) Path-based (`axtor.space/joanderson`)** — recomendado
+- Onboarding instantâneo, sem 2FA, sem painel manual
+- Modelo do Bento, Carrd, Linktree
+- Já está parcialmente pronto no código (rota `/bio` existe)
+- Custom domain por cliente vira upsell de plano premium (caso a caso)
 
-### 4. Compatibilidade legada
-- Rota `/bio` continua existindo: redireciona pra `https://joanderson.axtor.space` (subdomínio do tenant default)
-- `/admin/login` continua igual
+**B) Continuar com subdomínio + cadastro manual**
+- Mantém `joanderson.axtor.space`
+- Você autentica 2FA manualmente pra cada cliente novo
+- Funciona enquanto você tiver poucos clientes (<10)
+- Migra pra Cloudflare for SaaS quando escalar (Fase 6)
 
-### 5. Wildcard DNS
-- Adicionar registro DNS `*.axtor.space` apontando pra Lovable (mesmo IP do domínio principal)
-- Lovable provisiona SSL wildcard automaticamente
-- **Você precisa fazer essa etapa manual no painel do registrador** — vou te dar o passo-a-passo no fim
+**C) Híbrido**
+- Path-based como padrão (`axtor.space/cliente`)
+- Subdomínio só pra plano premium (manual, vira diferencial)
+- Custom domain (`cliente.com.br`) no plano top
 
-## O que NÃO será feito agora (fica pra fases seguintes)
+## O que muda no código (se escolher A ou C)
 
-- Onboarding self-service (Fase 3)
-- Landing comercial em `axtor.space/` (Fase 4)
-- Custom domain por tenant (Fase 5+)
-- Cobrança Stripe (Fase 5)
+1. `useTenant` passa a resolver pelo **primeiro segmento da URL** (`/joanderson`) em vez do subdomínio
+2. Rotas viram `/:slug` (público) e `/:slug/admin` ou `/admin` (admin único)
+3. Mantém compat com subdomínio caso já tenha clientes nele (cai no mesmo tenant)
+4. `/bio` continua existindo como atalho legado
 
-## Detalhes técnicos
+## Pergunta de decisão
 
-- `useTenant` cacheia o resultado em `sessionStorage` pra não chamar RPC em toda navegação
-- Erro de tenant não encontrado → página 404 customizada ("Esta bio não existe ou foi desativada")
-- Tenant `status != 'active'` → página de "suspenso"
-- Hook usa React Query pra revalidar no foco da janela
-- `useCurrentTenant()` no admin: se user é super admin E não é dono de nenhum tenant, mostra seletor obrigatório; se é dono de 1, vai direto; se é dono de vários, mostra seletor
+Qual modelo seguir? (A é o mais escalável e indolor; B é o que está hoje; C é o premium)
 
-## Custo estimado
-
-Médio. Mexe em 6 páginas + cria 2 hooks novos + 1 ajuste DNS manual seu. Sem migração de banco (Fase 1 já preparou tudo). Uma rodada de QA visual no `/bio` via subdomínio + uma no `/admin`.
-
-## Risco
-
-Baixo. Se algo quebrar no subdomínio, `/bio` legado continua funcionando como fallback enquanto debugamos.
-
-## Próximas fases (referência)
-
-- **Fase 3**: onboarding self-service (`axtor.space/signup` → cria tenant + owner)
-- **Fase 4**: landing comercial em `axtor.space/`
-- **Fase 5**: custom domain + cobrança Stripe
