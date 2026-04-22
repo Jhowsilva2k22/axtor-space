@@ -418,19 +418,30 @@ const Admin = () => {
               </Button>
             </div>
             <div className="space-y-4">
-              {blocks.map((b, i) => (
-                <BlockEditor
-                  key={b.id}
-                  block={b}
-                  isFirst={i === 0}
-                  isLast={i === blocks.length - 1}
-                  onChange={(p) => updateBlock(b.id, p)}
-                  onSave={() => saveBlock(b)}
-                  onDelete={() => deleteBlock(b.id)}
-                  onMoveUp={() => move(i, -1)}
-                  onMoveDown={() => move(i, 1)}
-                />
-              ))}
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext
+                  items={blocks.map((b) => b.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {blocks.map((b, i) => (
+                    <BlockEditor
+                      key={b.id}
+                      block={b}
+                      isFirst={i === 0}
+                      isLast={i === blocks.length - 1}
+                      onChange={(p) => updateBlock(b.id, p)}
+                      onSave={() => saveBlock(b)}
+                      onDelete={() => deleteBlock(b.id)}
+                      onMoveUp={() => move(i, -1)}
+                      onMoveDown={() => move(i, 1)}
+                    />
+                  ))}
+                </SortableContext>
+              </DndContext>
               {blocks.length === 0 && (
                 <p className="rounded-sm border-gold-gradient p-8 text-center text-sm text-muted-foreground">
                   Nenhum bloco ainda. Clique em "Novo bloco" pra começar.
