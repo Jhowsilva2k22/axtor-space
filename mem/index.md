@@ -1,10 +1,15 @@
 # Project Memory
 
 ## Core
-Tema dual: dark (padrão) + light (.theme-ivory). SEMPRE usar tokens semânticos do design system — nunca text-white/text-black/text-gray-*.
-Pareamento obrigatório de fundo/texto: bg-card → text-card-foreground, bg-background → text-foreground, bg-primary → text-primary-foreground, bg-popover → text-popover-foreground, bg-muted → text-muted-foreground.
-Inputs precisam ter caret-color visível (já configurado global em index.css usando hsl(var(--primary))).
-Domínio produção: axtor.space (primary) + www.axtor.space. Hostinger DNS, SaaS path-based /t/{slug} no MVP.
+Idioma do produto: SEMPRE PT-BR (UI, emails, mensagens, toasts). Manter nomes próprios em inglês (Lovable, Supabase).
+Auth: NUNCA forçar logout/redirect antes do `getSession()` resolver. Botão "Voltar" jamais desloga. Só `signOut()` explícito desloga.
+Estética: gold-noir Axtor (#c9a84c em #0d0d0d, Cormorant Garamond display + Helvetica body). Aplicar em emails também.
+Antes de implementar qualquer feature: grep no projeto pra ver se já existe (componente/hook/edge function/tabela). Não duplicar.
+Manter `docs/CHECKPOINT-*.md` atualizado a cada milestone significativo.
 
 ## Memories
-- [Design rules](mem://design/rules.md) — Regras completas de tokens semânticos e pareamento de cores
+- [Auth & sessão](mem://preferences/auth-session) — Regras de loading, redirect e signOut
+- [Email branding](mem://features/email-branding) — Templates auth gold-noir PT-BR
+- [Onboarding checklist](mem://features/onboarding) — Checklist persistente no Admin
+- [Ambient player](mem://features/ambient-player) — (existente)
+- [Design rules](mem://design/rules) — (existente)
