@@ -90,14 +90,17 @@ const Admin = () => {
   const [cfgDirty, setCfgDirty] = useState(false);
   const [dirtyBlocks, setDirtyBlocks] = useState<Set<string>>(new Set());
   const [savingAll, setSavingAll] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
 
   const load = async () => {
-    const [{ data: c }, { data: b }] = await Promise.all([
+    const [{ data: c }, { data: b }, { data: cats }] = await Promise.all([
       supabase.from("bio_config").select("*").eq("singleton", true).maybeSingle(),
       supabase.from("bio_blocks").select("*").order("position", { ascending: true }),
+      supabase.from("bio_categories").select("*").order("position", { ascending: true }),
     ]);
     setCfg(c as any);
     setBlocks((b as any) ?? []);
+    setCategories((cats as any) ?? []);
     setCfgDirty(false);
     setDirtyBlocks(new Set());
     setLoading(false);
