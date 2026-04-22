@@ -93,6 +93,8 @@ const Admin = () => {
   const [dirtyBlocks, setDirtyBlocks] = useState<Set<string>>(new Set());
   const [savingAll, setSavingAll] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [publishImmediate, setPublishImmediate] = useState(false);
+  const [publishingId, setPublishingId] = useState<string | null>(null);
 
   const load = async () => {
     const [{ data: c }, { data: b }, { data: cats }] = await Promise.all([
@@ -159,6 +161,18 @@ const Admin = () => {
     setBlocks((bs) => [...bs, data as any]);
   };
 
+  // Campos que entram em rascunho. position/is_active são sempre publicados (UX direta).
+  const DRAFT_FIELDS: (keyof Block)[] = [
+    "kind", "label", "description", "url", "icon", "icon_url",
+    "badge", "highlight", "use_brand_color", "size", "category_id",
+  ];
+
+  // Mescla campos publicados + rascunho para exibição/edição no admin.
+  const viewBlock = (b: Block): Block => {
+    if (!b.has_draft || !b.draft_data) return b;
+    return { ...b, ...(b.draft_data as Partial<Block>) };
+  };
+
   const updateBlock = (id: string, patch: Partial<Block>) => {
     setBlocks((bs) => bs.map((b) => (b.id === id ? { ...b, ...patch } : b)));
     setDirtyBlocks((s) => {
@@ -168,33 +182,85 @@ const Admin = () => {
     });
   };
 
-  const saveBlock = async (b: Block) => {
-    const { error } = await supabase
-      .from("bio_blocks")
-      .update({
-        kind: b.kind,
-        label: b.label,
-        description: b.description,
-        url: b.url,
-        icon: b.icon,
-        badge: b.badge,
-        highlight: b.highlight,
-        is_active: b.is_active,
-        position: b.position,
-        use_brand_color: b.use_brand_color,
-        size: b.size,
-        category_id: b.category_id,
-      })
-      .eq("id", b.id);
-    if (error) toast.error(error.message);
-    else {
-      toast.success("Bloco salvo");
-      setDirtyBlocks((s) => {
-        const n = new Set(s);
-        n.delete(b.id);
-        return n;
-      });
+  // Constrói o draft_data a partir dos campos atuais (no estado local).
+  const buildDraft = (b: Block) => {
+    const d: Record<string, any> = {};
+    DRAFT_FIELDS.forEach((k) => {
+      d[k as string] = (b as any)[k];
+    });
+    return d;
+  };
+
+  const saveBlock = async (b: Block, opts?: { publish?: boolean }) => {
+    const publish = !!opts?.publish || publishImmediate;
+    if (publish) {
+      const { error } = await supabase
+        .from("bio_blocks")
+        .update({
+          kind: b.kind,
+          label: b.label,
+          description: b.description,
+          url: b.url,
+          icon: b.icon,
+          badge: b.badge,
+          highlight: b.highlight,
+          is_active: b.is_active,
+          position: b.position,
+          use_brand_color: b.use_brand_color,
+          size: b.size,
+          category_id: b.category_id,
+          draft_data: null,
+          has_draft: false,
+        })
+        .eq("id", b.id);
+      if (error) return toast.error(error.message);
+      setBlocks((bs) => bs.map((x) => (x.id === b.id ? { ...x, draft_data: null, has_draft: false } : x)));
+      toast.success("Bloco publicado");
+    } else {
+      const draft = buildDraft(b);
+      const { error } = await supabase
+        .from("bio_blocks")
+        .update({
+          // Campos sempre publicados: posição e visibilidade
+          position: b.position,
+          is_active: b.is_active,
+          draft_data: draft,
+          has_draft: true,
+        })
+        .eq("id", b.id);
+      if (error) return toast.error(error.message);
+      setBlocks((bs) => bs.map((x) => (x.id === b.id ? { ...x, draft_data: draft, has_draft: true } : x)));
+      toast.success("Rascunho salvo");
     }
+    setDirtyBlocks((s) => {
+      const n = new Set(s);
+      n.delete(b.id);
+      return n;
+    });
+  };
+
+  const publishBlock = async (b: Block) => {
+    setPublishingId(b.id);
+    await saveBlock(b, { publish: true });
+    setPublishingId(null);
+  };
+
+  const discardDraft = async (b: Block) => {
+    if (!confirm("Descartar rascunho deste bloco?")) return;
+    const { error, data } = await supabase
+      .from("bio_blocks")
+      .update({ draft_data: null, has_draft: false })
+      .eq("id", b.id)
+      .select()
+      .single();
+    if (error) return toast.error(error.message);
+    setBlocks((bs) => bs.map((x) => (x.id === b.id ? (data as any) : x)));
+    setDirtyBlocks((s) => {
+      const n = new Set(s);
+      n.delete(b.id);
+      return n;
+    });
+    toast.success("Rascunho descartado");
   };
 
   const deleteBlock = async (id: string) => {
