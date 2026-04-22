@@ -126,7 +126,7 @@ const Index = () => {
         </span>
       </header>
 
-      <main className="relative z-10 mx-auto max-w-4xl px-6 pb-24 pt-12 sm:pt-20">
+      <main className="relative z-10 mx-auto max-w-4xl px-6 pb-24 pt-12 sm:pt-20 py-[40px]">
         {step === "handle" && <HandleStep handle={handle} setHandle={setHandle} onSubmit={handleSubmitHandle} />}
         {step === "lead" && (
           <LeadStep
@@ -143,7 +143,7 @@ const Index = () => {
         {step === "result" && data && <ResultStep data={data} onRestart={reset} />}
       </main>
 
-      <footer className="relative z-10 border-t border-gold/30 py-6 text-center text-xs uppercase tracking-[0.25em] text-muted-foreground">
+      <footer className="relative z-10 border-t border-gold/30 text-center text-xs uppercase tracking-[0.25em] text-muted-foreground py-[20px]">
         Diagnóstico Premium · feito para quem leva o digital a sério
       </footer>
     </div>
