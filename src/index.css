@@ -387,18 +387,18 @@ All colors MUST be HSL.
 /* ============== TEMA CLARO — Ivory & Gold (opt-in via .theme-ivory) ============== */
 .theme-ivory {
   --background: 38 35% 96%;
-  --foreground: 30 20% 12%;
-  --card: 38 30% 99%;
-  --card-foreground: 30 20% 12%;
-  --popover: 38 30% 99%;
-  --popover-foreground: 30 20% 12%;
+  --foreground: 30 25% 8%;
+  --card: 38 30% 97%;
+  --card-foreground: 30 25% 8%;
+  --popover: 38 30% 97%;
+  --popover-foreground: 30 25% 8%;
   --primary: 38 60% 38%;
   --primary-foreground: 38 35% 96%;
   --primary-glow: 43 70% 55%;
   --secondary: 38 25% 92%;
-  --secondary-foreground: 30 20% 12%;
+  --secondary-foreground: 30 25% 8%;
   --muted: 38 20% 90%;
-  --muted-foreground: 30 12% 38%;
+  --muted-foreground: 30 18% 25%;
   --accent: 38 60% 38%;
   --accent-foreground: 38 35% 96%;
   --border: 38 30% 80%;
