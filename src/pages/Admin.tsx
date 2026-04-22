@@ -764,7 +764,12 @@ const BlockEditor = ({
           <Input value={block.label} onChange={(e) => onChange({ label: e.target.value })} className="h-11 rounded-sm border-gold bg-input" />
         </Field>
         <Field label="Badge (opcional)">
-          <Input value={block.badge ?? ""} onChange={(e) => onChange({ badge: e.target.value })} placeholder="novo, popular, afiliado..." className="h-11 rounded-sm border-gold bg-input" />
+          <Combobox
+            value={block.badge ?? ""}
+            onChange={(v) => onChange({ badge: v || null })}
+            presets={["NOVO", "OFERTA", "EM BREVE", "ESGOTADO", "POPULAR", "GRÁTIS", "LIMITADO", "EXCLUSIVO"]}
+            placeholder="Sem badge"
+          />
         </Field>
         <Field label="Tamanho">
           <Select value={block.size ?? "md"} onValueChange={(v) => onChange({ size: v as "sm" | "md" | "lg" })}>
