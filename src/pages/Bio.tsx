@@ -5,6 +5,7 @@ import * as LucideIcons from "lucide-react";
 import { Loader2, ArrowUpRight } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import AmbientPlayer from "@/components/AmbientPlayer";
+import { trackPageView, trackBioClick } from "@/lib/analytics";
 
 type BioConfig = {
   display_name: string;
