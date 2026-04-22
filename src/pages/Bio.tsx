@@ -67,16 +67,22 @@ const getBrandStyle = (block: Block) => {
 const Bio = () => {
   const [cfg, setCfg] = useState<BioConfig | null>(null);
   const [blocks, setBlocks] = useState<Block[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [activeCat, setActiveCat] = useState<string>("all");
+  const [search, setSearch] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
-      const [{ data: c }, { data: b }] = await Promise.all([
+      const [{ data: c }, { data: b }, { data: cats }] = await Promise.all([
         supabase.from("bio_config").select("*").eq("singleton", true).maybeSingle(),
         supabase.from("bio_blocks").select("*").eq("is_active", true).order("position", { ascending: true }),
+        supabase.from("bio_categories").select("*").eq("is_active", true).order("position", { ascending: true }),
       ]);
       setCfg(c as any);
       setBlocks((b as any) ?? []);
+      setCategories((cats as any) ?? []);
       setLoading(false);
     })();
     trackPageView("/bio");
