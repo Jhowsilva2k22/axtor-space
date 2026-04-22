@@ -139,7 +139,14 @@ const AdminAnalytics = () => {
           <Link to="/admin" className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-muted-foreground hover:text-primary">
             <ArrowLeft className="h-3 w-3" /> Painel
           </Link>
-          <span className="font-display text-2xl">Analytics</span>
+          <div>
+            <span className="font-display text-2xl">Analytics</span>
+            {currentTenant && (
+              <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+                {currentTenant.display_name} · /{currentTenant.slug}
+              </p>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex rounded-sm border border-gold/40 p-1">
@@ -164,7 +171,14 @@ const AdminAnalytics = () => {
       </header>
 
       <main className="relative z-10 mx-auto max-w-6xl space-y-8 px-6 pb-24">
-        {loading || !data ? (
+        {!currentTenant && !tenantLoading ? (
+          <div className="flex h-96 flex-col items-center justify-center gap-3 text-center">
+            <p className="font-display text-xl text-foreground">Nenhum tenant selecionado</p>
+            <p className="max-w-sm text-sm text-muted-foreground">
+              Crie ou selecione um tenant para ver as métricas dele.
+            </p>
+          </div>
+        ) : loading || !data ? (
           <div className="flex h-96 items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
