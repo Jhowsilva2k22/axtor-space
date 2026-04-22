@@ -1,58 +1,124 @@
 
 
-## Auditoria das 10 ideias × o que já existe no app
+## Sistema de Templates de Designer — execução profissional em 3 fases
 
-| # | Ideia | Status atual | Veredito |
-|---|---|---|---|
-| 1 | **Drag-and-drop dos blocos** | ✅ **JÁ EXISTE.** `Admin.tsx` usa `@dnd-kit` (`DndContext`, `SortableContext`, `handleDragEnd`) e salva posição automaticamente no Supabase. | ❌ **NÃO FAZER** — duplicado. Se está confuso, posso só melhorar a affordance visual do "agarrador". |
-| 2 | **Templates de designer (cores/fontes/estilos prontos)** | ❌ Não existe. Hoje só tem dark/light via `ThemeToggle`. | ✅ **FAZER** — é a Fase 6 já planejada. Útil de verdade. |
-| 3 | **Tamanho variável por card (sm/md/lg)** | ⚠️ **JÁ EXISTE** (campo `size` no schema, render em `Bio.tsx` com 3 escalas). **MAS você acabou de dizer que NÃO quer isso** ("devem ficar todos sempre o mesmo tamanho"). | ✅ **FAZER O OPOSTO**: **remover** o seletor de tamanho do admin, fixar tudo em `md`, e migrar `size='md'` em todos os blocos. Mantém estética consistente. |
-| 4 | **Revisar warnings do linter Supabase** | ❓ Não verificado. RLS está sólido (todas as tabelas têm policies com `has_role`). Pode haver warnings menores (search_path em funções, etc). | ✅ **FAZER** — rodar `supabase--linter` e corrigir o que aparecer. Rápido e importante. |
-| 5 | **Filtros de período (24h/7d/30d) nas métricas** | ⚠️ **PARCIAL.** `AdminAnalytics` tem 7/30/90d ✅. `AdminBlockMetrics` tem 7/30/90d ✅. **Mas falta 24h** e os KPIs do bloco já mostram 24h/7d/30d estáticos. | ✅ **FAZER PEQUENO AJUSTE** — adicionar opção "24h" no seletor de ambas as páginas. |
-| 6 | **Duplicar blocos com tudo configurado** | ❌ Não existe. Só tem "Novo bloco" em branco. | ✅ **FAZER** — botão "Duplicar" copia tudo (label+" (cópia)", url, ícone, badge, UTMs etc) com `is_active=false` por padrão. Muito útil. |
-| 7 | **Validar utm_campaign como slug** | ❌ Não existe. Combobox aceita qualquer string. | ✅ **FAZER** — auto-slugify no blur + ícone de aviso quando contém espaço/maiúscula/acento. Evita "Stories Lançamento" virar UTM quebrada. |
-| 8 | **Combobox: placeholders/textos específicos por campo** | ⚠️ Hoje os placeholders já são parametrizados (`placeholder` prop), mas o texto "Buscar ou digitar novo..." e "Personalizado" são fixos. | ⚠️ **MARGINAL** — pequena melhoria de UX. Faço junto, sem virar tarefa separada. |
-| 9 | **Combobox: modo "só presets" (sem digitação)** | ❌ Hoje sempre permite custom. | ⚠️ **OPCIONAL** — a prop `allowCustom` já existe no componente! Falta só usar `allowCustom={false}` em algum campo. Não tem uso óbvio agora — pulo. |
-| 10 | **Pré-visualizador de badge/footer no admin** | ❌ Não existe. Admin é form puro, sem preview. | ✅ **FAZER PEQUENO** — mini-preview ao vivo do badge dentro do card no editor + footer renderizado abaixo do input. Sem abrir /bio. |
+**Princípio**: Gold Noir (atual) **continua sendo o padrão** e fica imutável. Os outros templates são alternativas opcionais que você liga/desliga no admin. Zero risco de quebrar o que já está no ar.
 
 ---
 
-## Plano de execução (ordem por impacto)
+### Fase 0 — Backup explícito (antes de tocar em nada)
 
-### A. Limpeza & padronização (rápido, alto impacto)
-1. **Remover seletor de tamanho** do `BlockEditor` em `Admin.tsx`. Migration SQL: `UPDATE bio_blocks SET size='md'` + remover usos da prop em `Bio.tsx` (fixar tamanho médio único).
-2. **Rodar `supabase--linter`** e corrigir warnings (provável: `search_path` em funções, OTP expiry, etc).
+Gero um arquivo SQL com snapshot completo de:
+- `bio_blocks` (todos os blocos, configs, UTMs)
+- `bio_config` (avatar, headline, footer)
+- `bio_categories`
+- `bio_block_campaigns`
 
-### B. Produtividade no editor
-3. **Botão "Duplicar"** ao lado de "Excluir" em cada bloco. Insere cópia com `is_active=false`, `position = max+1`, todos os outros campos copiados. Toast "Bloco duplicado — revise e ative".
-4. **Pré-visualização ao vivo** do badge e footer:
-   - Badge: mini-card flutuante no topo do `BlockEditor` mostrando label + badge no estilo da `/bio`.
-   - Footer: linha discreta abaixo do `Combobox` mostrando como vai aparecer.
+Você baixa o arquivo. Se algo der errado, executo ele de volta e tudo volta ao estado de hoje. Independente do revert do código.
 
-### C. Métricas
-5. **Adicionar "24h"** no Select de período em `AdminAnalytics.tsx` e `AdminBlockMetrics.tsx`. Backend já suporta (`get_analytics_summary` e `get_block_analytics` recebem `_days`, basta passar `1`). Filtro vira `24h / 7d / 30d / 90d`.
-
-### D. Qualidade dos UTMs
-6. **Auto-slugify de `utm_campaign`**: ao confirmar valor no Combobox, normaliza (lowercase, sem acento, espaços→hifens). Mostra ícone de aviso âmbar abaixo do campo se o valor original era diferente, com tooltip "Normalizado para formato seguro".
-7. **Melhorar textos do Combobox**: aceitar prop `customLabel` (ex: "Usar badge personalizada", "Usar campanha personalizada") em vez do "Personalizado" genérico.
-
-### E. Adiar (futuro, escopo grande)
-8. **Sistema de Templates de Designer** (item 2) — fica pra próxima rodada. Precisa migration de `theme_presets`, painel separado, tokens dinâmicos de CSS. Plano dedicado depois.
-
-### Itens que NÃO vou fazer
-- ❌ Drag-and-drop (já existe)
-- ❌ Tamanho variável por card (você mesmo descartou — vou remover o que existe)
-- ❌ Combobox "só presets" (sem caso de uso claro hoje)
+**Entregável**: `/mnt/documents/backup-bio-2026-04-22.sql`
 
 ---
 
-## Arquivos afetados
-- `src/pages/Admin.tsx` — remover size selector, botão Duplicar, preview de badge/footer
-- `src/pages/Bio.tsx` — remover lógica de size, fixar tamanho `md`
-- `src/pages/AdminAnalytics.tsx` — adicionar 24h no range
-- `src/pages/AdminBlockMetrics.tsx` — adicionar 24h no range
-- `src/components/Combobox.tsx` — props `customLabel`, validação slug opcional
-- `src/components/CampaignManager.tsx` — usar slug-validator no `utm_campaign`
-- Migration SQL: `UPDATE bio_blocks SET size='md'` (mantém coluna por compat, só não exposta no UI)
-- Linter: correções pontuais (provável `ALTER FUNCTION ... SET search_path = public`)
+### Fase 1 — Tokenização (refator invisível, zero mudança visual)
+
+**O que faço:**
+- Auditar `index.css` e identificar todo valor hardcoded (ex: `hsl(43 55% 54%)` solto dentro de `--gradient-gold`)
+- Extrair pra variáveis semânticas: `--brand-hue`, `--brand-saturation`, `--brand-lightness`, `--font-display-family`, `--font-body-family`, `--aurora-enabled`, `--card-border-style`
+- Refatorar `--gradient-gold`, `--gradient-noir`, `.aurora-a`, `.aurora-b`, `.btn-luxe` etc pra consumir essas variáveis
+- Atualizar `tailwind.config.ts` se necessário pra expor novos tokens
+
+**O que NÃO faço:** mudar nenhum valor. Tudo continua Gold Noir idêntico. É só reorganização interna.
+
+**Checkpoint obrigatório**: paro aqui, peço pra você abrir `/bio` e `/admin` e confirmar "tá tudo igual". Se você ver qualquer diferença visual, eu reverto na hora antes de seguir.
+
+---
+
+### Fase 2 — Camada de tema persistente (default = Gold Noir)
+
+**Schema novo:**
+
+```sql
+CREATE TABLE bio_themes (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  slug text UNIQUE NOT NULL,         -- 'gold-noir', 'ivory-gold', etc
+  name text NOT NULL,                 -- 'Gold Noir' (label exibido)
+  is_default boolean NOT NULL DEFAULT false,
+  is_active boolean NOT NULL DEFAULT true,
+  tokens jsonb NOT NULL,              -- { brandHue: 43, fontDisplay: 'Cormorant Garamond', auroraEnabled: true, ... }
+  preview_image_url text,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+
+ALTER TABLE bio_config ADD COLUMN active_theme_slug text NOT NULL DEFAULT 'gold-noir';
+```
+
+RLS: leitura pública, escrita só admin (mesmo padrão de `bio_blocks`).
+
+**Seed obrigatório**: insiro **Gold Noir** com `is_default=true` espelhando exatamente os tokens atuais. `bio_config.active_theme_slug='gold-noir'`. Sistema continua idêntico ao que está no ar.
+
+**Componente novo**: `<ThemeProvider>` em `src/components/ThemeProvider.tsx` — busca tema ativo, injeta tokens no `<html style="...">`. Roda no `App.tsx` envolvendo tudo. Fallback: se falhar a busca, usa Gold Noir hardcoded.
+
+---
+
+### Fase 3 — Painel de templates no admin + 3 alternativas
+
+**Nova rota**: `/admin/templates`
+
+- Grid com 4 cards: Gold Noir (atual, marcado como "Padrão"), Ivory Gold, Editorial Mono, Vibrant Sunset
+- Cada card mostra mini-preview com avatar fake + 2 blocos no estilo do tema
+- Botão "Pré-visualizar ao vivo" → aplica só no seu navegador (localStorage), público continua vendo Gold Noir
+- Botão "Definir como ativo" → salva em `bio_config.active_theme_slug`, todos os visitantes passam a ver
+- Botão "Voltar pro padrão (Gold Noir)" sempre visível e destacado
+
+**3 templates alternativos** (todos respeitando as regras de design — `rounded-sm`, sem `rounded-full` exceto avatar):
+
+| Template | Identidade |
+|---|---|
+| Gold Noir (default) | atual, intocado |
+| Ivory Gold | fundo claro creme, dourado mais escuro, mantém Cormorant + Manrope |
+| Editorial Mono | preto + branco puros, sem aurora, fonte display vira uma serifa mais marcada |
+| Vibrant Sunset | gradiente magenta/laranja, fonte sans moderna, aurora colorida |
+
+---
+
+### Garantias profissionais
+
+1. **Backup externo** antes de começar (Fase 0)
+2. **Cada fase é deployável sozinha** sem quebrar nada
+3. **Checkpoint visual obrigatório** ao fim da Fase 1
+4. **Default sempre = Gold Noir** no banco e no fallback de código
+5. **Botão "Voltar pro padrão"** permanente no painel
+6. **Preview-only mode** (localStorage) — testa sem afetar o público
+7. Migration é só ADD (cria tabela e coluna nova), não altera nada existente
+
+---
+
+### Arquivos afetados
+
+**Novos:**
+- `src/components/ThemeProvider.tsx`
+- `src/pages/AdminTemplates.tsx`
+- migration: criar `bio_themes`, adicionar `active_theme_slug` em `bio_config`, seed Gold Noir
+- backup SQL em `/mnt/documents/`
+
+**Editados (Fase 1, refator de tokens):**
+- `src/index.css` — extrair valores hardcoded pra variáveis
+- `tailwind.config.ts` — se precisar expor token novo
+
+**Editados (Fase 2-3):**
+- `src/App.tsx` — envolver com `<ThemeProvider>`
+- `src/pages/Admin.tsx` — link pro painel `/admin/templates`
+
+---
+
+### Ordem de execução
+
+1. Backup → te entrego o `.sql`
+2. Fase 1 → paro e peço confirmação visual
+3. Fase 2 → migration + seed Gold Noir + ThemeProvider, sem mudança visível
+4. Fase 3 → painel + 3 templates alternativos
+
+Aprovado, começo pela Fase 0 (backup) imediatamente.
 
