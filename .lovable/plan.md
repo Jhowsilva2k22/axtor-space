@@ -1,36 +1,78 @@
 
 
-# Decisão de arquitetura: como rotear clientes em escala
+# Fase 3 — Onboarding self-service (decisões registradas)
 
-A Lovable não suporta wildcard nem API de domínios. Cada subdomínio que você adicionar exige cadastro manual + 2FA da Hostinger + espera de SSL — inviável acima de 5-10 clientes. Precisamos decidir o modelo de roteamento **agora**, antes de você ficar preso.
+## Decisões aprovadas
 
-## Opções
+**1. Acesso:** Signup aberto em `/signup` — qualquer pessoa cria conta + tenant + bio em segundos.
 
-**A) Path-based (`axtor.space/joanderson`)** — recomendado
-- Onboarding instantâneo, sem 2FA, sem painel manual
-- Modelo do Bento, Carrd, Linktree
-- Já está parcialmente pronto no código (rota `/bio` existe)
-- Custom domain por cliente vira upsell de plano premium (caso a caso)
+**2. Plano Free com limites visíveis:**
+- Máximo **3 blocos ativos** (4º em diante fica criado mas desativado/bloqueado)
+- **Sem analytics** — botão Analytics no admin fica visível mas desabilitado/apagado com cadeado e tooltip "Disponível no plano Pro"
+- **Badge obrigatório** "feito com axtor" no rodapé da bio pública
+- **Sem campanhas UTM, sem improvements AI, sem temas customizados**
+- Upgrade desbloqueia tudo (Stripe entra na Fase 5; até lá, upgrade é manual via super-admin)
 
-**B) Continuar com subdomínio + cadastro manual**
-- Mantém `joanderson.axtor.space`
-- Você autentica 2FA manualmente pra cada cliente novo
-- Funciona enquanto você tiver poucos clientes (<10)
-- Migra pra Cloudflare for SaaS quando escalar (Fase 6)
+**3. Slug:** modelo profissional — campo livre no signup com **sugestão automática a partir do nome** (ex: "Maria Silva" → `maria-silva`), validação em tempo real (disponível/ocupado/inválido), mínimo 3 caracteres, regex `[a-z0-9-]`, lista de reservados bloqueada (`admin`, `bio`, `auth`, `api`, `signup`, `login`, `r`, `d`, `www`, etc).
 
-**C) Híbrido**
-- Path-based como padrão (`axtor.space/cliente`)
-- Subdomínio só pra plano premium (manual, vira diferencial)
-- Custom domain (`cliente.com.br`) no plano top
+---
 
-## O que muda no código (se escolher A ou C)
+## O que vou construir
 
-1. `useTenant` passa a resolver pelo **primeiro segmento da URL** (`/joanderson`) em vez do subdomínio
-2. Rotas viram `/:slug` (público) e `/:slug/admin` ou `/admin` (admin único)
-3. Mantém compat com subdomínio caso já tenha clientes nele (cai no mesmo tenant)
-4. `/bio` continua existindo como atalho legado
+### A) Banco de dados (1 migration)
+- Adicionar colunas em `tenants`: `plan_limits jsonb` (default `{"max_blocks": 3, "analytics": false, "campaigns": false, "improvements": false, "themes": false, "show_badge": true}`)
+- Função `check_slug_available(_slug text) returns boolean` (security definer, valida formato + reservados + unicidade)
+- Função `create_tenant_for_user(_slug, _display_name) returns uuid` (security definer; cria tenant com `owner_user_id = auth.uid()`, plano `free`, `bio_config` inicial padrão, retorna id)
+- Trigger em `bio_blocks` que valida limite de 3 blocos ativos para tenants no plano `free` antes de inserir/ativar
 
-## Pergunta de decisão
+### B) Páginas novas
+- **`/signup`** — formulário: nome completo, email, senha, slug (com debounce + check de disponibilidade visual ✅/❌), aceite de termos. Após signup: chama `create_tenant_for_user`, mostra "bio criada em axtor.space/{slug}" com botão "ir pro admin" e "ver minha bio".
+- **`/login`** já existe (`/admin/login`) — adicionar link "criar conta" apontando pra `/signup`.
 
-Qual modelo seguir? (A é o mais escalável e indolor; B é o que está hoje; C é o premium)
+### C) Gating de features no app
+- Hook novo `usePlanLimits()` lê `current_tenant.plan_limits` e expõe `{ canAddBlock, canUseAnalytics, canUseCampaigns, canUseImprovements, showBadge, blocksRemaining }`
+- **Admin.tsx**: botão "novo bloco" desabilitado quando `!canAddBlock`, com tooltip "Limite do plano Free: 3 blocos. Faça upgrade para adicionar mais."
+- **Sidebar/header do admin**: itens "Analytics", "Campanhas", "Improvements", "Templates" ficam com ícone de cadeado + opacidade reduzida + onclick abre modal de upgrade, em vez de navegar
+- **Bio.tsx**: se `showBadge`, renderiza no rodapé um pequeno "feito com **axtor**" linkado pra `axtor.space`
+
+### D) Modal de upgrade reutilizável
+- `<UpgradeModal feature="analytics" />` — explica o que desbloqueia, botão "fazer upgrade" (por enquanto abre WhatsApp/email pra você; Stripe na Fase 5)
+
+### E) Landing em `axtor.space/`
+- Página simples de captação: hero "Sua bio profissional em segundos", CTA "criar grátis" → `/signup`, exemplo visual da bio, lista de features, comparativo Free vs Pro
+- Substitui o `Index.tsx` atual (ou cria nova rota e move a antiga pra `/old`)
+
+---
+
+## Arquivos afetados
+
+**Novos:**
+- `supabase/migrations/{timestamp}_signup_and_plan_limits.sql`
+- `src/pages/Signup.tsx`
+- `src/pages/Landing.tsx` (substitui ou complementa Index)
+- `src/hooks/usePlanLimits.tsx`
+- `src/components/UpgradeModal.tsx`
+- `src/components/PlanBadge.tsx`
+
+**Editados:**
+- `src/App.tsx` — rotas `/signup` e revisão da `/`
+- `src/pages/Admin.tsx` — gating do botão "novo bloco"
+- `src/pages/AdminAnalytics.tsx`, `AdminTemplates.tsx`, `AdminImprovements.tsx`, `CampaignManager.tsx` — bloqueio com modal
+- `src/pages/Bio.tsx` — badge condicional no rodapé
+- `src/pages/AdminLogin.tsx` — link "criar conta"
+
+---
+
+## Fora de escopo (próximas fases)
+
+- Stripe / checkout real → **Fase 5**
+- Custom domain por cliente → **Fase 4**
+- Convites de equipe / multi-owner → **Fase 6**
+- Onboarding wizard guiado pós-signup (templates prontos) → opcional, depois
+
+---
+
+## Pergunta única antes de começar
+
+Qual **email/WhatsApp** você quer que apareça no botão "fazer upgrade" do modal (até Stripe entrar)? Se quiser, posso deixar um placeholder `contato@axtor.space` e você troca depois.
 
