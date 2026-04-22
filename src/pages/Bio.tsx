@@ -191,6 +191,7 @@ const Bio = () => {
 };
 
 const BlockCard = ({ block }: { block: Block }) => {
+  // (defined below)
   const Icon = (block.icon && (LucideIcons as any)[block.icon]) || LucideIcons.Link2;
   const isInternal = block.url.startsWith("/");
   const brand = getBrandStyle(block);
