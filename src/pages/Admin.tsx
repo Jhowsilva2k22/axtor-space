@@ -14,6 +14,7 @@ import { IconPicker } from "@/components/IconPicker";
 import { BlockMetricsBadge } from "@/components/BlockMetricsBadge";
 import { CampaignManager } from "@/components/CampaignManager";
 import { CategoriesManager, type Category } from "@/components/CategoriesManager";
+import { Combobox } from "@/components/Combobox";
 import {
   Select,
   SelectContent,
@@ -530,7 +531,17 @@ const Admin = () => {
                 <Input value={cfg.sub_headline ?? ""} onChange={(e) => updateCfg({ sub_headline: e.target.value })} className="h-11 rounded-sm border-gold bg-input" />
               </Field>
               <Field label="Footer">
-                <Input value={cfg.footer_text ?? ""} onChange={(e) => updateCfg({ footer_text: e.target.value })} className="h-11 rounded-sm border-gold bg-input" />
+                <Combobox
+                  value={cfg.footer_text ?? ""}
+                  onChange={(v) => updateCfg({ footer_text: v })}
+                  presets={[
+                    "joandersonsilva.com.br",
+                    "© 2026 Joanderson Silva",
+                    "Feito com presença",
+                    "Todos os direitos reservados",
+                  ]}
+                  placeholder="Texto do rodapé (opcional)"
+                />
               </Field>
             </div>
             <div className="mt-6 flex justify-end">
@@ -753,7 +764,12 @@ const BlockEditor = ({
           <Input value={block.label} onChange={(e) => onChange({ label: e.target.value })} className="h-11 rounded-sm border-gold bg-input" />
         </Field>
         <Field label="Badge (opcional)">
-          <Input value={block.badge ?? ""} onChange={(e) => onChange({ badge: e.target.value })} placeholder="novo, popular, afiliado..." className="h-11 rounded-sm border-gold bg-input" />
+          <Combobox
+            value={block.badge ?? ""}
+            onChange={(v) => onChange({ badge: v || null })}
+            presets={["NOVO", "OFERTA", "EM BREVE", "ESGOTADO", "POPULAR", "GRÁTIS", "LIMITADO", "EXCLUSIVO"]}
+            placeholder="Sem badge"
+          />
         </Field>
         <Field label="Tamanho">
           <Select value={block.size ?? "md"} onValueChange={(v) => onChange({ size: v as "sm" | "md" | "lg" })}>
@@ -802,7 +818,7 @@ const BlockEditor = ({
           <Save className="h-3.5 w-3.5" /> Salvar bloco
         </Button>
       </div>
-      <CampaignManager blockId={block.id} />
+      <CampaignManager blockId={block.id} blockLabel={block.label} />
     </div>
   );
 };

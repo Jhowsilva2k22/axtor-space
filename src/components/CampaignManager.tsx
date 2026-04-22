@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { Combobox } from "@/components/Combobox";
 import { toast } from "sonner";
 import { Copy, Loader2, Plus, Trash2, Megaphone } from "lucide-react";
 
@@ -32,7 +33,22 @@ function slugify(input: string): string {
     .slice(0, 40);
 }
 
-export const CampaignManager = ({ blockId }: { blockId: string }) => {
+export const CampaignManager = ({ blockId, blockLabel }: { blockId: string; blockLabel?: string }) => {
+  const campaignSuggestion = blockLabel ? slugify(blockLabel) : "";
+  const campaignPresets = Array.from(
+    new Set(
+      [
+        campaignSuggestion,
+        "lancamento",
+        "promo",
+        "stories",
+        "reels",
+        "feed",
+        "newsletter",
+        "evento",
+      ].filter(Boolean),
+    ),
+  );
   const [items, setItems] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
@@ -173,27 +189,27 @@ export const CampaignManager = ({ blockId }: { blockId: string }) => {
                         />
                       </FieldSm>
                       <FieldSm label="utm_source">
-                        <Input
+                        <Combobox
                           value={c.utm_source ?? ""}
-                          onChange={(e) => update(c.id, { utm_source: e.target.value })}
-                          className="h-9 rounded-sm border-gold/40 bg-input text-xs"
+                          onChange={(v) => update(c.id, { utm_source: v })}
+                          presets={["instagram", "whatsapp", "bio", "email", "youtube", "tiktok", "organic", "direct"]}
                           placeholder="instagram"
                         />
                       </FieldSm>
                       <FieldSm label="utm_medium">
-                        <Input
+                        <Combobox
                           value={c.utm_medium ?? ""}
-                          onChange={(e) => update(c.id, { utm_medium: e.target.value })}
-                          className="h-9 rounded-sm border-gold/40 bg-input text-xs"
+                          onChange={(v) => update(c.id, { utm_medium: v })}
+                          presets={["social", "cpc", "referral", "email", "organic", "affiliate", "bio-link"]}
                           placeholder="stories"
                         />
                       </FieldSm>
                       <FieldSm label="utm_campaign" full>
-                        <Input
+                        <Combobox
                           value={c.utm_campaign ?? ""}
-                          onChange={(e) => update(c.id, { utm_campaign: e.target.value })}
-                          className="h-9 rounded-sm border-gold/40 bg-input text-xs"
-                          placeholder="lancamento-04"
+                          onChange={(v) => update(c.id, { utm_campaign: v })}
+                          presets={campaignPresets}
+                          placeholder={campaignSuggestion || "lancamento-04"}
                         />
                       </FieldSm>
                     </div>
