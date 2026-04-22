@@ -28,6 +28,7 @@ export type Database = {
           position: number
           updated_at: string
           url: string
+          use_brand_color: boolean
         }
         Insert: {
           badge?: string | null
@@ -42,6 +43,7 @@ export type Database = {
           position?: number
           updated_at?: string
           url: string
+          use_brand_color?: boolean
         }
         Update: {
           badge?: string | null
@@ -56,6 +58,7 @@ export type Database = {
           position?: number
           updated_at?: string
           url?: string
+          use_brand_color?: boolean
         }
         Relationships: []
       }

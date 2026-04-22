@@ -37,6 +37,7 @@ type Block = {
   highlight: boolean;
   position: number;
   is_active: boolean;
+  use_brand_color: boolean;
 };
 
 const KINDS = [
@@ -137,6 +138,7 @@ const Admin = () => {
         highlight: b.highlight,
         is_active: b.is_active,
         position: b.position,
+        use_brand_color: b.use_brand_color,
       })
       .eq("id", b.id);
     if (error) toast.error(error.message);
@@ -350,6 +352,10 @@ const BlockEditor = ({
           <label className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
             destaque
             <Switch checked={block.highlight} onCheckedChange={(v) => onChange({ highlight: v })} />
+          </label>
+          <label className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+            cor original
+            <Switch checked={block.use_brand_color} onCheckedChange={(v) => onChange({ use_brand_color: v })} />
           </label>
         </div>
       </div>

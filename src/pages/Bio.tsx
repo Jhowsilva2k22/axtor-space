@@ -22,6 +22,34 @@ type Block = {
   badge: string | null;
   highlight: boolean;
   position: number;
+  use_brand_color: boolean;
+};
+
+// Cor original de cada marca (gradiente quando faz sentido)
+const BRAND_STYLES: Record<string, { bg: string; color: string }> = {
+  instagram: { bg: "linear-gradient(45deg,#f09433,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888)", color: "#fff" },
+  whatsapp:  { bg: "#25D366", color: "#fff" },
+  facebook:  { bg: "#1877F2", color: "#fff" },
+  youtube:   { bg: "#FF0000", color: "#fff" },
+  tiktok:    { bg: "linear-gradient(45deg,#25F4EE,#000 50%,#FE2C55)", color: "#fff" },
+  twitter:   { bg: "#000", color: "#fff" },
+  x:         { bg: "#000", color: "#fff" },
+  linkedin:  { bg: "#0A66C2", color: "#fff" },
+  spotify:   { bg: "#1DB954", color: "#fff" },
+  telegram:  { bg: "#229ED9", color: "#fff" },
+  pinterest: { bg: "#E60023", color: "#fff" },
+  github:    { bg: "#181717", color: "#fff" },
+  twitch:    { bg: "#9146FF", color: "#fff" },
+  discord:   { bg: "#5865F2", color: "#fff" },
+  threads:   { bg: "#000", color: "#fff" },
+};
+
+const getBrandStyle = (block: Block) => {
+  if (!block.use_brand_color) return null;
+  const key = (block.kind || "").toLowerCase();
+  if (BRAND_STYLES[key]) return BRAND_STYLES[key];
+  const iconKey = (block.icon || "").toLowerCase();
+  return BRAND_STYLES[iconKey] || null;
 };
 
 const Bio = () => {
@@ -97,6 +125,7 @@ const Bio = () => {
 const BlockCard = ({ block }: { block: Block }) => {
   const Icon = (block.icon && (LucideIcons as any)[block.icon]) || LucideIcons.Link2;
   const isInternal = block.url.startsWith("/");
+  const brand = getBrandStyle(block);
   const cls = `block-shimmer group relative flex w-full items-center gap-4 overflow-hidden rounded-sm border p-4 transition-all duration-300 hover:-translate-y-0.5 ${
     block.highlight
       ? "border-gold bg-gradient-gold-soft shadow-gold hover:shadow-gold-lg"
@@ -104,8 +133,16 @@ const BlockCard = ({ block }: { block: Block }) => {
   }`;
   const inner = (
     <>
-      <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-sm ${block.highlight ? "bg-background/40" : "bg-gradient-gold-soft"}`}>
-        <Icon className="h-5 w-5 text-primary" />
+      <div
+        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-sm ${
+          brand ? "" : block.highlight ? "bg-background/40" : "bg-gradient-gold-soft"
+        }`}
+        style={brand ? { background: brand.bg } : undefined}
+      >
+        <Icon
+          className={`h-5 w-5 ${brand ? "" : "text-primary"}`}
+          style={brand ? { color: brand.color } : undefined}
+        />
       </div>
       <div className="min-w-0 flex-1 text-left">
         <div className="flex items-center gap-2">
