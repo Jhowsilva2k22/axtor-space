@@ -360,7 +360,7 @@ const ResultStep = ({ data, onRestart }: { data: DiagnosisData; onRestart: () =>
       <div className="relative overflow-hidden rounded-sm border-gold-gradient p-10 text-center">
         <div className="pointer-events-none absolute inset-0 bg-gradient-gold-soft" />
         <div className="relative">
-          <span className="inline-flex items-center gap-2 rounded-full border border-gold bg-background/40 px-4 py-1.5 text-[10px] uppercase tracking-[0.3em] text-primary">
+          <span className="inline-flex items-center gap-2 rounded-sm border border-gold bg-background/40 px-4 py-1.5 text-[10px] uppercase tracking-[0.3em] text-primary">
             <Sparkles className="h-3 w-3" /> próximo passo
           </span>
           <h3 className="mt-5 font-display text-3xl sm:text-5xl">
