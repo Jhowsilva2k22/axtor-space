@@ -62,6 +62,9 @@ const Admin = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [cfgDirty, setCfgDirty] = useState(false);
+  const [dirtyBlocks, setDirtyBlocks] = useState<Set<string>>(new Set());
+  const [savingAll, setSavingAll] = useState(false);
 
   const load = async () => {
     const [{ data: c }, { data: b }] = await Promise.all([
@@ -70,6 +73,8 @@ const Admin = () => {
     ]);
     setCfg(c as any);
     setBlocks((b as any) ?? []);
+    setCfgDirty(false);
+    setDirtyBlocks(new Set());
     setLoading(false);
   };
 
@@ -101,7 +106,10 @@ const Admin = () => {
       .eq("id", cfg.id);
     setSaving(false);
     if (error) toast.error(error.message);
-    else toast.success("Bio atualizada");
+    else {
+      toast.success("Bio atualizada");
+      setCfgDirty(false);
+    }
   };
 
   const addBlock = async () => {
@@ -123,6 +131,11 @@ const Admin = () => {
 
   const updateBlock = (id: string, patch: Partial<Block>) => {
     setBlocks((bs) => bs.map((b) => (b.id === id ? { ...b, ...patch } : b)));
+    setDirtyBlocks((s) => {
+      const n = new Set(s);
+      n.add(id);
+      return n;
+    });
   };
 
   const saveBlock = async (b: Block) => {
@@ -142,7 +155,14 @@ const Admin = () => {
       })
       .eq("id", b.id);
     if (error) toast.error(error.message);
-    else toast.success("Bloco salvo");
+    else {
+      toast.success("Bloco salvo");
+      setDirtyBlocks((s) => {
+        const n = new Set(s);
+        n.delete(b.id);
+        return n;
+      });
+    }
   };
 
   const deleteBlock = async (id: string) => {
@@ -150,6 +170,11 @@ const Admin = () => {
     const { error } = await supabase.from("bio_blocks").delete().eq("id", id);
     if (error) return toast.error(error.message);
     setBlocks((bs) => bs.filter((b) => b.id !== id));
+    setDirtyBlocks((s) => {
+      const n = new Set(s);
+      n.delete(id);
+      return n;
+    });
   };
 
   const move = async (idx: number, dir: -1 | 1) => {
@@ -196,6 +221,63 @@ const Admin = () => {
     toast.success("Foto atualizada");
   };
 
+  const updateCfg = (patch: Partial<BioConfig>) => {
+    setCfg((c) => (c ? { ...c, ...patch } : c));
+    setCfgDirty(true);
+  };
+
+  const saveAll = async () => {
+    if (!cfg) return;
+    setSavingAll(true);
+    const tasks: any[] = [];
+    if (cfgDirty) {
+      tasks.push(
+        supabase
+          .from("bio_config")
+          .update({
+            display_name: cfg.display_name,
+            headline: cfg.headline,
+            sub_headline: cfg.sub_headline,
+            avatar_url: cfg.avatar_url,
+            footer_text: cfg.footer_text,
+          })
+          .eq("id", cfg.id),
+      );
+    }
+    const dirtyList = blocks.filter((b) => dirtyBlocks.has(b.id));
+    for (const b of dirtyList) {
+      tasks.push(
+        supabase
+          .from("bio_blocks")
+          .update({
+            kind: b.kind,
+            label: b.label,
+            description: b.description,
+            url: b.url,
+            icon: b.icon,
+            badge: b.badge,
+            highlight: b.highlight,
+            is_active: b.is_active,
+            position: b.position,
+            use_brand_color: b.use_brand_color,
+          })
+          .eq("id", b.id),
+      );
+    }
+    const results = await Promise.all(tasks);
+    setSavingAll(false);
+    const failed = results.filter((r: any) => r?.error).length;
+    if (failed > 0) {
+      toast.error(`${failed} alteração(ões) falharam`);
+    } else {
+      toast.success(`Tudo salvo (${tasks.length} alteração${tasks.length === 1 ? "" : "ões"})`);
+      setCfgDirty(false);
+      setDirtyBlocks(new Set());
+    }
+  };
+
+  const totalDirty = (cfgDirty ? 1 : 0) + dirtyBlocks.size;
+
   return (
     <div className="relative min-h-screen overflow-hidden grain">
       <div className="aurora-a" />
@@ -229,7 +311,7 @@ const Admin = () => {
             <h2 className="font-display text-2xl">Cabeçalho da <span className="text-gold italic">bio</span></h2>
             <div className="mt-6 grid gap-4 md:grid-cols-2">
               <Field label="Nome de exibição">
-                <Input value={cfg.display_name} onChange={(e) => setCfg({ ...cfg, display_name: e.target.value })} className="h-11 rounded-sm border-gold bg-input" />
+                <Input value={cfg.display_name} onChange={(e) => updateCfg({ display_name: e.target.value })} className="h-11 rounded-sm border-gold bg-input" />
               </Field>
               <Field label="Foto de perfil">
                 <div className="flex items-center gap-3">
@@ -256,19 +338,19 @@ const Admin = () => {
                 </div>
                 <Input
                   value={cfg.avatar_url ?? ""}
-                  onChange={(e) => setCfg({ ...cfg, avatar_url: e.target.value })}
+                  onChange={(e) => updateCfg({ avatar_url: e.target.value })}
                   placeholder="ou cole uma URL https://..."
                   className="mt-2 h-9 rounded-sm border-gold/50 bg-input text-xs"
                 />
               </Field>
               <Field label="Headline (frase principal)" full>
-                <Textarea value={cfg.headline} onChange={(e) => setCfg({ ...cfg, headline: e.target.value })} rows={3} className="rounded-sm border-gold bg-input" />
+                <Textarea value={cfg.headline} onChange={(e) => updateCfg({ headline: e.target.value })} rows={3} className="rounded-sm border-gold bg-input" />
               </Field>
               <Field label="Sub-headline (linha pequena)">
-                <Input value={cfg.sub_headline ?? ""} onChange={(e) => setCfg({ ...cfg, sub_headline: e.target.value })} className="h-11 rounded-sm border-gold bg-input" />
+                <Input value={cfg.sub_headline ?? ""} onChange={(e) => updateCfg({ sub_headline: e.target.value })} className="h-11 rounded-sm border-gold bg-input" />
               </Field>
               <Field label="Footer">
-                <Input value={cfg.footer_text ?? ""} onChange={(e) => setCfg({ ...cfg, footer_text: e.target.value })} className="h-11 rounded-sm border-gold bg-input" />
+                <Input value={cfg.footer_text ?? ""} onChange={(e) => updateCfg({ footer_text: e.target.value })} className="h-11 rounded-sm border-gold bg-input" />
               </Field>
             </div>
             <div className="mt-6 flex justify-end">
@@ -308,6 +390,23 @@ const Admin = () => {
             </div>
           </section>
         </main>
+      )}
+
+      {totalDirty > 0 && (
+        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-6">
+          <div className="pointer-events-auto flex items-center gap-4 rounded-sm border-gold-gradient bg-background/95 px-5 py-3 shadow-2xl backdrop-blur">
+            <span className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+              {totalDirty} alteração{totalDirty === 1 ? "" : "ões"} pendente{totalDirty === 1 ? "" : "s"}
+            </span>
+            <Button
+              onClick={saveAll}
+              disabled={savingAll}
+              className="btn-luxe h-10 rounded-sm px-5 text-[11px] uppercase tracking-[0.2em]"
+            >
+              {savingAll ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Save className="h-4 w-4" /> Salvar tudo</>}
+            </Button>
+          </div>
+        </div>
       )}
     </div>
   );
