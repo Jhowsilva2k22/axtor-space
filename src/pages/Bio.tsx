@@ -178,15 +178,15 @@ const BlockCard = ({ block }: { block: Block }) => {
       <ArrowUpRight className="h-4 w-4 shrink-0 text-primary opacity-60 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100" />
     </>
   );
-  if (isInternal) {
-    return (
-      <Link to={block.url} className={cls} onClick={onTrack}>
-        {inner}
-      </Link>
-    );
-  }
+  // Sempre abre em nova aba (inclusive rotas internas) para preservar a /bio aberta
   return (
-    <a href={block.url} target="_blank" rel="noopener noreferrer" className={cls} onClick={onTrack}>
+    <a
+      href={block.url}
+      target="_blank"
+      rel={isInternal ? "noopener" : "noopener noreferrer"}
+      className={cls}
+      onClick={onTrack}
+    >
       {inner}
     </a>
   );
