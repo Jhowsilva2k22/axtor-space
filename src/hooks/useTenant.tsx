@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useLocation } from "react-router-dom";
 
 export type Tenant = {
   id: string;
@@ -98,6 +99,7 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
   const [tenant, setTenant] = useState<Tenant | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<TenantCtx["error"]>(null);
+  const location = useLocation();
 
   useEffect(() => {
     let cancelled = false;
@@ -147,7 +149,7 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [location.pathname]);
 
   return <Ctx.Provider value={{ tenant, loading, error }}>{children}</Ctx.Provider>;
 };
