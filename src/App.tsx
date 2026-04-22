@@ -13,6 +13,7 @@ import AdminLogin from "./pages/AdminLogin.tsx";
 import Admin from "./pages/Admin.tsx";
 import AdminAnalytics from "./pages/AdminAnalytics.tsx";
 import AdminBlockMetrics from "./pages/AdminBlockMetrics.tsx";
+import AdminTemplates from "./pages/AdminTemplates.tsx";
 import RedirectCampaign from "./pages/RedirectCampaign.tsx";
 
 const queryClient = new QueryClient();
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="/admin" element={<Admin />} />
             <Route path="/admin/analytics" element={<AdminAnalytics />} />
             <Route path="/admin/blocks/:id" element={<AdminBlockMetrics />} />
+            <Route path="/admin/templates" element={<AdminTemplates />} />
             <Route path="/r/:slug" element={<RedirectCampaign />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
