@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Loader2, Plus, Save, Trash2, ArrowUp, ArrowDown, LogOut, ExternalLink, Eye, EyeOff, BarChart3 } from "lucide-react";
+import { Loader2, Plus, Save, Trash2, ArrowUp, ArrowDown, LogOut, ExternalLink, Eye, EyeOff, BarChart3, GripVertical } from "lucide-react";
 import { Upload } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { IconPicker } from "@/components/IconPicker";
@@ -20,6 +20,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 type BioConfig = {
   id: string;
@@ -43,6 +60,7 @@ type Block = {
   position: number;
   is_active: boolean;
   use_brand_color: boolean;
+  size: "sm" | "md" | "lg";
 };
 
 const KINDS = [
