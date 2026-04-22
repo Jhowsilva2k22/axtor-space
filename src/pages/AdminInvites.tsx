@@ -86,14 +86,19 @@ const AdminInvites = () => {
     }
     setSubmitting(true);
     const code = generateCode(type);
-    const { error } = await supabase.from("invite_codes" as any).insert({
+    const recipient = mode === "email" ? targetEmail.trim().toLowerCase() : null;
+    const { data: inserted, error } = await supabase
+      .from("invite_codes" as any)
+      .insert({
       code,
       type,
       mode,
-      target_email: mode === "email" ? targetEmail.trim().toLowerCase() : null,
+        target_email: recipient,
       note: note.trim() || null,
       created_by: user.id,
-    } as any);
+      } as any)
+      .select()
+      .single();
     setSubmitting(false);
     if (error) {
       toast.error("erro: " + error.message);
@@ -104,8 +109,83 @@ const AdminInvites = () => {
     setTargetEmail(""); setNote(""); setMode("link"); setType("partner");
     await load();
 
-    // TODO: se modo email e infra de email pronta, dispara send-transactional-email
-    // (será ativado quando o domínio de email estiver verificado)
+    // Auto-envio se modo email
+    if (recipient && inserted) {
+      void sendInviteEmail({ ...(inserted as any), code, type, target_email: recipient } as InviteRow);
+    }
+  };
+
+  const sendInviteEmail = async (inv: InviteRow) => {
+    if (!inv.target_email) return;
+    const inviteUrl = buildLink(inv);
+    const templateName = inv.type === "partner" ? "partner-invite" : "tester-invite";
+    const { error } = await supabase.functions.invoke("send-transactional-email", {
+      body: {
+        templateName,
+        recipientEmail: inv.target_email,
+        idempotencyKey: `invite-${inv.code}`,
+        templateData: {
+          name: inv.note || undefined,
+          inviteUrl,
+          note: inv.note || undefined,
+        },
+      },
+    });
+    if (error) {
+      toast.error("convite criado, mas falhou ao enviar email: " + error.message);
+      return;
+    }
+    await supabase
+      .from("invite_codes" as any)
+      .update({ email_sent_at: new Date().toISOString() } as any)
+      .eq("id", inv.id);
+    toast.success(`email enviado pra ${inv.target_email}`);
+    await load();
+  };
+
+  const resendEmail = async (inv: InviteRow) => {
+    toast.loading("enviando email...", { id: `resend-${inv.id}` });
+    await sendInviteEmail(inv);
+    toast.dismiss(`resend-${inv.id}`);
+  };
+
+  // Rotaciona o código: revoga o atual e cria um novo (mesmo tipo/modo/email/nota).
+  // Se o convite foi por email, dispara o novo automaticamente.
+  const rotateInvite = async (inv: InviteRow) => {
+    if (!confirm("gerar novo código? o link/código atual será invalidado imediatamente.")) return;
+    const newCode = generateCode(inv.type);
+    // 1. revoga o antigo com nota apontando pro novo
+    const rotateNote = `rotated → ${newCode}${inv.note ? ` · ${inv.note}` : ""}`;
+    const { error: revErr } = await supabase
+      .from("invite_codes" as any)
+      .update({ revoked_at: new Date().toISOString(), note: rotateNote } as any)
+      .eq("id", inv.id);
+    if (revErr) { toast.error("erro ao revogar antigo: " + revErr.message); return; }
+    // 2. cria o novo
+    const { data: inserted, error: insErr } = await supabase
+      .from("invite_codes" as any)
+      .insert({
+        code: newCode,
+        type: inv.type,
+        mode: inv.mode,
+        target_email: inv.target_email,
+        note: inv.note,
+        created_by: user.id,
+      } as any)
+      .select()
+      .single();
+    if (insErr || !inserted) { toast.error("erro ao criar novo: " + (insErr?.message ?? "")); return; }
+    const newInv = { ...(inserted as any), code: newCode } as InviteRow;
+    // 3. copia link novo
+    const newLink = buildLink(newInv);
+    await navigator.clipboard.writeText(newLink);
+    toast.success("novo código gerado e copiado");
+    // 4. dispara email se for modo email
+    if (newInv.mode === "email" && newInv.target_email) {
+      void sendInviteEmail(newInv);
+    } else {
+      await load();
+    }
   };
 
   const revoke = async (id: string) => {
