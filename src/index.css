@@ -151,8 +151,8 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Manrope', system-ui, sans-serif;
-    font-weight: 300;
+    font-family: var(--font-body);
+    font-weight: var(--font-body-weight);
     font-feature-settings: "ss01", "ss02", "cv11";
     letter-spacing: 0;
     background: var(--gradient-noir);
@@ -160,7 +160,7 @@ All colors MUST be HSL.
   }
 
   h1, h2, h3, .font-display {
-    font-family: 'Cormorant Garamond', 'Didot', 'Bodoni 72', serif;
+    font-family: var(--font-display);
     font-weight: 400;
     letter-spacing: -0.015em;
     font-feature-settings: "lnum";
