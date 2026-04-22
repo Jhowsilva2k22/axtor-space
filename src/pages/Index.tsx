@@ -3,12 +3,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { ArrowRight, Sparkles, Lock, CheckCircle2, AlertTriangle, Loader2, Instagram, TrendingUp, Target, Zap } from "lucide-react";
+import { ArrowRight, Sparkles, Lock, CheckCircle2, AlertTriangle, Loader2, Instagram, TrendingUp, Target, Zap, SearchX } from "lucide-react";
 
 const PROXY = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/proxy-image?url=`;
 const proxied = (url?: string) => (url ? PROXY + encodeURIComponent(url) : "");
 
-type Step = "handle" | "lead" | "loading" | "result" | "private";
+type Step = "handle" | "lead" | "loading" | "result" | "private" | "not_found";
 
 interface DiagnosisData {
   status: string;
@@ -47,9 +47,10 @@ const Index = () => {
 
   const handleSubmitHandle = (e: React.FormEvent) => {
     e.preventDefault();
-    const cleaned = handle.trim().replace(/^@+/, "");
-    if (cleaned.length < 1) {
-      toast.error("Digite seu @ do Instagram");
+    const cleaned = handle.trim().replace(/^@+/, "").toLowerCase();
+    // Instagram só permite letras, números, ponto e underline (1-30 chars)
+    if (!/^[a-z0-9._]{1,30}$/.test(cleaned)) {
+      toast.error("@ inválido. Use apenas letras, números, ponto e underline.");
       return;
     }
     setHandle(cleaned);
@@ -90,7 +91,15 @@ const Index = () => {
       if (result.status === "private_profile") {
         setStep("private");
       } else if (result.status === "completed") {
-        setStep("result");
+        // Se a IA não conseguiu pontuar (perfil vazio/inexistente), tratar como não encontrado
+        const score = result?.diagnosis?.score_geral ?? 0;
+        if (!result.profile?.username || score === 0) {
+          setStep("not_found");
+        } else {
+          setStep("result");
+        }
+      } else if (result.status === "failed") {
+        setStep("not_found");
       } else {
         toast.error(result.error || "Não conseguimos analisar esse perfil agora.");
         setStep("handle");
