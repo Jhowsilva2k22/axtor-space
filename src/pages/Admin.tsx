@@ -215,6 +215,27 @@ const Admin = () => {
     ]);
   };
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = blocks.findIndex((b) => b.id === active.id);
+    const newIndex = blocks.findIndex((b) => b.id === over.id);
+    if (oldIndex < 0 || newIndex < 0) return;
+    const reordered = arrayMove(blocks, oldIndex, newIndex).map((b, i) => ({ ...b, position: i + 1 }));
+    setBlocks(reordered);
+    const updates = reordered.map((b) =>
+      supabase.from("bio_blocks").update({ position: b.position }).eq("id", b.id),
+    );
+    const results = await Promise.all(updates);
+    const failed = results.filter((r: any) => r?.error).length;
+    if (failed > 0) toast.error("Falha ao salvar nova ordem");
+  };
+
   const uploadAvatar = async (file: File) => {
     if (!cfg) return;
     if (file.size > 5 * 1024 * 1024) {
