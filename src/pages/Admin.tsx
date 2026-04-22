@@ -613,12 +613,16 @@ const Field = ({ label, children, full }: { label: string; children: React.React
 );
 
 const BlockEditor = ({
-  block, categories, onChange, onSave, onDelete, onMoveUp, onMoveDown, isFirst, isLast,
+  block, hasDraft, isPublishing, categories, onChange, onSave, onPublish, onDiscardDraft, onDelete, onMoveUp, onMoveDown, isFirst, isLast,
 }: {
   block: Block;
+  hasDraft: boolean;
+  isPublishing: boolean;
   categories: Category[];
   onChange: (p: Partial<Block>) => void;
   onSave: () => void;
+  onPublish: () => void;
+  onDiscardDraft: () => void;
   onDelete: () => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
@@ -636,8 +640,38 @@ const BlockEditor = ({
     <div
       ref={setNodeRef}
       style={style}
-      className={`rounded-sm border p-5 transition-all ${block.is_active ? "border-gold bg-card/60" : "border-border bg-card/30 opacity-60"} ${isDragging ? "shadow-2xl" : ""}`}
+      className={`rounded-sm border p-5 transition-all ${
+        hasDraft
+          ? "border-yellow-500/70 bg-yellow-500/[0.04]"
+          : block.is_active
+            ? "border-gold bg-card/60"
+            : "border-border bg-card/30 opacity-60"
+      } ${isDragging ? "shadow-2xl" : ""}`}
     >
+      {hasDraft && (
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-sm border border-yellow-500/40 bg-yellow-500/5 px-3 py-2">
+          <span className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.2em] text-yellow-500">
+            <FileEdit className="h-3 w-3" /> rascunho não publicado
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onDiscardDraft}
+              className="inline-flex h-8 items-center gap-1.5 rounded-sm border border-border px-3 text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-primary"
+            >
+              <Undo2 className="h-3 w-3" /> Descartar
+            </button>
+            <Button
+              type="button"
+              onClick={onPublish}
+              disabled={isPublishing}
+              className="btn-luxe h-8 rounded-sm px-3 text-[10px] uppercase tracking-[0.2em]"
+            >
+              {isPublishing ? <Loader2 className="h-3 w-3 animate-spin" /> : <><Send className="h-3 w-3" /> Publicar</>}
+            </Button>
+          </div>
+        </div>
+      )}
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <button
