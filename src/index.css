@@ -215,4 +215,32 @@ All colors MUST be HSL.
   .btn-luxe:hover::after {
     animation: btn-shimmer 1.1s ease-out;
   }
+
+  /* Subtle sheen sweep — for badges/pills, contained inside */
+  @keyframes sheen-sweep {
+    0% { transform: translateX(-150%) skewX(-20deg); }
+    60%, 100% { transform: translateX(250%) skewX(-20deg); }
+  }
+  .sheen {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .sheen::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 40%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, hsl(43 90% 85% / 0.25), transparent);
+    transform: translateX(-150%) skewX(-20deg);
+    animation: sheen-sweep 4.5s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .sheen > * {
+    position: relative;
+    z-index: 1;
+  }
 }
