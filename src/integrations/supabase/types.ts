@@ -396,6 +396,10 @@ export type Database = {
     }
     Functions: {
       get_analytics_summary: { Args: { _days?: number }; Returns: Json }
+      get_block_analytics: {
+        Args: { _block_id: string; _days?: number }
+        Returns: Json
+      }
       get_diagnostic_public: {
         Args: { _id: string }
         Returns: {
