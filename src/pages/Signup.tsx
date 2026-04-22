@@ -44,15 +44,22 @@ const Signup = () => {
   const { user, loading: authLoading } = useAuth();
   const { refresh } = useCurrentTenant();
   const nav = useNavigate();
+  const [searchParams] = useSearchParams();
+  const initialInvite = (searchParams.get("invite") || "").toUpperCase();
+  const initialEmail = searchParams.get("email") || "";
 
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState("");
   const [slug, setSlug] = useState("");
   const [slugTouched, setSlugTouched] = useState(false);
   const [accept, setAccept] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [created, setCreated] = useState<Created | null>(null);
+  const [inviteOpen, setInviteOpen] = useState(!!initialInvite);
+  const [inviteCode, setInviteCode] = useState(initialInvite);
+  const [inviteChecking, setInviteChecking] = useState(false);
+  const [inviteStatus, setInviteStatus] = useState<{ valid: boolean; type?: string; reason?: string } | null>(null);
 
   // sugestão automática a partir do nome
   useEffect(() => {
