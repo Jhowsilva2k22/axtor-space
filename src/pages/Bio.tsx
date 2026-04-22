@@ -6,6 +6,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import AmbientPlayer from "@/components/AmbientPlayer";
 import FeedbackWidget from "@/components/FeedbackWidget";
 import { trackPageView, trackBioClick } from "@/lib/analytics";
+import { useTenant } from "@/hooks/useTenant";
 
 type BioConfig = {
   display_name: string;
@@ -65,6 +66,7 @@ const getBrandStyle = (block: Block) => {
 };
 
 const Bio = () => {
+  const { tenant, loading: tenantLoading, error: tenantError } = useTenant();
   const [cfg, setCfg] = useState<BioConfig | null>(null);
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -74,11 +76,12 @@ const Bio = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!tenant) return;
     (async () => {
       const [{ data: c }, { data: b }, { data: cats }] = await Promise.all([
-        supabase.from("bio_config").select("*").eq("singleton", true).maybeSingle(),
-        supabase.from("bio_blocks").select("*").eq("is_active", true).order("position", { ascending: true }),
-        supabase.from("bio_categories").select("*").eq("is_active", true).order("position", { ascending: true }),
+        supabase.from("bio_config").select("*").eq("tenant_id", tenant.id).maybeSingle(),
+        supabase.from("bio_blocks").select("*").eq("tenant_id", tenant.id).eq("is_active", true).order("position", { ascending: true }),
+        supabase.from("bio_categories").select("*").eq("tenant_id", tenant.id).eq("is_active", true).order("position", { ascending: true }),
       ]);
       setCfg(c as any);
       setBlocks((b as any) ?? []);
@@ -86,12 +89,30 @@ const Bio = () => {
       setLoading(false);
     })();
     trackPageView("/bio");
-  }, []);
+  }, [tenant?.id]);
 
-  if (loading) {
+  if (tenantLoading || (loading && !tenantError)) {
     return (
       <div className="flex min-h-screen items-center justify-center grain">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (tenantError === "not_found") {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 grain px-6 text-center">
+        <h1 className="font-display text-3xl text-foreground">Bio não encontrada</h1>
+        <p className="text-sm text-muted-foreground">Esta página não existe ou foi desativada.</p>
+      </div>
+    );
+  }
+
+  if (tenantError === "suspended") {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 grain px-6 text-center">
+        <h1 className="font-display text-3xl text-foreground">Bio temporariamente indisponível</h1>
+        <p className="text-sm text-muted-foreground">Esta página está suspensa no momento.</p>
       </div>
     );
   }
