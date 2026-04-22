@@ -134,23 +134,15 @@ const BlockCard = ({ block }: { block: Block }) => {
   const inner = (
     <>
       <div
-        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-sm"
-        style={
-          brand
-            ? { background: brand.bg }
-            : undefined
-        }
+        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-sm ${
+          brand ? "" : block.highlight ? "bg-background/40" : "bg-gradient-gold-soft"
+        }`}
+        style={brand ? { background: brand.bg } : undefined}
       >
         <Icon
           className={`h-5 w-5 ${brand ? "" : "text-primary"}`}
           style={brand ? { color: brand.color } : undefined}
         />
-        {!brand && (
-          <span
-            aria-hidden
-            className={`absolute inset-0 -z-10 rounded-sm ${block.highlight ? "bg-background/40" : "bg-gradient-gold-soft"}`}
-          />
-        )}
       </div>
       <div className="min-w-0 flex-1 text-left">
         <div className="flex items-center gap-2">
