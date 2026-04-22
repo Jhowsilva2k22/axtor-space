@@ -572,6 +572,16 @@ const BlockEditor = ({
         <Field label="Badge (opcional)">
           <Input value={block.badge ?? ""} onChange={(e) => onChange({ badge: e.target.value })} placeholder="novo, popular, afiliado..." className="h-11 rounded-sm border-gold bg-input" />
         </Field>
+        <Field label="Tamanho">
+          <Select value={block.size ?? "md"} onValueChange={(v) => onChange({ size: v as "sm" | "md" | "lg" })}>
+            <SelectTrigger className="h-11 rounded-sm border-gold bg-input"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="sm">Compacto</SelectItem>
+              <SelectItem value="md">Normal</SelectItem>
+              <SelectItem value="lg">Destaque (hero)</SelectItem>
+            </SelectContent>
+          </Select>
+        </Field>
         <Field label="URL" full>
           <Input value={block.url} onChange={(e) => onChange({ url: e.target.value })} placeholder="https:// ou /rota interna" className="h-11 rounded-sm border-gold bg-input" />
         </Field>
