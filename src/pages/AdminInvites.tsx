@@ -358,6 +358,7 @@ const AdminInvites = () => {
                     <p className="mt-1 text-[10px] text-muted-foreground/70">
                       criado em {new Date(inv.created_at).toLocaleString("pt-BR")}
                       {inv.used_at && ` · usado em ${new Date(inv.used_at).toLocaleString("pt-BR")}`}
+                      {inv.email_sent_at && ` · email enviado em ${new Date(inv.email_sent_at).toLocaleString("pt-BR")}`}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
