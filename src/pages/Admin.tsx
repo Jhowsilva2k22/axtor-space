@@ -158,6 +158,7 @@ const Admin = () => {
         sub_headline: cfg.sub_headline,
         avatar_url: cfg.avatar_url,
         footer_text: cfg.footer_text,
+        cover_url: cfg.cover_url,
       })
       .eq("id", cfg.id);
     setSaving(false);
@@ -409,6 +410,7 @@ const Admin = () => {
             sub_headline: cfg.sub_headline,
             avatar_url: cfg.avatar_url,
             footer_text: cfg.footer_text,
+            cover_url: cfg.cover_url,
           })
           .eq("id", cfg.id),
       );
