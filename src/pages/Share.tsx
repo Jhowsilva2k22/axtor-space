@@ -20,11 +20,8 @@ const SharePage = () => {
       return;
     }
     (async () => {
-      const { data: diag, error } = await supabase
-        .from("diagnostics")
-        .select("instagram_handle, profile_data, scores, insights, ai_summary, status")
-        .eq("id", id)
-        .maybeSingle();
+      const { data: rows, error } = await supabase.rpc("get_diagnostic_public", { _id: id });
+      const diag = Array.isArray(rows) ? rows[0] : rows;
       if (error || !diag || diag.status !== "completed") {
         setNotFound(true);
       } else {
