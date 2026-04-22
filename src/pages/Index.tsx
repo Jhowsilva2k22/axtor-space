@@ -328,6 +328,89 @@ const NotFoundStep = ({ handle, onRetry }: { handle: string; onRetry: () => void
   </div>
 );
 
+const BlockedStep = ({ data }: { data: DiagnosisData }) => {
+  const unlocks = data.unlocks_at ? new Date(data.unlocks_at) : null;
+  const fmt = unlocks
+    ? unlocks.toLocaleDateString("pt-BR", { day: "2-digit", month: "long" }) +
+      " às " +
+      unlocks.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+    : "em breve";
+  return (
+    <div className="animate-fade-up mx-auto max-w-xl text-center">
+      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-sm border border-gold bg-card">
+        <Clock className="h-7 w-7 text-primary" />
+      </div>
+      <h2 className="mt-6 font-display text-4xl">
+        Esse perfil já foi <span className="text-gold italic">analisado 3x</span> essa semana
+      </h2>
+      <p className="mt-4 text-muted-foreground">
+        {data.message ||
+          "Pra manter a qualidade da análise (e não te dar o mesmo diagnóstico em loop), liberamos no máximo 3 análises por semana pelo mesmo @."}
+      </p>
+      <div className="mt-8 rounded-sm border-gold-gradient p-6 text-left text-sm font-light">
+        <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Próxima liberação</p>
+        <p className="mt-2 font-display text-2xl text-gold">{fmt}</p>
+      </div>
+      <p className="mt-8 text-xs uppercase tracking-[0.25em] text-muted-foreground">
+        enquanto isso, espalha pra rede
+      </p>
+      <div className="mt-4">
+        <ShareButton handle={data.handle} />
+      </div>
+    </div>
+  );
+};
+
+const ShareButton = ({
+  diagnosticId,
+  handle,
+  score,
+}: {
+  diagnosticId?: string;
+  handle?: string;
+  score?: number;
+}) => {
+  const [copied, setCopied] = useState(false);
+  const url = diagnosticId
+    ? `${window.location.origin}/d/${diagnosticId}`
+    : window.location.origin;
+  const text = score
+    ? `Acabei de descobrir que meu Instagram tá com nota ${score}/100 nesse diagnóstico. Faz o seu, é em 30 segundos:`
+    : `Faz o diagnóstico do seu Instagram em 30 segundos:`;
+  const waMsg = encodeURIComponent(`${text} ${url}`);
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      toast.success("Link copiado");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Não consegui copiar");
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+      <a
+        href={`https://wa.me/?text=${waMsg}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="btn-luxe inline-flex h-12 items-center gap-2 rounded-sm px-6 text-xs font-semibold uppercase tracking-[0.15em]"
+      >
+        <Share2 className="h-4 w-4" /> Compartilhar no WhatsApp
+      </a>
+      <button
+        onClick={copy}
+        className="inline-flex h-12 items-center gap-2 rounded-sm border border-gold bg-card/40 px-5 text-xs font-semibold uppercase tracking-[0.15em] text-primary transition-all hover:bg-gradient-gold-soft"
+      >
+        {copied ? <Check className="h-4 w-4" /> : <Share2 className="h-4 w-4" />}
+        {copied ? "Copiado" : "Copiar link"}
+      </button>
+    </div>
+  );
+};
+
 const ResultStep = ({ data, onRestart }: { data: DiagnosisData; onRestart: () => void }) => {
   const d = data.diagnosis!;
   const p = data.profile!;
