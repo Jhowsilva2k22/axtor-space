@@ -84,6 +84,17 @@ Foto (upload ≤5MB ou URL), nome, headline, sub-headline, footer.
 - ✅ Botão **"Salvar cabeçalho"**
 - ✅ **Barra flutuante "Salvar tudo"** (NOVO) — aparece só quando há alterações pendentes, mostra contador e dispara todos os updates em paralelo. Evita perder edição esquecida.
 
+### 🎵 Ambient Player (NOVO)
+- Componente `src/components/AmbientPlayer.tsx` montado dentro de `/bio`.
+- 8 faixas instrumentais íntimas em `public/music/` (piano lento, ~50s loop, mono 80kbps, fade-in/out de 4s).
+- **Sorteio aleatório** a cada visita (`useRef` na montagem, mantém estável durante re-renders).
+- Volume-alvo **0.18** com fade-in de 4s — ambiente, não trilha.
+- Tenta autoplay mudo; se bloqueado pelo navegador, qualquer interação (`pointerdown`, `keydown`, `touchstart`, `scroll`) ativa.
+- Tooltip dourado "toque pra ativar som ✨" aparece 6s quando autoplay é bloqueado.
+- Botão fixo top-right (volume on/off) com pulse dourado quando aguarda gesto.
+- Preferência salva em `localStorage` (`bio-ambient-pref` = `"on"|"off"`).
+- Crédito discreto no footer apontando para bensound.com.
+
 ---
 
 ## 🔁 Funil — tela de resultado
@@ -137,3 +148,5 @@ Persona da IA: **Estrategista de mercado** — bandas qualitativas + verdict fra
 ---
 
 _Atualizado em 22/04/2026 após inclusão da barra "Salvar tudo" no painel._
+
+_Atualizado novamente em 22/04/2026 com Ambient Player aleatório no /bio._
