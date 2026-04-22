@@ -110,6 +110,7 @@ const AdminBlockMetrics = () => {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="1">24 horas</SelectItem>
                 <SelectItem value="7">7 dias</SelectItem>
                 <SelectItem value="30">30 dias</SelectItem>
                 <SelectItem value="90">90 dias</SelectItem>

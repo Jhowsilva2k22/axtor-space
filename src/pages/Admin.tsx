@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Loader2, Plus, Save, Trash2, ArrowUp, ArrowDown, LogOut, ExternalLink, Eye, EyeOff, BarChart3, GripVertical, FileEdit, Send, Undo2 } from "lucide-react";
+import { Loader2, Plus, Save, Trash2, ArrowUp, ArrowDown, LogOut, ExternalLink, Eye, EyeOff, BarChart3, GripVertical, FileEdit, Send, Undo2, Copy } from "lucide-react";
 import { Upload } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { IconPicker } from "@/components/IconPicker";
@@ -177,10 +177,36 @@ const Admin = () => {
     setBlocks((bs) => [...bs, data as any]);
   };
 
+  const duplicateBlock = async (b: Block) => {
+    const nextPos = (blocks[blocks.length - 1]?.position ?? 0) + 1;
+    const { data, error } = await supabase
+      .from("bio_blocks")
+      .insert({
+        kind: b.kind,
+        label: `${b.label} (cópia)`,
+        description: b.description,
+        url: b.url,
+        icon: b.icon,
+        icon_url: b.icon_url,
+        badge: b.badge,
+        highlight: b.highlight,
+        use_brand_color: b.use_brand_color,
+        size: "md",
+        category_id: b.category_id,
+        position: nextPos,
+        is_active: false,
+      })
+      .select()
+      .single();
+    if (error) return toast.error(error.message);
+    setBlocks((bs) => [...bs, data as any]);
+    toast.success("Bloco duplicado — revise e ative");
+  };
+
   // Campos que entram em rascunho. position/is_active são sempre publicados (UX direta).
   const DRAFT_FIELDS: (keyof Block)[] = [
     "kind", "label", "description", "url", "icon", "icon_url",
-    "badge", "highlight", "use_brand_color", "size", "category_id",
+    "badge", "highlight", "use_brand_color", "category_id",
   ];
 
   // Mescla campos publicados + rascunho para exibição/edição no admin.
@@ -541,7 +567,13 @@ const Admin = () => {
                     "Todos os direitos reservados",
                   ]}
                   placeholder="Texto do rodapé (opcional)"
+                  customLabel="Usar texto personalizado"
                 />
+                {cfg.footer_text && (
+                  <p className="mt-2 text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+                    prévia: <span className="text-primary">{cfg.footer_text}</span>
+                  </p>
+                )}
               </Field>
             </div>
             <div className="mt-6 flex justify-end">
@@ -583,6 +615,7 @@ const Admin = () => {
                       onPublish={() => publishBlock(viewBlock(b))}
                       onDiscardDraft={() => discardDraft(b)}
                       onDelete={() => deleteBlock(b.id)}
+                      onDuplicate={() => duplicateBlock(viewBlock(b))}
                       onMoveUp={() => move(i, -1)}
                       onMoveDown={() => move(i, 1)}
                     />
@@ -639,7 +672,7 @@ const Field = ({ label, children, full }: { label: string; children: React.React
 );
 
 const BlockEditor = ({
-  block, hasDraft, isPublishing, categories, onChange, onSave, onPublish, onDiscardDraft, onDelete, onMoveUp, onMoveDown, isFirst, isLast,
+  block, hasDraft, isPublishing, categories, onChange, onSave, onPublish, onDiscardDraft, onDelete, onDuplicate, onMoveUp, onMoveDown, isFirst, isLast,
 }: {
   block: Block;
   hasDraft: boolean;
@@ -650,6 +683,7 @@ const BlockEditor = ({
   onPublish: () => void;
   onDiscardDraft: () => void;
   onDelete: () => void;
+  onDuplicate: () => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
   isFirst: boolean;
@@ -769,17 +803,16 @@ const BlockEditor = ({
             onChange={(v) => onChange({ badge: v || null })}
             presets={["NOVO", "OFERTA", "EM BREVE", "ESGOTADO", "POPULAR", "GRÁTIS", "LIMITADO", "EXCLUSIVO"]}
             placeholder="Sem badge"
+            customLabel="Usar badge personalizada"
           />
-        </Field>
-        <Field label="Tamanho">
-          <Select value={block.size ?? "md"} onValueChange={(v) => onChange({ size: v as "sm" | "md" | "lg" })}>
-            <SelectTrigger className="h-11 rounded-sm border-gold bg-input"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="sm">Compacto</SelectItem>
-              <SelectItem value="md">Normal</SelectItem>
-              <SelectItem value="lg">Destaque (hero)</SelectItem>
-            </SelectContent>
-          </Select>
+          {block.badge && (
+            <div className="mt-2 inline-flex items-center gap-2 rounded-sm border border-gold/40 bg-card/40 px-2 py-1">
+              <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">prévia:</span>
+              <span className="rounded-sm border border-gold bg-background/40 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.2em] text-primary">
+                {block.badge}
+              </span>
+            </div>
+          )}
         </Field>
         <Field label="Categoria">
           <Select
@@ -811,9 +844,14 @@ const BlockEditor = ({
       </div>
 
       <div className="mt-5 flex justify-between">
-        <button onClick={onDelete} className="inline-flex h-10 items-center gap-2 rounded-sm border border-destructive/40 px-4 text-[10px] uppercase tracking-[0.2em] text-destructive hover:bg-destructive/10">
-          <Trash2 className="h-3.5 w-3.5" /> Excluir
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={onDelete} className="inline-flex h-10 items-center gap-2 rounded-sm border border-destructive/40 px-4 text-[10px] uppercase tracking-[0.2em] text-destructive hover:bg-destructive/10">
+            <Trash2 className="h-3.5 w-3.5" /> Excluir
+          </button>
+          <button onClick={onDuplicate} className="inline-flex h-10 items-center gap-2 rounded-sm border border-gold/40 px-4 text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:border-gold hover:text-primary">
+            <Copy className="h-3.5 w-3.5" /> Duplicar
+          </button>
+        </div>
         <Button onClick={onSave} className="btn-luxe h-10 rounded-sm px-5 text-[10px] uppercase tracking-[0.2em]">
           <Save className="h-3.5 w-3.5" /> Salvar bloco
         </Button>

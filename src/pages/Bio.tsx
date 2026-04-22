@@ -25,7 +25,6 @@ type Block = {
   highlight: boolean;
   position: number;
   use_brand_color: boolean;
-  size?: "sm" | "md" | "lg" | null;
   category_id?: string | null;
 };
 
@@ -191,32 +190,18 @@ const Bio = () => {
 };
 
 const BlockCard = ({ block }: { block: Block }) => {
-  // (defined below)
   const Icon = (block.icon && (LucideIcons as any)[block.icon]) || LucideIcons.Link2;
   const isInternal = block.url.startsWith("/");
   const brand = getBrandStyle(block);
   const hasCustomIcon = !!block.icon_url;
   const onTrack = () =>
     trackBioClick({ id: block.id, kind: block.kind, label: block.label, url: block.url });
-  const size = block.size ?? "md";
-  const sizeCls =
-    size === "sm"
-      ? "gap-3 p-3"
-      : size === "lg"
-        ? "gap-5 p-6"
-        : "gap-4 p-4";
-  const iconBoxCls =
-    size === "sm" ? "h-9 w-9" : size === "lg" ? "h-14 w-14" : "h-11 w-11";
-  const iconSvgCls =
-    size === "sm" ? "h-4 w-4" : size === "lg" ? "h-7 w-7" : "h-5 w-5";
-  const customIconCls =
-    size === "sm" ? "h-6 w-6" : size === "lg" ? "h-9 w-9" : "h-7 w-7";
-  const labelCls =
-    size === "sm"
-      ? "text-xs"
-      : size === "lg"
-        ? "text-base"
-        : "text-sm";
+  // Layout fixo "md" para manter consistência visual em todos os cards.
+  const sizeCls = "gap-4 p-4";
+  const iconBoxCls = "h-11 w-11";
+  const iconSvgCls = "h-5 w-5";
+  const customIconCls = "h-7 w-7";
+  const labelCls = "text-sm";
   const cls = `block-shimmer group relative flex w-full items-center overflow-hidden rounded-sm border transition-all duration-300 hover:-translate-y-0.5 ${sizeCls} ${
     block.highlight
       ? "border-gold bg-gradient-gold-soft shadow-gold hover:shadow-gold-lg"
