@@ -495,6 +495,7 @@ const Admin = () => {
                 {totalDrafts} rascunho{totalDrafts === 1 ? "" : "s"}
               </span>
             )}
+            <TenantSelector />
             <ThemeToggle />
             <Link to="/admin/templates" className="inline-flex h-10 items-center gap-2 rounded-sm border border-gold bg-card/40 px-4 text-[11px] uppercase tracking-[0.2em] text-primary transition-all hover:bg-gradient-gold-soft">
               Templates <Palette className="h-3.5 w-3.5" />
