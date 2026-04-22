@@ -127,9 +127,51 @@ const Bio = () => {
         </div>
 
         <div id="blocks" className="stagger mt-12 space-y-3">
-          {blocks.map((b) => (
-            <BlockCard key={b.id} block={b} />
-          ))}
+          {categories.length > 0 && (
+            <div className="mb-6 flex flex-wrap items-center justify-center gap-2">
+              <CategoryChip active={activeCat === "all"} onClick={() => setActiveCat("all")}>
+                Todos
+              </CategoryChip>
+              {categories.map((c) => (
+                <CategoryChip key={c.id} active={activeCat === c.id} onClick={() => setActiveCat(c.id)}>
+                  {c.name}
+                </CategoryChip>
+              ))}
+              <button
+                onClick={() => setSearchOpen((v) => !v)}
+                aria-label="Buscar"
+                className={`inline-flex h-8 items-center justify-center rounded-sm border px-2 transition-all ${
+                  searchOpen ? "border-gold bg-gradient-gold-soft text-primary" : "border-gold/40 text-muted-foreground hover:border-gold hover:text-primary"
+                }`}
+              >
+                {searchOpen ? <X className="h-3.5 w-3.5" /> : <Search className="h-3.5 w-3.5" />}
+              </button>
+            </div>
+          )}
+          {searchOpen && (
+            <div className="mb-4 animate-fade-up">
+              <input
+                autoFocus
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Buscar..."
+                className="w-full rounded-sm border border-gold/40 bg-card/40 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/60 focus:border-gold focus:outline-none"
+              />
+            </div>
+          )}
+          {blocks
+            .filter((b) => activeCat === "all" || b.category_id === activeCat)
+            .filter((b) => {
+              if (!search.trim()) return true;
+              const q = search.toLowerCase();
+              return (
+                b.label.toLowerCase().includes(q) ||
+                (b.description ?? "").toLowerCase().includes(q)
+              );
+            })
+            .map((b) => (
+              <BlockCard key={b.id} block={b} />
+            ))}
         </div>
 
         <footer className="mt-16 text-center">
