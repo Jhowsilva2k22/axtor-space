@@ -163,6 +163,36 @@ const Admin = () => {
     ]);
   };
 
+  const uploadAvatar = async (file: File) => {
+    if (!cfg) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Imagem muito grande (máx 5MB)");
+      return;
+    }
+    setUploadingAvatar(true);
+    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    const path = `bio/avatar-${Date.now()}.${ext}`;
+    const { error: upErr } = await supabase.storage.from("avatars").upload(path, file, {
+      cacheControl: "3600",
+      upsert: false,
+      contentType: file.type,
+    });
+    if (upErr) {
+      setUploadingAvatar(false);
+      return toast.error(upErr.message);
+    }
+    const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
+    const url = pub.publicUrl;
+    const { error: updErr } = await supabase
+      .from("bio_config")
+      .update({ avatar_url: url })
+      .eq("id", cfg.id);
+    setUploadingAvatar(false);
+    if (updErr) return toast.error(updErr.message);
+    setCfg({ ...cfg, avatar_url: url });
+    toast.success("Foto atualizada");
+  };
+
   return (
     <div className="min-h-screen grain">
       <header className="sticky top-0 z-30 border-b border-gold/30 bg-background/80 backdrop-blur">
