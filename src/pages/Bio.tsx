@@ -69,6 +69,7 @@ const Bio = () => {
       setBlocks((b as any) ?? []);
       setLoading(false);
     })();
+    trackPageView("/bio");
   }, []);
 
   if (loading) {
