@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Loader2, Plus, Save, Trash2, ArrowUp, ArrowDown, LogOut, ExternalLink, Eye, EyeOff, BarChart3, GripVertical } from "lucide-react";
+import { Loader2, Plus, Save, Trash2, ArrowUp, ArrowDown, LogOut, ExternalLink, Eye, EyeOff, BarChart3, GripVertical, FileEdit, Send, Undo2 } from "lucide-react";
 import { Upload } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { IconPicker } from "@/components/IconPicker";
@@ -63,6 +63,8 @@ type Block = {
   use_brand_color: boolean;
   size: "sm" | "md" | "lg";
   category_id: string | null;
+  draft_data: Partial<Block> | null;
+  has_draft: boolean;
 };
 
 const KINDS = [
@@ -91,6 +93,8 @@ const Admin = () => {
   const [dirtyBlocks, setDirtyBlocks] = useState<Set<string>>(new Set());
   const [savingAll, setSavingAll] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [publishImmediate, setPublishImmediate] = useState(false);
+  const [publishingId, setPublishingId] = useState<string | null>(null);
 
   const load = async () => {
     const [{ data: c }, { data: b }, { data: cats }] = await Promise.all([
@@ -157,6 +161,18 @@ const Admin = () => {
     setBlocks((bs) => [...bs, data as any]);
   };
 
+  // Campos que entram em rascunho. position/is_active são sempre publicados (UX direta).
+  const DRAFT_FIELDS: (keyof Block)[] = [
+    "kind", "label", "description", "url", "icon", "icon_url",
+    "badge", "highlight", "use_brand_color", "size", "category_id",
+  ];
+
+  // Mescla campos publicados + rascunho para exibição/edição no admin.
+  const viewBlock = (b: Block): Block => {
+    if (!b.has_draft || !b.draft_data) return b;
+    return { ...b, ...(b.draft_data as Partial<Block>) };
+  };
+
   const updateBlock = (id: string, patch: Partial<Block>) => {
     setBlocks((bs) => bs.map((b) => (b.id === id ? { ...b, ...patch } : b)));
     setDirtyBlocks((s) => {
@@ -166,33 +182,85 @@ const Admin = () => {
     });
   };
 
-  const saveBlock = async (b: Block) => {
-    const { error } = await supabase
-      .from("bio_blocks")
-      .update({
-        kind: b.kind,
-        label: b.label,
-        description: b.description,
-        url: b.url,
-        icon: b.icon,
-        badge: b.badge,
-        highlight: b.highlight,
-        is_active: b.is_active,
-        position: b.position,
-        use_brand_color: b.use_brand_color,
-        size: b.size,
-        category_id: b.category_id,
-      })
-      .eq("id", b.id);
-    if (error) toast.error(error.message);
-    else {
-      toast.success("Bloco salvo");
-      setDirtyBlocks((s) => {
-        const n = new Set(s);
-        n.delete(b.id);
-        return n;
-      });
+  // Constrói o draft_data a partir dos campos atuais (no estado local).
+  const buildDraft = (b: Block) => {
+    const d: Record<string, any> = {};
+    DRAFT_FIELDS.forEach((k) => {
+      d[k as string] = (b as any)[k];
+    });
+    return d;
+  };
+
+  const saveBlock = async (b: Block, opts?: { publish?: boolean }) => {
+    const publish = !!opts?.publish || publishImmediate;
+    if (publish) {
+      const { error } = await supabase
+        .from("bio_blocks")
+        .update({
+          kind: b.kind,
+          label: b.label,
+          description: b.description,
+          url: b.url,
+          icon: b.icon,
+          badge: b.badge,
+          highlight: b.highlight,
+          is_active: b.is_active,
+          position: b.position,
+          use_brand_color: b.use_brand_color,
+          size: b.size,
+          category_id: b.category_id,
+          draft_data: null,
+          has_draft: false,
+        })
+        .eq("id", b.id);
+      if (error) return toast.error(error.message);
+      setBlocks((bs) => bs.map((x) => (x.id === b.id ? { ...x, draft_data: null, has_draft: false } : x)));
+      toast.success("Bloco publicado");
+    } else {
+      const draft = buildDraft(b);
+      const { error } = await supabase
+        .from("bio_blocks")
+        .update({
+          // Campos sempre publicados: posição e visibilidade
+          position: b.position,
+          is_active: b.is_active,
+          draft_data: draft,
+          has_draft: true,
+        })
+        .eq("id", b.id);
+      if (error) return toast.error(error.message);
+      setBlocks((bs) => bs.map((x) => (x.id === b.id ? { ...x, draft_data: draft, has_draft: true } : x)));
+      toast.success("Rascunho salvo");
     }
+    setDirtyBlocks((s) => {
+      const n = new Set(s);
+      n.delete(b.id);
+      return n;
+    });
+  };
+
+  const publishBlock = async (b: Block) => {
+    setPublishingId(b.id);
+    await saveBlock(b, { publish: true });
+    setPublishingId(null);
+  };
+
+  const discardDraft = async (b: Block) => {
+    if (!confirm("Descartar rascunho deste bloco?")) return;
+    const { error, data } = await supabase
+      .from("bio_blocks")
+      .update({ draft_data: null, has_draft: false })
+      .eq("id", b.id)
+      .select()
+      .single();
+    if (error) return toast.error(error.message);
+    setBlocks((bs) => bs.map((x) => (x.id === b.id ? (data as any) : x)));
+    setDirtyBlocks((s) => {
+      const n = new Set(s);
+      n.delete(b.id);
+      return n;
+    });
+    toast.success("Rascunho descartado");
   };
 
   const deleteBlock = async (id: string) => {
@@ -297,25 +365,42 @@ const Admin = () => {
     }
     const dirtyList = blocks.filter((b) => dirtyBlocks.has(b.id));
     for (const b of dirtyList) {
-      tasks.push(
-        supabase
-          .from("bio_blocks")
-          .update({
-            kind: b.kind,
-            label: b.label,
-            description: b.description,
-            url: b.url,
-            icon: b.icon,
-            badge: b.badge,
-            highlight: b.highlight,
-            is_active: b.is_active,
-            position: b.position,
-            use_brand_color: b.use_brand_color,
-            size: b.size,
-            category_id: b.category_id,
-          })
-          .eq("id", b.id),
-      );
+      if (publishImmediate) {
+        tasks.push(
+          supabase
+            .from("bio_blocks")
+            .update({
+              kind: b.kind,
+              label: b.label,
+              description: b.description,
+              url: b.url,
+              icon: b.icon,
+              badge: b.badge,
+              highlight: b.highlight,
+              is_active: b.is_active,
+              position: b.position,
+              use_brand_color: b.use_brand_color,
+              size: b.size,
+              category_id: b.category_id,
+              draft_data: null,
+              has_draft: false,
+            })
+            .eq("id", b.id),
+        );
+      } else {
+        const draft = buildDraft(b);
+        tasks.push(
+          supabase
+            .from("bio_blocks")
+            .update({
+              position: b.position,
+              is_active: b.is_active,
+              draft_data: draft,
+              has_draft: true,
+            })
+            .eq("id", b.id),
+        );
+      }
     }
     const results = await Promise.all(tasks);
     setSavingAll(false);
@@ -323,13 +408,31 @@ const Admin = () => {
     if (failed > 0) {
       toast.error(`${failed} alteração(ões) falharam`);
     } else {
-      toast.success(`Tudo salvo (${tasks.length} alteração${tasks.length === 1 ? "" : "ões"})`);
+      const verb = publishImmediate ? "publicada" : "salva como rascunho";
+      toast.success(`${tasks.length} alteração${tasks.length === 1 ? "" : "ões"} ${verb}${publishImmediate ? "" : "s"}`);
       setCfgDirty(false);
+      // Refletir local: marca has_draft=true se foi rascunho
+      if (!publishImmediate) {
+        setBlocks((bs) =>
+          bs.map((b) =>
+            dirtyBlocks.has(b.id)
+              ? { ...b, draft_data: buildDraft(b), has_draft: true }
+              : b,
+          ),
+        );
+      } else {
+        setBlocks((bs) =>
+          bs.map((b) =>
+            dirtyBlocks.has(b.id) ? { ...b, draft_data: null, has_draft: false } : b,
+          ),
+        );
+      }
       setDirtyBlocks(new Set());
     }
   };
 
   const totalDirty = (cfgDirty ? 1 : 0) + dirtyBlocks.size;
+  const totalDrafts = blocks.filter((b) => b.has_draft).length;
 
   return (
     <div className="relative min-h-screen overflow-hidden grain">
@@ -342,6 +445,12 @@ const Admin = () => {
             <h1 className="font-display text-2xl">Admin</h1>
           </div>
           <div className="flex items-center gap-2">
+            {totalDrafts > 0 && (
+              <span className="inline-flex h-9 items-center gap-1.5 rounded-sm border border-amber-500/60 bg-amber-500/10 px-3 text-[10px] uppercase tracking-[0.2em] text-amber-500">
+                <FileEdit className="h-3 w-3" />
+                {totalDrafts} rascunho{totalDrafts === 1 ? "" : "s"}
+              </span>
+            )}
             <ThemeToggle />
             <Link to="/admin/analytics" className="inline-flex h-10 items-center gap-2 rounded-sm border border-gold bg-card/40 px-4 text-[11px] uppercase tracking-[0.2em] text-primary transition-all hover:bg-gradient-gold-soft">
               Analytics <BarChart3 className="h-3.5 w-3.5" />
@@ -437,12 +546,16 @@ const Admin = () => {
                   {blocks.map((b, i) => (
                     <BlockEditor
                       key={b.id}
-                      block={b}
+                      block={viewBlock(b)}
+                      hasDraft={b.has_draft}
+                      isPublishing={publishingId === b.id}
                       categories={categories}
                       isFirst={i === 0}
                       isLast={i === blocks.length - 1}
                       onChange={(p) => updateBlock(b.id, p)}
                       onSave={() => saveBlock(b)}
+                      onPublish={() => publishBlock(viewBlock(b))}
+                      onDiscardDraft={() => discardDraft(b)}
                       onDelete={() => deleteBlock(b.id)}
                       onMoveUp={() => move(i, -1)}
                       onMoveDown={() => move(i, 1)}
@@ -464,16 +577,26 @@ const Admin = () => {
 
       {totalDirty > 0 && (
         <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-6">
-          <div className="pointer-events-auto flex items-center gap-4 rounded-sm border-gold-gradient bg-background/95 px-5 py-3 shadow-2xl backdrop-blur">
+          <div className="pointer-events-auto flex flex-wrap items-center gap-4 rounded-sm border-gold-gradient bg-background/95 px-5 py-3 shadow-2xl backdrop-blur">
             <span className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
               {totalDirty} alteração{totalDirty === 1 ? "" : "ões"} pendente{totalDirty === 1 ? "" : "s"}
             </span>
+            <label className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+              publicar já
+              <Switch checked={publishImmediate} onCheckedChange={setPublishImmediate} />
+            </label>
             <Button
               onClick={saveAll}
               disabled={savingAll}
               className="btn-luxe h-10 rounded-sm px-5 text-[11px] uppercase tracking-[0.2em]"
             >
-              {savingAll ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Save className="h-4 w-4" /> Salvar tudo</>}
+              {savingAll ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : publishImmediate ? (
+                <><Send className="h-4 w-4" /> Publicar tudo</>
+              ) : (
+                <><Save className="h-4 w-4" /> Salvar rascunhos</>
+              )}
             </Button>
           </div>
         </div>
@@ -490,12 +613,16 @@ const Field = ({ label, children, full }: { label: string; children: React.React
 );
 
 const BlockEditor = ({
-  block, categories, onChange, onSave, onDelete, onMoveUp, onMoveDown, isFirst, isLast,
+  block, hasDraft, isPublishing, categories, onChange, onSave, onPublish, onDiscardDraft, onDelete, onMoveUp, onMoveDown, isFirst, isLast,
 }: {
   block: Block;
+  hasDraft: boolean;
+  isPublishing: boolean;
   categories: Category[];
   onChange: (p: Partial<Block>) => void;
   onSave: () => void;
+  onPublish: () => void;
+  onDiscardDraft: () => void;
   onDelete: () => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
@@ -513,8 +640,38 @@ const BlockEditor = ({
     <div
       ref={setNodeRef}
       style={style}
-      className={`rounded-sm border p-5 transition-all ${block.is_active ? "border-gold bg-card/60" : "border-border bg-card/30 opacity-60"} ${isDragging ? "shadow-2xl" : ""}`}
+      className={`rounded-sm border p-5 transition-all ${
+        hasDraft
+          ? "border-yellow-500/70 bg-yellow-500/[0.04]"
+          : block.is_active
+            ? "border-gold bg-card/60"
+            : "border-border bg-card/30 opacity-60"
+      } ${isDragging ? "shadow-2xl" : ""}`}
     >
+      {hasDraft && (
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-sm border border-yellow-500/40 bg-yellow-500/5 px-3 py-2">
+          <span className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.2em] text-yellow-500">
+            <FileEdit className="h-3 w-3" /> rascunho não publicado
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onDiscardDraft}
+              className="inline-flex h-8 items-center gap-1.5 rounded-sm border border-border px-3 text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-primary"
+            >
+              <Undo2 className="h-3 w-3" /> Descartar
+            </button>
+            <Button
+              type="button"
+              onClick={onPublish}
+              disabled={isPublishing}
+              className="btn-luxe h-8 rounded-sm px-3 text-[10px] uppercase tracking-[0.2em]"
+            >
+              {isPublishing ? <Loader2 className="h-3 w-3 animate-spin" /> : <><Send className="h-3 w-3" /> Publicar</>}
+            </Button>
+          </div>
+        </div>
+      )}
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <button
