@@ -284,6 +284,7 @@ const Admin = () => {
             is_active: b.is_active,
             position: b.position,
             use_brand_color: b.use_brand_color,
+            size: b.size,
           })
           .eq("id", b.id),
       );
