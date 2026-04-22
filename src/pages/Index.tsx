@@ -1,9 +1,10 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { ArrowRight, Sparkles, Lock, CheckCircle2, AlertTriangle, Loader2, Instagram, TrendingUp, Target, Zap, SearchX, Share2, Clock, Check } from "lucide-react";
+import { ArrowRight, Sparkles, Lock, CheckCircle2, AlertTriangle, Loader2, Instagram, TrendingUp, Target, Zap, SearchX, Share2, Clock, Check, Crown, MessageCircle } from "lucide-react";
 import { validateEmail, validateName, validatePhone, maskPhone, suggestEmailDomain, COUNTRIES, type CountryCode } from "@/lib/validators";
 import {
   Select,
@@ -580,8 +581,8 @@ const ResultStep = ({ data, onRestart }: { data: DiagnosisData; onRestart: () =>
         </ol>
       </div>
 
-      {/* CTA final */}
-      <div className="relative overflow-hidden rounded-sm border-gold-gradient p-10 text-center">
+      {/* CTA final — funil topo→fundo */}
+      <div className="relative overflow-hidden rounded-sm border-gold-gradient p-8 text-center sm:p-10">
         <div className="pointer-events-none absolute inset-0 bg-gradient-gold-soft" />
         <div className="relative">
           <span className="inline-flex items-center gap-2 rounded-sm border border-gold bg-background/40 px-4 py-1.5 text-[10px] uppercase tracking-[0.3em] text-primary">
@@ -590,19 +591,36 @@ const ResultStep = ({ data, onRestart }: { data: DiagnosisData; onRestart: () =>
           <h3 className="mt-5 font-display text-3xl sm:text-5xl">
             Pare de <span className="text-gold italic">analisar</span>.<br />Comece a <span className="text-gold italic">executar</span>.
           </h3>
-          <p className="mx-auto mt-5 max-w-xl text-muted-foreground">
-            Veja como ficou minha bio inteligente — e monte a sua em minutos. Link in bio, captura de leads, analytics e agenda, tudo num lugar só.
+          <p className="mx-auto mt-5 max-w-2xl text-sm text-muted-foreground sm:text-base">
+            O caminho que você acabou de fazer é <span className="text-foreground">o mesmo funil que entrego pros meus clientes</span>. Veja ele rodando ao vivo na minha bio — ou pule direto pra ação.
           </p>
+
+          <div className="mx-auto mt-8 flex max-w-2xl flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
+            <Link
+              to="/bio"
+              className="btn-luxe inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-sm px-5 text-xs font-semibold uppercase tracking-[0.15em] sm:text-sm"
+            >
+              Ver bio do Joanderson <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link
+              to="/bio#blocks"
+              className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-sm border border-gold bg-card/40 px-5 text-xs font-semibold uppercase tracking-[0.15em] text-primary transition-all hover:bg-gradient-gold-soft sm:text-sm"
+            >
+              Quero um link-in-bio assim <Crown className="h-4 w-4" />
+            </Link>
+          </div>
+
           <a
-            href="https://joanderson-links.vercel.app"
+            href="https://wa.me/?text=Acabei%20de%20fazer%20o%20diagn%C3%B3stico%20e%20quero%20estrat%C3%A9gia%20personalizada"
             target="_blank"
             rel="noopener noreferrer"
-            className="btn-luxe mt-7 inline-flex h-12 items-center gap-2 rounded-sm px-8 text-sm font-semibold uppercase tracking-[0.15em]"
+            className="mx-auto mt-3 inline-flex h-12 max-w-2xl items-center justify-center gap-2 rounded-sm border border-primary/60 bg-background/40 px-6 text-xs font-semibold uppercase tracking-[0.15em] text-primary transition-all hover:border-gold hover:bg-gradient-gold-soft sm:w-full sm:text-sm"
           >
-            Ver bio do Joanderson e criar a minha <ArrowRight className="h-4 w-4" />
+            <MessageCircle className="h-4 w-4" /> Quero estratégia personalizada
           </a>
-          <p className="mt-3 text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
-            disponível agora · cadastro em 1 minuto
+
+          <p className="mt-4 text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
+            do topo ao fundo de funil · você acabou de viver
           </p>
 
           <div className="mx-auto mt-8 flex max-w-md items-center gap-4 rounded-sm border border-gold/40 bg-card/40 p-4 text-left">

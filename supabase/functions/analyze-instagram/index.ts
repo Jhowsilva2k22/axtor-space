@@ -41,14 +41,29 @@ async function runApifyScraper(handle: string) {
 }
 
 async function generateAIDiagnosis(profile: Record<string, unknown>) {
-  const prompt = `Você é um estrategista digital sênior, direto, com pegada de consultor premium. Analise este perfil real do Instagram e devolva um diagnóstico AFIADO em português brasileiro.
+  const prompt = `Você é um ESTRATEGISTA DE MERCADO DIGITAL — não um consultor genérico. Sua leitura tem sagacidade, visão ampla, contexto de mercado e referências reais. Você fala como quem já viu mil perfis do mesmo nicho e sabe exatamente onde a maioria trava.
 
-DADOS DO PERFIL:
+REGRAS DE TOM:
+- Português brasileiro, direto, afiado, premium. Sem jargão de coach. Sem "vamos juntos".
+- Cada frase precisa ENTREGAR um insight, não preencher espaço.
+- Sempre que possível, contextualize com o nicho que você detectar (pais/paternidade, fitness, finanças, beleza, gastronomia, lifestyle, B2B, e-commerce, criador de conteúdo, etc) — adapte referências ao mercado real desse nicho.
+- Compare implicitamente com benchmarks: "perfis com X mil seguidores nesse nicho costumam converter Y" — mas só quando tiver base no dado.
+- O VEREDICTO precisa ter 1 frase-bomba memorável, do tipo que gruda na cabeça e o usuário lembra dias depois.
+
+DADOS REAIS DO PERFIL:
 ${JSON.stringify(profile, null, 2)}
 
-Devolva APENAS um JSON válido (sem markdown) no formato:
+TAREFA:
+1. Detecte o nicho (interno, não devolva campo).
+2. Pontue cada dimensão (0-100) com base em sinais reais (bio, posts, engajamento, frequência, posicionamento, link externo, categoria, contagens, etc).
+3. Calcule score_geral como média ponderada coerente.
+4. Determine a faixa qualitativa: 0-30 "Crítico", 31-55 "Tem potencial", 56-78 "Forte", 79-100 "Excelente".
+5. Devolva APENAS JSON válido (sem markdown, sem comentários) neste formato exato:
+
 {
   "score_geral": <0-100>,
+  "faixa": "Crítico" | "Tem potencial" | "Forte" | "Excelente",
+  "nicho_detectado": "<nicho em 2-4 palavras>",
   "scores": {
     "posicionamento": <0-100>,
     "bio_e_cta": <0-100>,
@@ -56,10 +71,10 @@ Devolva APENAS um JSON válido (sem markdown) no formato:
     "engajamento": <0-100>,
     "conversao": <0-100>
   },
-  "pontos_fortes": ["3 frases curtas e específicas"],
-  "gaps_criticos": ["3 frases mostrando o que tá deixando dinheiro na mesa"],
-  "plano_acao": ["5 ações práticas e priorizadas"],
-  "veredicto": "1 parágrafo de 2-3 frases, direto, falando como um consultor."
+  "pontos_fortes": ["3 frases curtas e ESPECÍFICAS — citar elementos reais do perfil"],
+  "gaps_criticos": ["3 frases mostrando exatamente onde está perdendo dinheiro/atenção, com referência ao mercado do nicho"],
+  "plano_acao": ["5 ações priorizadas, executáveis nos próximos 7-14 dias, ordem importa"],
+  "veredicto": "2-3 frases de estrategista. A última precisa ser uma frase-bomba memorável."
 }`;
 
   const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -71,9 +86,10 @@ Devolva APENAS um JSON válido (sem markdown) no formato:
     body: JSON.stringify({
       model: "google/gemini-2.5-flash",
       messages: [
-        { role: "system", content: "Responda apenas com JSON válido." },
+        { role: "system", content: "Você é um estrategista de mercado digital sênior. Responda APENAS com JSON válido, sem markdown, sem comentários extras." },
         { role: "user", content: prompt },
       ],
+      temperature: 0.7,
     }),
   });
 
