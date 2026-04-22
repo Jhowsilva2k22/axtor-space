@@ -1,78 +1,79 @@
 
 
-# Fase 3 — Onboarding self-service (decisões registradas)
+# Sistema de convites — sócios e testers (acesso completo grátis)
 
-## Decisões aprovadas
+## Objetivo
 
-**1. Acesso:** Signup aberto em `/signup` — qualquer pessoa cria conta + tenant + bio em segundos.
+Você (super-admin) gera convites no painel pra liberar acesso completo grátis pra **sócios** (`partner`) ou **beta-testers** (`tester`). Dois modos: link aberto ou email direcionado. Ambos queimam após 1 uso bem-sucedido.
 
-**2. Plano Free com limites visíveis:**
-- Máximo **3 blocos ativos** (4º em diante fica criado mas desativado/bloqueado)
-- **Sem analytics** — botão Analytics no admin fica visível mas desabilitado/apagado com cadeado e tooltip "Disponível no plano Pro"
-- **Badge obrigatório** "feito com axtor" no rodapé da bio pública
-- **Sem campanhas UTM, sem improvements AI, sem temas customizados**
-- Upgrade desbloqueia tudo (Stripe entra na Fase 5; até lá, upgrade é manual via super-admin)
+## Como vai funcionar
 
-**3. Slug:** modelo profissional — campo livre no signup com **sugestão automática a partir do nome** (ex: "Maria Silva" → `maria-silva`), validação em tempo real (disponível/ocupado/inválido), mínimo 3 caracteres, regex `[a-z0-9-]`, lista de reservados bloqueada (`admin`, `bio`, `auth`, `api`, `signup`, `login`, `r`, `d`, `www`, etc).
+### Dois tipos de acesso especial
+- **`partner`** — sócio, vitalício, isento de cobrança pra sempre
+- **`tester`** — beta-tester, acesso completo, marcado separado pra você filtrar nos relatórios ("quem é sócio, quem é tester")
 
----
+Ambos recebem `plan_limits` igual ao Pro: blocos ilimitados, analytics, campanhas, improvements, temas, sem badge "feito com axtor".
 
-## O que vou construir
+### Dois modos de convite (você escolhe na hora de gerar)
 
-### A) Banco de dados (1 migration)
-- Adicionar colunas em `tenants`: `plan_limits jsonb` (default `{"max_blocks": 3, "analytics": false, "campaigns": false, "improvements": false, "themes": false, "show_badge": true}`)
-- Função `check_slug_available(_slug text) returns boolean` (security definer, valida formato + reservados + unicidade)
-- Função `create_tenant_for_user(_slug, _display_name) returns uuid` (security definer; cria tenant com `owner_user_id = auth.uid()`, plano `free`, `bio_config` inicial padrão, retorna id)
-- Trigger em `bio_blocks` que valida limite de 3 blocos ativos para tenants no plano `free` antes de inserir/ativar
+**Modo A — Link aberto:**
+- Você gera código → copia link `axtor.space/signup?invite=ABC123` → manda por onde quiser
+- Quem abrir primeiro e completar o cadastro queima o código
+- Útil pra distribuir você mesma rapidinho
 
-### B) Páginas novas
-- **`/signup`** — formulário: nome completo, email, senha, slug (com debounce + check de disponibilidade visual ✅/❌), aceite de termos. Após signup: chama `create_tenant_for_user`, mostra "bio criada em axtor.space/{slug}" com botão "ir pro admin" e "ver minha bio".
-- **`/login`** já existe (`/admin/login`) — adicionar link "criar conta" apontando pra `/signup`.
+**Modo B — Email direcionado (recomendado pra Stefany):**
+- Você digita o email da pessoa no painel + tipo (partner/tester) + nota opcional
+- Sistema gera código **amarrado àquele email específico**
+- Sistema dispara automaticamente um email branded "axtor" convidando ela com botão "Criar minha conta" → link já com `?invite=XXX&email=stefany@...`
+- Só aquele email consegue usar o código (se outra pessoa tentar com email diferente → bloqueado)
+- Queima após primeiro uso bem-sucedido
 
-### C) Gating de features no app
-- Hook novo `usePlanLimits()` lê `current_tenant.plan_limits` e expõe `{ canAddBlock, canUseAnalytics, canUseCampaigns, canUseImprovements, showBadge, blocksRemaining }`
-- **Admin.tsx**: botão "novo bloco" desabilitado quando `!canAddBlock`, com tooltip "Limite do plano Free: 3 blocos. Faça upgrade para adicionar mais."
-- **Sidebar/header do admin**: itens "Analytics", "Campanhas", "Improvements", "Templates" ficam com ícone de cadeado + opacidade reduzida + onclick abre modal de upgrade, em vez de navegar
-- **Bio.tsx**: se `showBadge`, renderiza no rodapé um pequeno "feito com **axtor**" linkado pra `axtor.space`
+### Painel super-admin (nova aba `/admin/invites`)
+- Visível só pra você (`isAdmin`)
+- Botão **"novo convite"** → modal:
+  - Tipo: `partner` ou `tester` (radio)
+  - Modo: link aberto OU email direcionado
+  - Email do convidado (só se modo email)
+  - Nota interna (ex: "stefany mello — sócia")
+  - Expiração opcional (default: nunca)
+- **Lista de convites** com filtros (tipo, status):
+  - Código · tipo (badge dourado pra partner, prata pra tester) · email alvo · status (pendente / usado por X em Y / expirado / revogado) · botão **copiar link** · botão **revogar** (só se ainda não usado) · botão **reenviar email** (modo B)
 
-### D) Modal de upgrade reutilizável
-- `<UpgradeModal feature="analytics" />` — explica o que desbloqueia, botão "fazer upgrade" (por enquanto abre WhatsApp/email pra você; Stripe na Fase 5)
-
-### E) Landing em `axtor.space/`
-- Página simples de captação: hero "Sua bio profissional em segundos", CTA "criar grátis" → `/signup`, exemplo visual da bio, lista de features, comparativo Free vs Pro
-- Substitui o `Index.tsx` atual (ou cria nova rota e move a antiga pra `/old`)
-
----
+### Fluxo do convidado
+1. Recebe link (manual no WhatsApp ou email automático)
+2. Abre `/signup?invite=XXX` → campo "código de convite" já preenchido (collapsed por padrão; expandido se tiver `?invite=` na URL)
+3. Vê badge verde "✨ acesso parceiro liberado" ou "✨ acesso beta-tester liberado" embaixo do campo
+4. Preenche nome, senha, slug normal
+5. Tenant nasce com plano `partner`/`tester`, tudo desbloqueado, sem badge
 
 ## Arquivos afetados
 
-**Novos:**
-- `supabase/migrations/{timestamp}_signup_and_plan_limits.sql`
-- `src/pages/Signup.tsx`
-- `src/pages/Landing.tsx` (substitui ou complementa Index)
-- `src/hooks/usePlanLimits.tsx`
-- `src/components/UpgradeModal.tsx`
-- `src/components/PlanBadge.tsx`
+**Banco — 1 migration:**
+- Tabela `invite_codes`: `code` (text único), `type` (`partner`|`tester`), `mode` (`link`|`email`), `target_email` (nullable), `note`, `created_by`, `used_by_user_id`, `used_at`, `expires_at`, `revoked_at`, `created_at`
+- RLS: só admin lê/cria/atualiza. Validação anônima via RPC (não lê tabela direto)
+- Função `validate_invite_code(_code, _email)` — valida formato, expiração, não-usado, não-revogado, e (se modo email) confere email
+- Atualizar `create_tenant_for_user(_slug, _display_name, _invite_code)` — se código válido, cria tenant com plano e plan_limits do convite e marca código como usado atomicamente
 
-**Editados:**
-- `src/App.tsx` — rotas `/signup` e revisão da `/`
-- `src/pages/Admin.tsx` — gating do botão "novo bloco"
-- `src/pages/AdminAnalytics.tsx`, `AdminTemplates.tsx`, `AdminImprovements.tsx`, `CampaignManager.tsx` — bloqueio com modal
-- `src/pages/Bio.tsx` — badge condicional no rodapé
-- `src/pages/AdminLogin.tsx` — link "criar conta"
+**Email transacional — infra Lovable nativa:**
+- Setup da infra de email (cobre primeira ativação)
+- Template `partner-invite` e template `tester-invite` (React Email, branded axtor — gold-noir)
+- Edge function `send-transactional-email` invocada quando convite é criado em modo email
 
----
+**Frontend:**
+- Novo: `src/pages/AdminInvites.tsx` (lista + modal de criar)
+- Novo: `src/components/InviteCard.tsx` (item da lista)
+- Editado: `src/pages/Signup.tsx` — campo código (auto-preenche via `?invite=`), validação real-time, badge de acesso liberado
+- Editado: `src/pages/Admin.tsx` ou sidebar admin — link "Convites" visível só pra `isAdmin`
+- Editado: `src/App.tsx` — rota `/admin/invites`
+- Editado: `src/hooks/usePlanLimits.tsx` — reconhecer `partner` e `tester` (mesmo limite do Pro)
+
+## Pré-requisito de email (1 passo extra)
+
+Pra mandar email automático (modo B), precisamos configurar o **domínio de envio** em `axtor.space` (subdomínio tipo `notify.axtor.space`). É um passo guiado — você clica num botão, segue o wizard, ele te dá os registros DNS pra adicionar no provedor do domínio. Depois disso o sistema manda emails branded automaticamente, sem custo, sem API key externa.
+
+Se você quiser começar **só pelo modo A (link)** agora e ativar email depois, dá perfeitamente — o sistema já fica pronto, só não dispara email automático até o domínio estar verificado.
 
 ## Fora de escopo (próximas fases)
-
-- Stripe / checkout real → **Fase 5**
-- Custom domain por cliente → **Fase 4**
-- Convites de equipe / multi-owner → **Fase 6**
-- Onboarding wizard guiado pós-signup (templates prontos) → opcional, depois
-
----
-
-## Pergunta única antes de começar
-
-Qual **email/WhatsApp** você quer que apareça no botão "fazer upgrade" do modal (até Stripe entrar)? Se quiser, posso deixar um placeholder `contato@axtor.space` e você troca depois.
+- Stripe / cobrança real → Fase 5 (planos `partner` e `tester` continuam isentos)
+- Múltiplos usos por código (ex: código de equipe com 10 usos) → futuro
 
