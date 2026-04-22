@@ -427,6 +427,99 @@ export type Database = {
         }
         Relationships: []
       }
+      improvement_recommendations: {
+        Row: {
+          action_payload: Json | null
+          action_type: string | null
+          applied_at: string | null
+          category: string
+          created_at: string
+          effort: string
+          evidence: Json
+          id: string
+          impact: string
+          priority_score: number
+          rationale: string | null
+          source_run_id: string | null
+          status: string
+          summary: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          action_payload?: Json | null
+          action_type?: string | null
+          applied_at?: string | null
+          category?: string
+          created_at?: string
+          effort?: string
+          evidence?: Json
+          id?: string
+          impact?: string
+          priority_score?: number
+          rationale?: string | null
+          source_run_id?: string | null
+          status?: string
+          summary: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          action_payload?: Json | null
+          action_type?: string | null
+          applied_at?: string | null
+          category?: string
+          created_at?: string
+          effort?: string
+          evidence?: Json
+          id?: string
+          impact?: string
+          priority_score?: number
+          rationale?: string | null
+          source_run_id?: string | null
+          status?: string
+          summary?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      improvement_runs: {
+        Row: {
+          ai_summary: string | null
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          error_message: string | null
+          id: string
+          inputs_summary: Json | null
+          recommendations_count: number
+          status: string
+        }
+        Insert: {
+          ai_summary?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          error_message?: string | null
+          id?: string
+          inputs_summary?: Json | null
+          recommendations_count?: number
+          status?: string
+        }
+        Update: {
+          ai_summary?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          error_message?: string | null
+          id?: string
+          inputs_summary?: Json | null
+          recommendations_count?: number
+          status?: string
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           created_at: string
@@ -511,6 +604,51 @@ export type Database = {
           utm_campaign?: string | null
           utm_medium?: string | null
           utm_source?: string | null
+        }
+        Relationships: []
+      }
+      user_feedback: {
+        Row: {
+          block_id: string | null
+          category: string
+          created_at: string
+          device: string | null
+          email: string | null
+          id: string
+          message: string
+          page_path: string | null
+          sentiment: string | null
+          session_id: string | null
+          status: string
+          user_agent: string | null
+        }
+        Insert: {
+          block_id?: string | null
+          category?: string
+          created_at?: string
+          device?: string | null
+          email?: string | null
+          id?: string
+          message: string
+          page_path?: string | null
+          sentiment?: string | null
+          session_id?: string | null
+          status?: string
+          user_agent?: string | null
+        }
+        Update: {
+          block_id?: string | null
+          category?: string
+          created_at?: string
+          device?: string | null
+          email?: string | null
+          id?: string
+          message?: string
+          page_path?: string | null
+          sentiment?: string | null
+          session_id?: string | null
+          status?: string
+          user_agent?: string | null
         }
         Relationships: []
       }
