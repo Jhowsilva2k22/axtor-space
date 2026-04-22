@@ -244,3 +244,125 @@ All colors MUST be HSL.
     z-index: 1;
   }
 }
+
+@layer utilities {
+  /* ============== AURORA — fundo dourado vivo ============== */
+  @keyframes aurora-drift {
+    0%   { transform: translate3d(-8%, -4%, 0) rotate(0deg);   opacity: 0.55; }
+    50%  { transform: translate3d(6%, 4%, 0)  rotate(180deg);  opacity: 0.85; }
+    100% { transform: translate3d(-8%, -4%, 0) rotate(360deg); opacity: 0.55; }
+  }
+  @keyframes aurora-drift-slow {
+    0%   { transform: translate3d(5%, 6%, 0)  scale(1);    opacity: 0.45; }
+    50%  { transform: translate3d(-7%, -5%, 0) scale(1.15); opacity: 0.7; }
+    100% { transform: translate3d(5%, 6%, 0)  scale(1);    opacity: 0.45; }
+  }
+  .aurora-a {
+    position: absolute;
+    top: -20%;
+    left: 50%;
+    width: 70vw;
+    height: 70vw;
+    max-width: 900px;
+    max-height: 900px;
+    margin-left: -35vw;
+    background: radial-gradient(circle at center, hsl(var(--primary) / 0.22), transparent 60%);
+    filter: blur(80px);
+    animation: aurora-drift 18s ease-in-out infinite;
+    pointer-events: none;
+  }
+  .aurora-b {
+    position: absolute;
+    bottom: -25%;
+    right: -10%;
+    width: 60vw;
+    height: 60vw;
+    max-width: 800px;
+    max-height: 800px;
+    background: radial-gradient(circle at center, hsl(var(--primary-glow) / 0.18), transparent 60%);
+    filter: blur(90px);
+    animation: aurora-drift-slow 22s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  /* Halo respirando atrás do avatar */
+  @keyframes halo-pulse {
+    0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); }
+    50%      { opacity: 0.9; transform: translate(-50%, -50%) scale(1.1); }
+  }
+  .avatar-halo {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 180%;
+    height: 180%;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, hsl(var(--primary) / 0.35), transparent 65%);
+    filter: blur(30px);
+    animation: halo-pulse 4s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Shimmer dourado passando no hover dos blocos */
+  @keyframes block-shimmer {
+    0%   { transform: translateX(-120%) skewX(-20deg); }
+    100% { transform: translateX(220%) skewX(-20deg); }
+  }
+  .block-shimmer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.2), transparent);
+    transform: translateX(-120%) skewX(-20deg);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .block-shimmer:hover::before {
+    animation: block-shimmer 1.1s ease-out;
+  }
+
+  /* Stagger de entrada */
+  .stagger > * { opacity: 0; animation: fade-up 0.6s ease-out forwards; }
+  .stagger > *:nth-child(1) { animation-delay: 0.05s; }
+  .stagger > *:nth-child(2) { animation-delay: 0.12s; }
+  .stagger > *:nth-child(3) { animation-delay: 0.19s; }
+  .stagger > *:nth-child(4) { animation-delay: 0.26s; }
+  .stagger > *:nth-child(5) { animation-delay: 0.33s; }
+  .stagger > *:nth-child(6) { animation-delay: 0.40s; }
+  .stagger > *:nth-child(7) { animation-delay: 0.47s; }
+  .stagger > *:nth-child(8) { animation-delay: 0.54s; }
+}
+
+/* ============== TEMA CLARO — Ivory & Gold (opt-in via .theme-ivory) ============== */
+.theme-ivory {
+  --background: 38 35% 96%;
+  --foreground: 30 20% 12%;
+  --card: 38 30% 99%;
+  --card-foreground: 30 20% 12%;
+  --popover: 38 30% 99%;
+  --popover-foreground: 30 20% 12%;
+  --primary: 38 60% 38%;
+  --primary-foreground: 38 35% 96%;
+  --primary-glow: 43 70% 55%;
+  --secondary: 38 25% 92%;
+  --secondary-foreground: 30 20% 12%;
+  --muted: 38 20% 90%;
+  --muted-foreground: 30 12% 38%;
+  --accent: 38 60% 38%;
+  --accent-foreground: 38 35% 96%;
+  --border: 38 30% 80%;
+  --input: 38 25% 94%;
+  --ring: 38 60% 38%;
+  --gradient-gold: linear-gradient(135deg, hsl(38 60% 38%), hsl(43 70% 55%));
+  --gradient-gold-soft: linear-gradient(135deg, hsl(38 60% 38% / 0.14), hsl(43 70% 55% / 0.05));
+  --gradient-gold-edge: linear-gradient(135deg, hsl(38 60% 38% / 0.55), hsl(43 70% 55% / 0.15) 50%, hsl(38 60% 38% / 0.55));
+  --gradient-noir: radial-gradient(ellipse at top, hsl(38 35% 99%), hsl(38 25% 92%));
+  --shadow-gold: 0 20px 60px -20px hsl(38 60% 38% / 0.25);
+  --shadow-gold-lg: 0 30px 90px -20px hsl(38 60% 38% / 0.4), 0 0 0 1px hsl(38 60% 38% / 0.2);
+  --shadow-deep: 0 30px 80px -20px hsl(30 30% 30% / 0.25);
+  background: var(--gradient-noir);
+}
