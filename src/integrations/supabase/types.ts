@@ -70,6 +70,8 @@ export type Database = {
           category_id: string | null
           created_at: string
           description: string | null
+          draft_data: Json | null
+          has_draft: boolean
           highlight: boolean
           icon: string | null
           icon_generations_count: number
@@ -89,6 +91,8 @@ export type Database = {
           category_id?: string | null
           created_at?: string
           description?: string | null
+          draft_data?: Json | null
+          has_draft?: boolean
           highlight?: boolean
           icon?: string | null
           icon_generations_count?: number
@@ -108,6 +112,8 @@ export type Database = {
           category_id?: string | null
           created_at?: string
           description?: string | null
+          draft_data?: Json | null
+          has_draft?: boolean
           highlight?: boolean
           icon?: string | null
           icon_generations_count?: number
