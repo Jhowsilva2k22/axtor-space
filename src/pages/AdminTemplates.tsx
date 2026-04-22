@@ -3,6 +3,7 @@ import { Link, Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useThemeContext, type ThemeTokens } from "@/components/ThemeProvider";
+import { useAdminLockedTheme } from "@/components/ThemeToggle";
 import { toast } from "sonner";
 import { Loader2, ArrowLeft, Check, Eye, EyeOff, Star, RotateCcw } from "lucide-react";
 
@@ -17,6 +18,7 @@ type ThemeRow = {
 
 const AdminTemplates = () => {
   const { user, loading: authLoading } = useAuth();
+  useAdminLockedTheme();
   const { activeSlug, previewSlug, setPreview } = useThemeContext();
   const [themes, setThemes] = useState<ThemeRow[]>([]);
   const [activeDb, setActiveDb] = useState<string>("gold-noir");
