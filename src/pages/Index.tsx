@@ -60,6 +60,11 @@ const Index = () => {
   const [loadingMsg, setLoadingMsg] = useState(LOADING_STEPS[0]);
   const [data, setData] = useState<DiagnosisData | null>(null);
 
+  useEffect(() => {
+    trackPageView("/");
+    trackFunnel("diag_landing_view");
+  }, []);
+
   const handleSubmitHandle = (e: React.FormEvent) => {
     e.preventDefault();
     const cleaned = handle.trim().replace(/^@+/, "").toLowerCase();
@@ -69,6 +74,7 @@ const Index = () => {
       return;
     }
     setHandle(cleaned);
+    trackFunnel("diag_handle_submit", { handle: cleaned });
     setStep("lead");
   };
 
