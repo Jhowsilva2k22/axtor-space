@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Loader2, Plus, Trash2, FolderOpen, ArrowUp, ArrowDown } from "lucide-react";
+import { Loader2, Plus, Trash2, FolderOpen, ArrowUp, ArrowDown, Sparkles } from "lucide-react";
 
 export type Category = {
   id: string;
@@ -24,6 +24,22 @@ function slugify(input: string): string {
     .replace(/(^-|-$)/g, "")
     .slice(0, 40);
 }
+
+// Categorias prontas pra usar com 1 clique
+const PRESETS: { name: string; slug: string; icon: string }[] = [
+  { name: "Redes sociais", slug: "redes-sociais", icon: "Share2" },
+  { name: "Contato", slug: "contato", icon: "MessageCircle" },
+  { name: "Produtos", slug: "produtos", icon: "ShoppingBag" },
+  { name: "Serviços", slug: "servicos", icon: "Briefcase" },
+  { name: "Cursos & E-books", slug: "cursos-ebooks", icon: "BookOpen" },
+  { name: "Afiliados", slug: "afiliados", icon: "Tag" },
+  { name: "Mídia & Imprensa", slug: "midia", icon: "Newspaper" },
+  { name: "Portfólio", slug: "portfolio", icon: "Image" },
+  { name: "Agenda", slug: "agenda", icon: "Calendar" },
+  { name: "Comunidade", slug: "comunidade", icon: "Users" },
+  { name: "Newsletter", slug: "newsletter", icon: "Mail" },
+  { name: "Apoio / Pix", slug: "apoio", icon: "Heart" },
+];
 
 export const CategoriesManager = () => {
   const [items, setItems] = useState<Category[]>([]);
@@ -62,6 +78,25 @@ export const CategoriesManager = () => {
     setCreating(false);
     if (error) return toast.error(error.message);
     setItems((s) => [...s, data as any]);
+  };
+
+  const addPreset = async (preset: { name: string; slug: string; icon: string }) => {
+    // garante slug único
+    let slug = preset.slug;
+    let n = 1;
+    while (items.some((i) => i.slug === slug)) {
+      n += 1;
+      slug = `${preset.slug}-${n}`;
+    }
+    const nextPos = (items[items.length - 1]?.position ?? 0) + 1;
+    const { data, error } = await supabase
+      .from("bio_categories")
+      .insert({ name: preset.name, slug, icon: preset.icon, position: nextPos })
+      .select()
+      .single();
+    if (error) return toast.error(error.message);
+    setItems((s) => [...s, data as any]);
+    toast.success(`"${preset.name}" adicionada`);
   };
 
   const update = async (id: string, patch: Partial<Category>) => {
@@ -149,6 +184,36 @@ export const CategoriesManager = () => {
           ))}
         </div>
       )}
+
+      {/* Presets — adicione com 1 clique */}
+      <div className="mt-6 rounded-sm border border-gold/30 bg-card/30 p-4">
+        <div className="mb-3 flex items-center gap-2">
+          <Sparkles className="h-3.5 w-3.5 text-primary" />
+          <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+            Adicionar pronta
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {PRESETS.map((p) => {
+            const exists = items.some((i) => i.slug === p.slug || i.name.toLowerCase() === p.name.toLowerCase());
+            return (
+              <button
+                key={p.slug}
+                onClick={() => addPreset(p)}
+                disabled={exists}
+                title={exists ? "Já adicionada" : `Adicionar "${p.name}"`}
+                className={`inline-flex h-8 items-center gap-1.5 rounded-sm border px-3 text-[10px] uppercase tracking-[0.2em] transition-all ${
+                  exists
+                    ? "border-border bg-muted/20 text-muted-foreground/50 line-through"
+                    : "border-gold/40 bg-card/40 text-primary hover:border-gold hover:bg-gradient-gold-soft"
+                }`}
+              >
+                <Plus className="h-3 w-3" /> {p.name}
+              </button>
+            );
+          })}
+        </div>
+      </div>
     </section>
   );
 };
