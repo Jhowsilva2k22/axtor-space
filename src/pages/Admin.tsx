@@ -229,7 +229,7 @@ const Admin = () => {
   const saveAll = async () => {
     if (!cfg) return;
     setSavingAll(true);
-    const tasks: Promise<any>[] = [];
+    const tasks: any[] = [];
     if (cfgDirty) {
       tasks.push(
         supabase
