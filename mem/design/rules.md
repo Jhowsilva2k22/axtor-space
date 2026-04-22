@@ -1,30 +1,37 @@
 ---
-name: Luxury Editorial Design Rules
-description: Regras visuais obrigatórias do app — radius retos, tipografia serifada, padrão de botões/badges/cards
+name: design-color-rules
+description: Regras obrigatórias de uso dos tokens semânticos de cor (light + dark themes)
 type: design
 ---
 
-## Border radius
-- Global `--radius: 0.1875rem` (3px). Use `rounded-sm` em tudo: badges, botões, inputs, cards, containers, modais.
-- PROIBIDO: `rounded-full`, `rounded-lg`, `rounded-xl`, `rounded-2xl`, `rounded-3xl` em elementos de UI.
-- Exceção: `rounded-full` permitido apenas em avatares (foto de perfil) e loaders/spinners.
+## Tokens semânticos (NUNCA usar cores hardcoded)
 
-## Tipografia
-- Headings: `font-display` (Cormorant Garamond), itálico para palavras de destaque com `text-gold`.
-- Body: Manrope, peso 300 (light) por padrão.
-- Botões e labels pequenas: `uppercase` + `tracking-[0.15em]` a `tracking-[0.3em]`.
+### Pareamento fundo → texto
+| Fundo | Texto correspondente |
+|---|---|
+| `bg-background` | `text-foreground` |
+| `bg-card`, `bg-card/40` | `text-card-foreground` |
+| `bg-popover` | `text-popover-foreground` |
+| `bg-primary` (dourado) | `text-primary-foreground` |
+| `bg-secondary` | `text-secondary-foreground` |
+| `bg-muted` | `text-muted-foreground` |
+| `bg-accent` | `text-accent-foreground` |
+| `bg-destructive` | `text-destructive-foreground` |
 
-## Botões
-- Classe base `btn-luxe`, altura `h-11`/`h-12`, `rounded-sm`, uppercase, tracking wide.
-- Em mobile reduzir padding/tracking para evitar overflow (`px-4 sm:px-6`, `tracking-[0.1em] sm:tracking-[0.15em]`).
+### Tema dual
+- **Dark** (padrão, `:root`): fundos escuros, texto creme (`--foreground: 40 30% 95%`)
+- **Light** (`.theme-ivory`): fundos creme/marfim, texto escuro (`--foreground: 30 20% 12%`)
 
-## Badges / pills
-- `rounded-sm` + `border border-gold` + `bg-gradient-gold-soft` ou `bg-background/40`.
-- Texto `uppercase tracking-[0.3em] text-primary` em tamanho `text-[10px]` ou `text-xs`.
+Os mesmos `text-foreground` / `text-card-foreground` funcionam nos dois temas automaticamente — desde que sejam usados em vez de cores fixas.
 
-## Cards / containers
-- `rounded-sm` + `border-gold-gradient` ou `border border-gold` + `bg-card/60`.
-- Hover sutil: `hover:-translate-y-1 hover:shadow-gold`.
+### Proibido
+- `text-white`, `text-black`, `text-gray-*`, `text-slate-*`, `text-zinc-*`, `text-neutral-*`
+- Hex/RGB inline em `style={{}}`
+- Texto sem cor explícita dentro de containers com fundo customizado (vai herdar errado)
 
-## Cores
-- Sempre tokens semânticos do `index.css` / `tailwind.config.ts` (HSL). Nunca cores hardcoded em componentes.
+### Caret/cursor de input
+Já configurado global em `src/index.css`: `input, textarea, [contenteditable] { caret-color: hsl(var(--primary)); }` — funciona com `bg-transparent` também.
+
+### Acento dourado
+- `text-gold` (gradient clip) — só pra destaques/títulos hero, NUNCA pra texto longo
+- `text-primary` (cor sólida dourada) — para badges, ícones, CTAs secundários
