@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import * as LucideIcons from "lucide-react";
-import { Loader2, ArrowUpRight, Sun, Moon } from "lucide-react";
+import { Loader2, ArrowUpRight } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 type BioConfig = {
   display_name: string;
@@ -27,18 +28,6 @@ const Bio = () => {
   const [cfg, setCfg] = useState<BioConfig | null>(null);
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [loading, setLoading] = useState(true);
-  const [theme, setTheme] = useState<"noir" | "ivory">(() => {
-    if (typeof window === "undefined") return "noir";
-    return (localStorage.getItem("bio-theme") as "noir" | "ivory") || "noir";
-  });
-
-  useEffect(() => {
-    const root = document.documentElement;
-    if (theme === "ivory") root.classList.add("theme-ivory");
-    else root.classList.remove("theme-ivory");
-    localStorage.setItem("bio-theme", theme);
-    return () => root.classList.remove("theme-ivory");
-  }, [theme]);
 
   useEffect(() => {
     (async () => {
@@ -66,15 +55,7 @@ const Bio = () => {
       <div className="aurora-a" />
       <div className="aurora-b" />
 
-      {/* Toggle tema claro/escuro */}
-      <button
-        type="button"
-        onClick={() => setTheme(theme === "noir" ? "ivory" : "noir")}
-        aria-label={theme === "noir" ? "Mudar para tema claro" : "Mudar para tema escuro"}
-        className="absolute right-5 top-5 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-gold bg-card/60 text-primary backdrop-blur transition-all hover:scale-105 hover:shadow-gold"
-      >
-        {theme === "noir" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-      </button>
+      <ThemeToggle className="absolute right-5 top-5 z-20" />
 
       <main className="relative z-10 mx-auto max-w-md px-6 pb-16 pt-12">
         <div className="text-center">
