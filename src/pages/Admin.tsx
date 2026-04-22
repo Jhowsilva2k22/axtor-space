@@ -593,6 +593,20 @@ const BlockEditor = ({
             </SelectContent>
           </Select>
         </Field>
+        <Field label="Categoria">
+          <Select
+            value={block.category_id ?? "__none__"}
+            onValueChange={(v) => onChange({ category_id: v === "__none__" ? null : v })}
+          >
+            <SelectTrigger className="h-11 rounded-sm border-gold bg-input"><SelectValue placeholder="Sem categoria" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none__">Sem categoria</SelectItem>
+              {categories.filter((c) => c.is_active).map((c) => (
+                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
         <Field label="URL" full>
           <Input value={block.url} onChange={(e) => onChange({ url: e.target.value })} placeholder="https:// ou /rota interna" className="h-11 rounded-sm border-gold bg-input" />
         </Field>
