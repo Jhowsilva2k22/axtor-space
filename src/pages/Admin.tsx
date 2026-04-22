@@ -438,6 +438,7 @@ const Admin = () => {
                     <BlockEditor
                       key={b.id}
                       block={b}
+                      categories={categories}
                       isFirst={i === 0}
                       isLast={i === blocks.length - 1}
                       onChange={(p) => updateBlock(b.id, p)}
