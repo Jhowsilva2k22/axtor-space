@@ -266,6 +266,7 @@ export type Database = {
           active_theme_slug: string
           avatar_url: string | null
           contact_url: string | null
+          cover_url: string | null
           created_at: string
           display_name: string
           footer_text: string | null
@@ -280,6 +281,7 @@ export type Database = {
           active_theme_slug?: string
           avatar_url?: string | null
           contact_url?: string | null
+          cover_url?: string | null
           created_at?: string
           display_name?: string
           footer_text?: string | null
@@ -294,6 +296,7 @@ export type Database = {
           active_theme_slug?: string
           avatar_url?: string | null
           contact_url?: string | null
+          cover_url?: string | null
           created_at?: string
           display_name?: string
           footer_text?: string | null

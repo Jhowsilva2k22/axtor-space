@@ -15,6 +15,7 @@ type BioConfig = {
   sub_headline: string | null;
   avatar_url: string | null;
   footer_text: string | null;
+  cover_url: string | null;
 };
 type Block = {
   id: string;
@@ -123,6 +124,38 @@ const Bio = () => {
       {/* Aurora dourada animada */}
       <div className="aurora-a" />
       <div className="aurora-b" />
+
+      {/* Capa de fundo (parallax fixo + blur + vinheta radial) */}
+      {cfg?.cover_url && (
+        <div aria-hidden className="pointer-events-none fixed inset-0 z-0">
+          <div
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{
+              backgroundImage: `url("${cfg.cover_url}")`,
+              backgroundAttachment: "fixed",
+              filter: "blur(8px)",
+              opacity: 0.35,
+              transform: "scale(1.08)",
+            }}
+          />
+          {/* Vinheta radial — escurece bordas, preserva centro */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                "radial-gradient(ellipse at center, transparent 0%, transparent 30%, hsl(var(--background) / 0.65) 70%, hsl(var(--background) / 0.92) 100%)",
+            }}
+          />
+          {/* Fade vertical extra pra dissolver topo e base sem linha */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                "linear-gradient(to bottom, hsl(var(--background) / 0.55) 0%, transparent 25%, transparent 75%, hsl(var(--background) / 0.65) 100%)",
+            }}
+          />
+        </div>
+      )}
 
       <AmbientPlayer />
       <ThemeToggle className="absolute left-5 top-5 z-20" />
