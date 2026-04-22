@@ -445,9 +445,9 @@ const ResultStep = ({ data, onRestart }: { data: DiagnosisData; onRestart: () =>
             </a>
           </div>
 
-          <button onClick={onRestart} className="mt-6 text-xs uppercase tracking-[0.3em] text-muted-foreground transition-colors hover:text-primary">
-            ou analisar outro perfil →
-          </button>
+          <div className="mt-8">
+            <ShareButton diagnosticId={data.diagnostic_id} handle={p.username} score={score} />
+          </div>
         </div>
       </div>
     </div>
