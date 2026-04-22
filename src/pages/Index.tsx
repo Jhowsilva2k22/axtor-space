@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { ArrowRight, Sparkles, Lock, CheckCircle2, AlertTriangle, Loader2, Instagram, TrendingUp, Target, Zap, SearchX, Share2, Clock, Check, Crown, MessageCircle } from "lucide-react";
 import { validateEmail, validateName, validatePhone, maskPhone, suggestEmailDomain, COUNTRIES, type CountryCode } from "@/lib/validators";
+import { trackPageView, trackFunnel } from "@/lib/analytics";
+import { useEffect } from "react";
 import {
   Select,
   SelectContent,
