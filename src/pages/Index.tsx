@@ -219,18 +219,18 @@ const LeadStep = ({ handle, email, setEmail, phone, setPhone, name, setName, onS
     <form onSubmit={onSubmit} className="mt-8 space-y-4">
       <div>
         <label className="mb-2 block text-xs uppercase tracking-[0.2em] text-muted-foreground">Seu nome</label>
-        <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Como te chamamos?" className="h-12 border-gold bg-input" />
+        <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Como te chamamos?" className="h-12 rounded-xl border-gold bg-input" />
       </div>
       <div>
         <label className="mb-2 block text-xs uppercase tracking-[0.2em] text-muted-foreground">Email</label>
-        <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="voce@exemplo.com" className="h-12 border-gold bg-input" />
+        <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="voce@exemplo.com" className="h-12 rounded-xl border-gold bg-input" />
       </div>
       <div>
         <label className="mb-2 block text-xs uppercase tracking-[0.2em] text-muted-foreground">WhatsApp <span className="opacity-50">(opcional, mas recomendado)</span></label>
-        <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(11) 99999-9999" className="h-12 border-gold bg-input" />
+        <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(11) 99999-9999" className="h-12 rounded-xl border-gold bg-input" />
       </div>
 
-      <Button type="submit" size="lg" className="h-14 w-full gap-2 bg-gradient-to-r from-primary to-primary-glow text-base font-medium text-primary-foreground hover:opacity-90">
+      <Button type="submit" size="lg" className="btn-luxe h-14 w-full gap-2 rounded-2xl text-base font-semibold">
         Gerar meu diagnóstico agora <ArrowRight className="h-4 w-4" />
       </Button>
       <p className="text-center text-xs text-muted-foreground">
