@@ -3,12 +3,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { ArrowRight, Sparkles, Lock, CheckCircle2, AlertTriangle, Loader2, Instagram, TrendingUp, Target, Zap } from "lucide-react";
+import { ArrowRight, Sparkles, Lock, CheckCircle2, AlertTriangle, Loader2, Instagram, TrendingUp, Target, Zap, SearchX } from "lucide-react";
 
 const PROXY = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/proxy-image?url=`;
 const proxied = (url?: string) => (url ? PROXY + encodeURIComponent(url) : "");
 
-type Step = "handle" | "lead" | "loading" | "result" | "private";
+type Step = "handle" | "lead" | "loading" | "result" | "private" | "not_found";
 
 interface DiagnosisData {
   status: string;
@@ -47,9 +47,10 @@ const Index = () => {
 
   const handleSubmitHandle = (e: React.FormEvent) => {
     e.preventDefault();
-    const cleaned = handle.trim().replace(/^@+/, "");
-    if (cleaned.length < 1) {
-      toast.error("Digite seu @ do Instagram");
+    const cleaned = handle.trim().replace(/^@+/, "").toLowerCase();
+    // Instagram só permite letras, números, ponto e underline (1-30 chars)
+    if (!/^[a-z0-9._]{1,30}$/.test(cleaned)) {
+      toast.error("@ inválido. Use apenas letras, números, ponto e underline.");
       return;
     }
     setHandle(cleaned);
@@ -90,7 +91,15 @@ const Index = () => {
       if (result.status === "private_profile") {
         setStep("private");
       } else if (result.status === "completed") {
-        setStep("result");
+        // Se a IA não conseguiu pontuar (perfil vazio/inexistente), tratar como não encontrado
+        const score = result?.diagnosis?.score_geral ?? 0;
+        if (!result.profile?.username || score === 0) {
+          setStep("not_found");
+        } else {
+          setStep("result");
+        }
+      } else if (result.status === "failed") {
+        setStep("not_found");
       } else {
         toast.error(result.error || "Não conseguimos analisar esse perfil agora.");
         setStep("handle");
@@ -140,6 +149,7 @@ const Index = () => {
         )}
         {step === "loading" && <LoadingStep message={loadingMsg} handle={handle} />}
         {step === "private" && data && <PrivateStep data={data} onRetry={reset} />}
+        {step === "not_found" && <NotFoundStep handle={handle} onRetry={reset} />}
         {step === "result" && data && <ResultStep data={data} onRestart={reset} />}
       </main>
 
@@ -170,7 +180,15 @@ const HandleStep = ({ handle, setHandle, onSubmit }: any) => (
         <span className="pl-5 text-2xl font-display text-primary">@</span>
         <Input
           value={handle}
-          onChange={(e) => setHandle(e.target.value.replace(/^@+/, ""))}
+          onChange={(e) =>
+            setHandle(
+              e.target.value
+                .replace(/^@+/, "")
+                .toLowerCase()
+                .replace(/[^a-z0-9._]/g, "")
+                .slice(0, 30),
+            )
+          }
           placeholder="seu_perfil"
           className="h-14 border-0 bg-transparent text-base font-light placeholder:text-muted-foreground/40 focus-visible:ring-0"
           autoFocus
@@ -272,6 +290,30 @@ const PrivateStep = ({ data, onRetry }: { data: DiagnosisData; onRetry: () => vo
         <li><span className="text-primary">2.</span> Privacidade → desmarque "Conta privada"</li>
         <li><span className="text-primary">3.</span> Volte aqui e clique em <strong className="text-foreground">Tentar de novo</strong></li>
         <li><span className="text-primary">4.</span> Depois é só voltar para privado, se preferir</li>
+      </ol>
+    </div>
+    <Button onClick={onRetry} size="lg" className="btn-luxe mt-8 h-12 gap-2 rounded-sm px-8 text-sm font-semibold uppercase tracking-[0.15em]">
+      Tentar de novo <ArrowRight className="h-4 w-4" />
+    </Button>
+  </div>
+);
+
+const NotFoundStep = ({ handle, onRetry }: { handle: string; onRetry: () => void }) => (
+  <div className="animate-fade-up mx-auto max-w-xl text-center">
+    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-sm border border-gold bg-card">
+      <SearchX className="h-7 w-7 text-primary" />
+    </div>
+    <h2 className="mt-6 font-display text-4xl">
+      Não encontramos <span className="text-gold italic">@{handle}</span>
+    </h2>
+    <p className="mt-4 text-muted-foreground">
+      Esse perfil não existe ou está indisponível no Instagram. Verifique se o @ está escrito corretamente — sem espaços, acentos ou caracteres especiais.
+    </p>
+    <div className="mt-8 rounded-sm border-gold-gradient p-6 text-left text-sm font-light">
+      <ol className="space-y-3 text-muted-foreground">
+        <li><span className="text-primary">1.</span> Abra o Instagram e copie seu @ exato</li>
+        <li><span className="text-primary">2.</span> Confira se o perfil está público</li>
+        <li><span className="text-primary">3.</span> Volte aqui e tente novamente</li>
       </ol>
     </div>
     <Button onClick={onRetry} size="lg" className="btn-luxe mt-8 h-12 gap-2 rounded-sm px-8 text-sm font-semibold uppercase tracking-[0.15em]">
