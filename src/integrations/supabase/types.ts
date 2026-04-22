@@ -1050,6 +1050,10 @@ export type Database = {
           status: string
         }[]
       }
+      get_tenant_analytics: {
+        Args: { _days?: number; _tenant_id: string }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
