@@ -87,6 +87,31 @@ const AdminInvites = () => {
     setSubmitting(true);
     const code = generateCode(type);
     const recipient = mode === "email" ? targetEmail.trim().toLowerCase() : null;
+
+    // Idempotência: se for invite por email, revoga pendentes anteriores pro mesmo email+tipo.
+    // Evita ter dois códigos válidos circulando pra mesma pessoa.
+    let revokedCount = 0;
+    if (recipient) {
+      const { data: pendings } = await supabase
+        .from("invite_codes" as any)
+        .select("id")
+        .eq("target_email", recipient)
+        .eq("type", type)
+        .is("used_at", null)
+        .is("revoked_at", null);
+      const ids = ((pendings ?? []) as { id: string }[]).map((p) => p.id);
+      if (ids.length > 0) {
+        await supabase
+          .from("invite_codes" as any)
+          .update({
+            revoked_at: new Date().toISOString(),
+            note: `superseded → ${code}`,
+          } as any)
+          .in("id", ids);
+        revokedCount = ids.length;
+      }
+    }
+
     const { data: inserted, error } = await supabase
       .from("invite_codes" as any)
       .insert({
@@ -104,7 +129,11 @@ const AdminInvites = () => {
       toast.error("erro: " + error.message);
       return;
     }
-    toast.success("convite criado");
+    toast.success(
+      revokedCount > 0
+        ? `convite criado · ${revokedCount} pendente${revokedCount === 1 ? "" : "s"} revogado${revokedCount === 1 ? "" : "s"}`
+        : "convite criado",
+    );
     setOpen(false);
     setTargetEmail(""); setNote(""); setMode("link"); setType("partner");
     await load();
