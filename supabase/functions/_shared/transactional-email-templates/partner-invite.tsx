@@ -1,6 +1,6 @@
 import * as React from 'npm:react@18.3.1'
 import {
-  Body, Button, Container, Head, Heading, Hr, Html, Preview, Section, Text,
+  Body, Button, Column, Container, Head, Heading, Hr, Html, Preview, Row, Section, Text,
 } from 'npm:@react-email/components@0.0.22'
 import type { TemplateEntry } from './registry.ts'
 
@@ -10,12 +10,20 @@ interface PartnerInviteProps {
   name?: string
   inviteUrl?: string
   note?: string
+  inviterName?: string
+  inviterSlug?: string
+  inviterAvatarUrl?: string
+  inviterHeadline?: string
 }
 
 const PartnerInviteEmail = ({
   name,
   inviteUrl = 'https://axtor.space/signup',
   note,
+  inviterName,
+  inviterSlug,
+  inviterAvatarUrl,
+  inviterHeadline,
 }: PartnerInviteProps) => (
   <Html lang="pt-BR" dir="ltr">
     <Head />
@@ -30,6 +38,37 @@ const PartnerInviteEmail = ({
         <Heading style={h1}>
           {name ? `${name}, bem-vinda à axtor.` : 'Bem-vinda à axtor.'}
         </Heading>
+
+        {inviterName ? (
+          <Section style={inviterCard}>
+            <Row>
+              <Column style={{ width: '48px', verticalAlign: 'middle' }}>
+                {inviterAvatarUrl ? (
+                  <img
+                    src={inviterAvatarUrl}
+                    alt={inviterName}
+                    width="40"
+                    height="40"
+                    style={inviterAvatar}
+                  />
+                ) : (
+                  <div style={inviterAvatarFallback}>
+                    {inviterName.charAt(0).toUpperCase()}
+                  </div>
+                )}
+              </Column>
+              <Column style={{ verticalAlign: 'middle', paddingLeft: '12px' }}>
+                <Text style={inviterLabel}>convidada por</Text>
+                <Text style={inviterNameStyle}>
+                  {inviterName}
+                  {inviterSlug ? (
+                    <span style={inviterHandle}> · axtor.space/{inviterSlug}</span>
+                  ) : null}
+                </Text>
+              </Column>
+            </Row>
+          </Section>
+        ) : null}
 
         <Text style={text}>
           Você acabou de receber um convite especial pra fazer parte da axtor como
@@ -46,6 +85,23 @@ const PartnerInviteEmail = ({
             <Text style={noteText}>{note}</Text>
           </Section>
         ) : null}
+
+        {/* Mockup ilustrado da bio */}
+        <Section style={mockupWrap}>
+          <Text style={mockupLabel}>assim sua bio vai ficar</Text>
+          <div style={mockupCard}>
+            <div style={mockupAvatar}>
+              {(name || 'A').charAt(0).toUpperCase()}
+            </div>
+            <Text style={mockupName}>{name || 'sua marca'}</Text>
+            <Text style={mockupHeadline}>
+              {inviterHeadline || 'sua headline aqui — algo que define você'}
+            </Text>
+            <div style={mockupBlock}>★ link principal</div>
+            <div style={mockupBlock}>✦ instagram</div>
+            <div style={mockupBlockGhost}>+ adicionar mais</div>
+          </div>
+        </Section>
 
         <Section style={ctaWrap}>
           <Button style={button} href={inviteUrl}>
@@ -78,6 +134,9 @@ export const template = {
     name: 'Stefany',
     inviteUrl: 'https://axtor.space/signup?invite=ABC123&email=stefany@example.com',
     note: 'stefany mello — sócia',
+    inviterName: 'Joanderson Silva',
+    inviterSlug: 'joanderson',
+    inviterHeadline: 'Ajudo pais a se reaproximarem dos filhos com presença real.',
   },
 } satisfies TemplateEntry
 
