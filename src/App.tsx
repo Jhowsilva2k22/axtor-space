@@ -34,8 +34,8 @@ const App = () => (
             <CurrentTenantProvider>
               <ThemeProvider>
                 <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/old" element={<Index />} />
+            <Route path="/" element={<Index />} />
+            <Route path="/planos" element={<Landing />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/d/:id" element={<SharePage />} />
             <Route path="/bio" element={<Bio />} />

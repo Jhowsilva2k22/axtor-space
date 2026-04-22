@@ -178,9 +178,26 @@ const Index = () => {
           <div className="h-8 w-8 rounded-sm bg-gradient-to-br from-primary to-primary-glow" />
           <span className="font-display text-xl tracking-wide">Diagnóstico Premium</span>
         </div>
-        <span className="hidden text-xs uppercase tracking-[0.3em] text-muted-foreground sm:block">
-          análise real · 30 segundos
-        </span>
+        <nav className="flex items-center gap-2 sm:gap-4">
+          <Link
+            to="/planos"
+            className="hidden text-[11px] uppercase tracking-[0.25em] text-muted-foreground transition-colors hover:text-primary sm:inline"
+          >
+            Crie sua bio
+          </Link>
+          <Link
+            to="/admin/login"
+            className="hidden text-[11px] uppercase tracking-[0.25em] text-muted-foreground transition-colors hover:text-primary sm:inline"
+          >
+            Entrar
+          </Link>
+          <Link
+            to="/signup"
+            className="rounded-sm border border-gold bg-gradient-gold-soft px-3 py-1.5 text-[11px] uppercase tracking-[0.2em] text-primary transition-all hover:shadow-gold"
+          >
+            Criar bio grátis
+          </Link>
+        </nav>
       </header>
 
       <main className="relative z-10 mx-auto max-w-4xl px-6 pb-24 pt-12 sm:pt-20 py-[40px]">
@@ -267,6 +284,32 @@ const HandleStep = ({ handle, setHandle, onSubmit }: any) => (
           <p className="mt-2 text-sm font-light text-muted-foreground">{it.desc}</p>
         </div>
       ))}
+    </div>
+
+    {/* Ponte: do diagnóstico pro link-in-bio */}
+    <div className="mt-24 rounded-sm border-gold-gradient bg-card/40 p-8 text-left backdrop-blur sm:p-12">
+      <span className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">Bio fraca foi um dos pontos?</span>
+      <h2 className="mt-3 font-display text-3xl leading-tight sm:text-4xl">
+        Crie uma bio <span className="text-gold italic">profissional</span> em 30 segundos.
+      </h2>
+      <p className="mt-3 max-w-xl text-sm text-muted-foreground sm:text-base">
+        Link-in-bio premium com analytics, campanhas com UTM e visual que converte. Comece grátis,
+        suba pra Pro quando quiser desbloquear tudo.
+      </p>
+      <div className="mt-6 flex flex-wrap gap-3">
+        <Link
+          to="/signup"
+          className="btn-luxe inline-flex h-11 items-center gap-2 rounded-sm px-5 text-xs font-semibold uppercase tracking-[0.15em]"
+        >
+          Criar minha bio grátis <ArrowRight className="h-4 w-4" />
+        </Link>
+        <Link
+          to="/joanderson"
+          className="inline-flex h-11 items-center gap-2 rounded-sm border border-gold bg-card/40 px-5 text-xs uppercase tracking-[0.15em] text-primary transition-all hover:shadow-gold"
+        >
+          Ver exemplo real
+        </Link>
+      </div>
     </div>
   </div>
 );
