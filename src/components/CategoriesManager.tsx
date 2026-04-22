@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
+import * as LucideIcons from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { toast } from "sonner";
-import { Loader2, Plus, Trash2, FolderOpen, ArrowUp, ArrowDown, Sparkles } from "lucide-react";
+import { Loader2, Plus, Trash2, FolderOpen, ArrowUp, ArrowDown, Sparkles, Settings2, Check } from "lucide-react";
+import { IconPicker } from "@/components/IconPicker";
 
 export type Category = {
   id: string;
@@ -25,7 +29,6 @@ function slugify(input: string): string {
     .slice(0, 40);
 }
 
-// Categorias prontas pra usar com 1 clique
 const PRESETS: { name: string; slug: string; icon: string }[] = [
   { name: "Redes sociais", slug: "redes-sociais", icon: "Share2" },
   { name: "Contato", slug: "contato", icon: "MessageCircle" },
@@ -41,10 +44,16 @@ const PRESETS: { name: string; slug: string; icon: string }[] = [
   { name: "Apoio / Pix", slug: "apoio", icon: "Heart" },
 ];
 
+const PresetIcon = ({ name }: { name: string }) => {
+  const Comp = (LucideIcons as any)[name] || LucideIcons.Link2;
+  return <Comp className="h-3.5 w-3.5" />;
+};
+
 export const CategoriesManager = () => {
   const [items, setItems] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
+  const [advancedOpen, setAdvancedOpen] = useState<Record<string, boolean>>({});
 
   const load = async () => {
     const { data, error } = await supabase
@@ -81,7 +90,6 @@ export const CategoriesManager = () => {
   };
 
   const addPreset = async (preset: { name: string; slug: string; icon: string }) => {
-    // garante slug único
     let slug = preset.slug;
     let n = 1;
     while (items.some((i) => i.slug === slug)) {
@@ -103,6 +111,19 @@ export const CategoriesManager = () => {
     setItems((s) => s.map((c) => (c.id === id ? { ...c, ...patch } : c)));
     const { error } = await supabase.from("bio_categories").update(patch).eq("id", id);
     if (error) toast.error(error.message);
+  };
+
+  const updateName = async (id: string, name: string) => {
+    const current = items.find((c) => c.id === id);
+    if (!current) return;
+    // Auto-regen slug se ainda for o slug autogerado (ou vazio)
+    const autoSlug = slugify(name) || current.slug;
+    const looksAuto = current.slug === slugify(current.name);
+    const patch: Partial<Category> = { name };
+    if (looksAuto && !items.some((i) => i.id !== id && i.slug === autoSlug)) {
+      patch.slug = autoSlug;
+    }
+    await update(id, patch);
   };
 
   const remove = async (id: string) => {
@@ -127,94 +148,139 @@ export const CategoriesManager = () => {
   };
 
   return (
-    <section className="rounded-sm border-gold-gradient p-6">
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="font-display text-2xl">
-          <FolderOpen className="mr-2 inline-block h-5 w-5 text-primary" />
-          Categorias
-        </h2>
-        <Button onClick={create} disabled={creating} className="btn-luxe h-10 rounded-sm px-4 text-[10px] uppercase tracking-[0.2em]">
-          {creating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <><Plus className="h-3.5 w-3.5" /> Nova</>}
-        </Button>
-      </div>
-      {loading ? (
-        <div className="flex justify-center py-6"><Loader2 className="h-5 w-5 animate-spin text-primary" /></div>
-      ) : items.length === 0 ? (
-        <p className="text-xs text-muted-foreground">
-          Nenhuma categoria. Crie pelo menos uma para mostrar filtros na /bio.
+    <TooltipProvider delayDuration={150}>
+      <section id="categorias" className="rounded-sm border-gold-gradient p-6 scroll-mt-24">
+        <div className="mb-2 flex items-center justify-between">
+          <h2 className="font-display text-2xl">
+            <FolderOpen className="mr-2 inline-block h-5 w-5 text-primary" />
+            Categorias
+          </h2>
+          <Button onClick={create} disabled={creating} className="btn-luxe h-10 rounded-sm px-4 text-[10px] uppercase tracking-[0.2em]">
+            {creating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <><Plus className="h-3.5 w-3.5" /> Nova</>}
+          </Button>
+        </div>
+        <p className="mb-4 text-xs text-muted-foreground">
+          Categorias agrupam seus blocos na <span className="text-primary">/bio</span>. Crie aqui e depois escolha em cada bloco no campo <span className="text-primary">Categoria</span>.
         </p>
-      ) : (
-        <div className="space-y-2">
-          {items.map((c, i) => (
-            <div key={c.id} className="flex flex-wrap items-center gap-3 rounded-sm border border-gold/40 bg-card/40 p-3">
-              <div className="flex items-center gap-1">
-                <button onClick={() => move(i, -1)} disabled={i === 0} className="rounded-sm border border-border p-1.5 text-muted-foreground hover:text-primary disabled:opacity-30">
-                  <ArrowUp className="h-3 w-3" />
-                </button>
-                <button onClick={() => move(i, 1)} disabled={i === items.length - 1} className="rounded-sm border border-border p-1.5 text-muted-foreground hover:text-primary disabled:opacity-30">
-                  <ArrowDown className="h-3 w-3" />
-                </button>
-              </div>
-              <Input
-                value={c.name}
-                onChange={(e) => update(c.id, { name: e.target.value })}
-                placeholder="Nome"
-                className="h-9 flex-1 min-w-[160px] rounded-sm border-gold/40 bg-input text-sm"
-              />
-              <Input
-                value={c.slug}
-                onChange={(e) => update(c.id, { slug: slugify(e.target.value) || c.slug })}
-                placeholder="slug"
-                className="h-9 w-32 rounded-sm border-gold/40 bg-input font-mono text-xs"
-              />
-              <Input
-                value={c.icon ?? ""}
-                onChange={(e) => update(c.id, { icon: e.target.value || null })}
-                placeholder="Ícone (lucide)"
-                className="h-9 w-32 rounded-sm border-gold/40 bg-input text-xs"
-              />
-              <label className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-                ativa
-                <Switch checked={c.is_active} onCheckedChange={(v) => update(c.id, { is_active: v })} />
-              </label>
-              <button onClick={() => remove(c.id)} className="rounded-sm border border-destructive/40 p-2 text-destructive hover:bg-destructive/10">
-                <Trash2 className="h-3 w-3" />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
 
-      {/* Presets — adicione com 1 clique */}
-      <div className="mt-6 rounded-sm border border-gold/30 bg-card/30 p-4">
-        <div className="mb-3 flex items-center gap-2">
-          <Sparkles className="h-3.5 w-3.5 text-primary" />
-          <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
-            Adicionar pronta
+        {loading ? (
+          <div className="flex justify-center py-6"><Loader2 className="h-5 w-5 animate-spin text-primary" /></div>
+        ) : items.length === 0 ? (
+          <p className="text-xs text-muted-foreground">
+            Nenhuma categoria. Adicione uma das prontas abaixo ou clique em "Nova".
           </p>
+        ) : (
+          <div className="space-y-2">
+            {items.map((c, i) => {
+              const IconComp = (c.icon && (LucideIcons as any)[c.icon]) || LucideIcons.FolderOpen;
+              const isAdv = !!advancedOpen[c.id];
+              return (
+                <div key={c.id} className="rounded-sm border border-gold/40 bg-card/40 p-3">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex items-center gap-1">
+                      <button onClick={() => move(i, -1)} disabled={i === 0} className="rounded-sm border border-border p-1.5 text-muted-foreground hover:text-primary disabled:opacity-30">
+                        <ArrowUp className="h-3 w-3" />
+                      </button>
+                      <button onClick={() => move(i, 1)} disabled={i === items.length - 1} className="rounded-sm border border-border p-1.5 text-muted-foreground hover:text-primary disabled:opacity-30">
+                        <ArrowDown className="h-3 w-3" />
+                      </button>
+                    </div>
+
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border border-gold/40 bg-background/40 text-primary">
+                      <IconComp className="h-4 w-4" />
+                    </div>
+
+                    <Input
+                      value={c.name}
+                      onChange={(e) => updateName(c.id, e.target.value)}
+                      placeholder="Nome da categoria"
+                      className="h-9 flex-1 min-w-[160px] rounded-sm border-gold/40 bg-input text-sm"
+                    />
+
+                    <div className="w-[180px]">
+                      <IconPicker
+                        value={c.icon ?? null}
+                        onChange={(name) => update(c.id, { icon: name })}
+                      />
+                    </div>
+
+                    <label className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                      ativa
+                      <Switch checked={c.is_active} onCheckedChange={(v) => update(c.id, { is_active: v })} />
+                    </label>
+
+                    <button onClick={() => remove(c.id)} className="rounded-sm border border-destructive/40 p-2 text-destructive hover:bg-destructive/10" title="Excluir">
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  </div>
+
+                  <Collapsible open={isAdv} onOpenChange={(v) => setAdvancedOpen((s) => ({ ...s, [c.id]: v }))}>
+                    <CollapsibleTrigger className="mt-2 inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-primary">
+                      <Settings2 className="h-3 w-3" />
+                      {isAdv ? "ocultar avançado" : "avançado"}
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="mt-2">
+                      <div className="rounded-sm border border-border/60 bg-background/30 p-2">
+                        <label className="mb-1 block text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                          slug (identificador técnico — gerado automaticamente)
+                        </label>
+                        <Input
+                          value={c.slug}
+                          onChange={(e) => update(c.id, { slug: slugify(e.target.value) || c.slug })}
+                          placeholder="slug"
+                          className="h-8 w-full max-w-xs rounded-sm border-gold/40 bg-input font-mono text-xs"
+                        />
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Presets — adicione com 1 clique */}
+        <div className="mt-6 rounded-sm border border-gold/30 bg-card/30 p-4">
+          <div className="mb-3 flex items-center gap-2">
+            <Sparkles className="h-3.5 w-3.5 text-primary" />
+            <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+              Adicionar pronta — 1 clique
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {PRESETS.map((p) => {
+              const exists = items.some((i) => i.slug === p.slug || i.name.toLowerCase() === p.name.toLowerCase());
+              const btn = (
+                <button
+                  key={p.slug}
+                  onClick={() => !exists && addPreset(p)}
+                  disabled={exists}
+                  className={`inline-flex h-8 items-center gap-1.5 rounded-sm border px-3 text-[10px] uppercase tracking-[0.2em] transition-all ${
+                    exists
+                      ? "cursor-not-allowed border-gold/30 bg-gradient-gold-soft/40 text-primary/70"
+                      : "border-gold/40 bg-card/40 text-primary hover:border-gold hover:bg-gradient-gold-soft"
+                  }`}
+                >
+                  {exists ? <Check className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
+                  <PresetIcon name={p.icon} />
+                  {p.name}
+                </button>
+              );
+              return (
+                <Tooltip key={p.slug}>
+                  <TooltipTrigger asChild>
+                    <span>{btn}</span>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-xs">
+                    {exists ? "Já está na sua lista" : `Adicionar "${p.name}"`}
+                  </TooltipContent>
+                </Tooltip>
+              );
+            })}
+          </div>
         </div>
-        <div className="flex flex-wrap gap-2">
-          {PRESETS.map((p) => {
-            const exists = items.some((i) => i.slug === p.slug || i.name.toLowerCase() === p.name.toLowerCase());
-            return (
-              <button
-                key={p.slug}
-                onClick={() => addPreset(p)}
-                disabled={exists}
-                title={exists ? "Já adicionada" : `Adicionar "${p.name}"`}
-                className={`inline-flex h-8 items-center gap-1.5 rounded-sm border px-3 text-[10px] uppercase tracking-[0.2em] transition-all ${
-                  exists
-                    ? "border-border bg-muted/20 text-muted-foreground/50 line-through"
-                    : "border-gold/40 bg-card/40 text-primary hover:border-gold hover:bg-gradient-gold-soft"
-                }`}
-              >
-                <Plus className="h-3 w-3" /> {p.name}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-    </section>
+      </section>
+    </TooltipProvider>
   );
 };
 
