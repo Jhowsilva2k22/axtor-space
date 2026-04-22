@@ -152,6 +152,44 @@ export type Database = {
         }
         Relationships: []
       }
+      bio_icon_generations: {
+        Row: {
+          block_id: string | null
+          created_at: string
+          icon_url: string
+          id: string
+          prompt: string
+          storage_path: string
+          style: string
+        }
+        Insert: {
+          block_id?: string | null
+          created_at?: string
+          icon_url: string
+          id?: string
+          prompt: string
+          storage_path: string
+          style?: string
+        }
+        Update: {
+          block_id?: string | null
+          created_at?: string
+          icon_url?: string
+          id?: string
+          prompt?: string
+          storage_path?: string
+          style?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bio_icon_generations_block_id_fkey"
+            columns: ["block_id"]
+            isOneToOne: false
+            referencedRelation: "bio_blocks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       diagnostics: {
         Row: {
           ai_summary: string | null

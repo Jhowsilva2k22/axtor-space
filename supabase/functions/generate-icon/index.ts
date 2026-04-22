@@ -7,6 +7,15 @@ const corsHeaders = {
 
 const MAX_PER_BLOCK = 5;
 
+const STYLE_PROMPTS: Record<string, string> = {
+  linear_gold:
+    "Style: thin elegant golden line strokes (color #D4AF37), 2px stroke weight, no fill, completely transparent background, centered composition with generous padding, simple geometric shapes, similar to Lucide icons, single icon only, no text, no labels, no shadows, no gradients, square format.",
+  solid_gold:
+    "Style: solid filled golden shapes (color #D4AF37 with subtle #F0D78C highlights), bold and confident silhouette, completely transparent background, centered composition with generous padding, simple iconic forms, single icon only, no text, no labels, no harsh shadows, square format.",
+  duotone_gold:
+    "Style: duotone golden icon with primary stroke in #D4AF37 and secondary accent fill in #F0D78C at 40% opacity, completely transparent background, centered composition, modern minimal aesthetic, single icon only, no text, no labels, square format.",
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -56,6 +65,13 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const blockId: string | undefined = body.block_id;
     const description: string = (body.description ?? "").toString().trim();
+    const style: string = (body.style ?? "linear_gold").toString();
+    if (!STYLE_PROMPTS[style]) {
+      return new Response(JSON.stringify({ error: "Estilo inválido" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     if (!blockId || !description) {
       return new Response(JSON.stringify({ error: "block_id e description obrigatórios" }), {
         status: 400,
@@ -89,8 +105,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Prompt fixo: ícone linear dourado, fundo transparente, estilo Lucide
-    const prompt = `A minimalist line icon representing: ${description}. Style: thin elegant golden line strokes (color #D4AF37), 2px stroke weight, no fill, completely transparent background, centered composition with generous padding, simple geometric shapes, similar to Lucide icons, single icon only, no text, no labels, no shadows, no gradients, square format.`;
+    const prompt = `A minimalist icon representing: ${description}. ${STYLE_PROMPTS[style]}`;
 
     const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -174,8 +189,17 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Histórico
+    await supaAdmin.from("bio_icon_generations").insert({
+      block_id: blockId,
+      icon_url: publicUrl,
+      storage_path: path,
+      prompt: description,
+      style,
+    });
+
     return new Response(
-      JSON.stringify({ icon_url: publicUrl, used: used + 1, max: MAX_PER_BLOCK }),
+      JSON.stringify({ icon_url: publicUrl, used: used + 1, max: MAX_PER_BLOCK, style }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (e) {
