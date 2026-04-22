@@ -818,7 +818,7 @@ const BlockEditor = ({
           <Save className="h-3.5 w-3.5" /> Salvar bloco
         </Button>
       </div>
-      <CampaignManager blockId={block.id} />
+      <CampaignManager blockId={block.id} blockLabel={block.label} />
     </div>
   );
 };
