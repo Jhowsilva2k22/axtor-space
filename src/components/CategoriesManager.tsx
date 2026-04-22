@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Loader2, Plus, Trash2, FolderOpen, ArrowUp, ArrowDown } from "lucide-react";
+import { Loader2, Plus, Trash2, FolderOpen, ArrowUp, ArrowDown, Sparkles } from "lucide-react";
 
 export type Category = {
   id: string;
@@ -24,6 +24,22 @@ function slugify(input: string): string {
     .replace(/(^-|-$)/g, "")
     .slice(0, 40);
 }
+
+// Categorias prontas pra usar com 1 clique
+const PRESETS: { name: string; slug: string; icon: string }[] = [
+  { name: "Redes sociais", slug: "redes-sociais", icon: "Share2" },
+  { name: "Contato", slug: "contato", icon: "MessageCircle" },
+  { name: "Produtos", slug: "produtos", icon: "ShoppingBag" },
+  { name: "Serviços", slug: "servicos", icon: "Briefcase" },
+  { name: "Cursos & E-books", slug: "cursos-ebooks", icon: "BookOpen" },
+  { name: "Afiliados", slug: "afiliados", icon: "Tag" },
+  { name: "Mídia & Imprensa", slug: "midia", icon: "Newspaper" },
+  { name: "Portfólio", slug: "portfolio", icon: "Image" },
+  { name: "Agenda", slug: "agenda", icon: "Calendar" },
+  { name: "Comunidade", slug: "comunidade", icon: "Users" },
+  { name: "Newsletter", slug: "newsletter", icon: "Mail" },
+  { name: "Apoio / Pix", slug: "apoio", icon: "Heart" },
+];
 
 export const CategoriesManager = () => {
   const [items, setItems] = useState<Category[]>([]);
