@@ -22,7 +22,8 @@ const AdminLogin = () => {
       </div>
     );
   }
-  if (user && isAdmin) return <Navigate to="/admin" replace />;
+  // Qualquer usuário logado (admin ou tenant owner) vai pro painel.
+  if (user) return <Navigate to="/admin" replace />;
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();

@@ -139,10 +139,10 @@ const Admin = () => {
   };
 
   useEffect(() => {
-    if (!authLoading && user && isAdmin) {
+    if (!authLoading && user) {
       void load();
     }
-  }, [authLoading, user, isAdmin]);
+  }, [authLoading, user]);
 
   if (authLoading) {
     return (
@@ -151,7 +151,10 @@ const Admin = () => {
       </div>
     );
   }
-  if (!user || !isAdmin) return <Navigate to="/admin/login" replace />;
+  // Não-logado → tela de login.
+  // Logado (admin OU tenant owner) → entra no painel. RLS já protege os dados
+  // por tenant — admin enxerga tudo, owner só o tenant dele.
+  if (!user) return <Navigate to="/admin/login" replace />;
 
   const saveCfg = async () => {
     if (!cfg) return;
