@@ -634,8 +634,8 @@ const ResultStep = ({ data, onRestart }: { data: DiagnosisData; onRestart: () =>
 
 const Stat = ({ label, value }: { label: string; value: string }) => (
   <div>
-    <div className="font-display text-2xl text-primary">{value}</div>
-    <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{label}</div>
+    <div className="font-display text-4xl font-light leading-none text-primary">{value}</div>
+    <div className="mt-2 text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">{label}</div>
   </div>
 );
 
