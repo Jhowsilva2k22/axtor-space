@@ -546,12 +546,16 @@ const Admin = () => {
                   {blocks.map((b, i) => (
                     <BlockEditor
                       key={b.id}
-                      block={b}
+                      block={viewBlock(b)}
+                      hasDraft={b.has_draft}
+                      isPublishing={publishingId === b.id}
                       categories={categories}
                       isFirst={i === 0}
                       isLast={i === blocks.length - 1}
                       onChange={(p) => updateBlock(b.id, p)}
                       onSave={() => saveBlock(b)}
+                      onPublish={() => publishBlock(viewBlock(b))}
+                      onDiscardDraft={() => discardDraft(b)}
                       onDelete={() => deleteBlock(b.id)}
                       onMoveUp={() => move(i, -1)}
                       onMoveDown={() => move(i, 1)}
