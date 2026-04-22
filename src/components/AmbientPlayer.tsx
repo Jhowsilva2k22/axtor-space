@@ -9,7 +9,19 @@ const FADE_DURATION_MS = 4000;
  * Player ambiente premium — fade-in lento, loop suave, controle discreto,
  * lembra preferência do visitante. Tenta autoplay mudo + convite a ativar.
  */
-const AmbientPlayer = ({ src }: { src: string }) => {
+const TRACKS = [
+  "/music/dreams.mp3",
+  "/music/betterdays.mp3",
+  "/music/deepblue.mp3",
+  "/music/relaxing.mp3",
+  "/music/sweet.mp3",
+  "/music/november.mp3",
+  "/music/thelounge.mp3",
+  "/music/newdawn.mp3",
+];
+
+const AmbientPlayer = () => {
+  const src = TRACKS[Math.floor(Math.random() * TRACKS.length)];
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const fadeTimer = useRef<number | null>(null);
   const [playing, setPlaying] = useState(false);
