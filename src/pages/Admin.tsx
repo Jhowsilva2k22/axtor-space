@@ -14,6 +14,7 @@ import { IconPicker } from "@/components/IconPicker";
 import { BlockMetricsBadge } from "@/components/BlockMetricsBadge";
 import { CampaignManager } from "@/components/CampaignManager";
 import { CategoriesManager, type Category } from "@/components/CategoriesManager";
+import { Combobox } from "@/components/Combobox";
 import {
   Select,
   SelectContent,
