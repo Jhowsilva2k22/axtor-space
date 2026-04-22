@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { Loader2, Plus, Save, Trash2, ArrowUp, ArrowDown, LogOut, ExternalLink, Eye, EyeOff, BarChart3 } from "lucide-react";
 import { Upload } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { IconPicker } from "@/components/IconPicker";
 import {
   Select,
   SelectContent,
@@ -478,7 +479,7 @@ const BlockEditor = ({
           </Select>
         </Field>
         <Field label="Ícone (lucide)">
-          <Input value={block.icon ?? ""} onChange={(e) => onChange({ icon: e.target.value })} placeholder="Instagram" className="h-11 rounded-sm border-gold bg-input" />
+          <IconPicker value={block.icon} onChange={(name) => onChange({ icon: name })} />
         </Field>
         <Field label="Label">
           <Input value={block.label} onChange={(e) => onChange({ label: e.target.value })} className="h-11 rounded-sm border-gold bg-input" />
