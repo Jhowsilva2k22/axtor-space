@@ -181,6 +181,7 @@ const Admin = () => {
         position: b.position,
         use_brand_color: b.use_brand_color,
         size: b.size,
+        category_id: b.category_id,
       })
       .eq("id", b.id);
     if (error) toast.error(error.message);
