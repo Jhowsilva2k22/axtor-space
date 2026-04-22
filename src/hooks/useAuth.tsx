@@ -26,15 +26,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       window.setTimeout(() => resolve(false), 2500);
     });
 
-    const rolePromise = supabase
-      .rpc("has_role", { _user_id: uid, _role: "admin" })
-      .then(({ data, error }) => {
+    const rolePromise = (async () => {
+      try {
+        const { data, error } = await supabase.rpc("has_role", { _user_id: uid, _role: "admin" });
         if (error) return false;
         return !!data;
-      })
-      .catch(() => false);
+      } catch {
+        return false;
+      }
+    })();
 
-    return Promise.race([rolePromise, timeoutPromise]);
+    return Promise.race<boolean>([rolePromise, timeoutPromise]);
   };
 
   useEffect(() => {
