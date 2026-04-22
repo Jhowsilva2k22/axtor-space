@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useTenant } from "@/hooks/useTenant";
 
 export type ThemeTokens = {
   brandH: number | string;
@@ -87,6 +88,7 @@ const applyTokensToRoot = (tokens: ThemeTokens) => {
 };
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
+  const { tenant } = useTenant();
   const [theme, setTheme] = useState<Theme>(GOLD_NOIR_FALLBACK);
   const [activeSlug, setActiveSlug] = useState<string>("gold-noir");
   const [previewSlug, setPreviewSlugState] = useState<string | null>(() => {
@@ -113,12 +115,13 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     let cancelled = false;
+    if (!tenant) return; // espera o tenant resolver antes de buscar tema
     (async () => {
       try {
         const { data: cfg } = await supabase
           .from("bio_config")
           .select("active_theme_slug")
-          .eq("singleton", true)
+          .eq("tenant_id", tenant.id)
           .maybeSingle();
         const liveSlug = (cfg as any)?.active_theme_slug ?? "gold-noir";
         if (!cancelled) setActiveSlug(liveSlug);
@@ -144,7 +147,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       cancelled = true;
     };
-  }, [previewSlug]);
+  }, [previewSlug, tenant?.id]);
 
   return (
     <ThemeCtx.Provider value={{ theme, activeSlug, previewSlug, setPreview }}>

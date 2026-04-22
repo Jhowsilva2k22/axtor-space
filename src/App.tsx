@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
+import { TenantProvider } from "@/hooks/useTenant";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
@@ -26,8 +27,9 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <ThemeProvider>
-            <Routes>
+          <TenantProvider>
+            <ThemeProvider>
+              <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/d/:id" element={<SharePage />} />
             <Route path="/bio" element={<Bio />} />
@@ -40,8 +42,9 @@ const App = () => (
             <Route path="/r/:slug" element={<RedirectCampaign />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
-            </Routes>
-          </ThemeProvider>
+              </Routes>
+            </ThemeProvider>
+          </TenantProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
