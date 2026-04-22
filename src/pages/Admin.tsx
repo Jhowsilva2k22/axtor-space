@@ -353,6 +353,10 @@ const BlockEditor = ({
             destaque
             <Switch checked={block.highlight} onCheckedChange={(v) => onChange({ highlight: v })} />
           </label>
+          <label className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+            cor original
+            <Switch checked={block.use_brand_color} onCheckedChange={(v) => onChange({ use_brand_color: v })} />
+          </label>
         </div>
       </div>
 
