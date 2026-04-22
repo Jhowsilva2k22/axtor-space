@@ -778,6 +778,13 @@ const BlockEditor = ({
               ))}
             </SelectContent>
           </Select>
+          <p className="mt-1 text-[10px] text-muted-foreground">
+            Não está aqui?{" "}
+            <a href="#categorias" className="text-primary underline-offset-2 hover:underline">
+              Gerencie a lista no card Categorias
+            </a>
+            .
+          </p>
         </Field>
         <Field label="URL" full>
           <Input value={block.url} onChange={(e) => onChange({ url: e.target.value })} placeholder="https:// ou /rota interna" className="h-11 rounded-sm border-gold bg-input" />
