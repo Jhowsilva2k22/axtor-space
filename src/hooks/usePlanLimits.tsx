@@ -31,7 +31,9 @@ export const usePlanLimits = (activeBlocksCount = 0) => {
   const { current } = useCurrentTenant();
   // current.plan_limits pode vir do tipo gerado; fallback por plano
   const raw = (current as any)?.plan_limits as Partial<PlanLimits> | undefined;
-  const fallback = current?.plan === "free" || !current?.plan ? DEFAULT_FREE : PRO;
+  const planName = current?.plan ?? "free";
+  const isPaidLike = planName === "pro" || planName === "partner" || planName === "tester";
+  const fallback = isPaidLike ? PRO : DEFAULT_FREE;
   const limits: PlanLimits = { ...fallback, ...(raw ?? {}) };
 
   const isFree = current?.plan === "free" || !current;
