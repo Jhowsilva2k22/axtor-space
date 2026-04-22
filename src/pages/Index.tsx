@@ -149,6 +149,7 @@ const Index = () => {
         )}
         {step === "loading" && <LoadingStep message={loadingMsg} handle={handle} />}
         {step === "private" && data && <PrivateStep data={data} onRetry={reset} />}
+        {step === "not_found" && <NotFoundStep handle={handle} onRetry={reset} />}
         {step === "result" && data && <ResultStep data={data} onRestart={reset} />}
       </main>
 
@@ -179,7 +180,15 @@ const HandleStep = ({ handle, setHandle, onSubmit }: any) => (
         <span className="pl-5 text-2xl font-display text-primary">@</span>
         <Input
           value={handle}
-          onChange={(e) => setHandle(e.target.value.replace(/^@+/, ""))}
+          onChange={(e) =>
+            setHandle(
+              e.target.value
+                .replace(/^@+/, "")
+                .toLowerCase()
+                .replace(/[^a-z0-9._]/g, "")
+                .slice(0, 30),
+            )
+          }
           placeholder="seu_perfil"
           className="h-14 border-0 bg-transparent text-base font-light placeholder:text-muted-foreground/40 focus-visible:ring-0"
           autoFocus
