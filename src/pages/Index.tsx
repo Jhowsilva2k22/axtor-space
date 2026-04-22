@@ -155,6 +155,7 @@ const Index = () => {
         {step === "loading" && <LoadingStep message={loadingMsg} handle={handle} />}
         {step === "private" && data && <PrivateStep data={data} onRetry={reset} />}
         {step === "not_found" && <NotFoundStep handle={handle} onRetry={reset} />}
+        {step === "blocked" && data && <BlockedStep data={data} />}
         {step === "result" && data && <ResultStep data={data} onRestart={reset} />}
       </main>
 
