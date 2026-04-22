@@ -31,9 +31,9 @@ const REASONS: Record<string, string> = {
 const INVITE_REASONS: Record<string, string> = {
   invalid_format: "código inválido",
   not_found: "código não encontrado",
-  revoked: "código revogado",
+  revoked: "este código foi substituído por um novo — confira seu email mais recente ou peça pra quem te enviou",
   already_used: "código já utilizado",
-  expired: "código expirado",
+  expired: "este código expirou — peça um novo pra quem te enviou",
   email_mismatch: "este código é para outro email",
 };
 
