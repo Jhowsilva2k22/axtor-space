@@ -221,6 +221,63 @@ const Admin = () => {
     toast.success("Foto atualizada");
   };
 
+  const updateCfg = (patch: Partial<BioConfig>) => {
+    setCfg((c) => (c ? { ...c, ...patch } : c));
+    setCfgDirty(true);
+  };
+
+  const saveAll = async () => {
+    if (!cfg) return;
+    setSavingAll(true);
+    const tasks: Promise<any>[] = [];
+    if (cfgDirty) {
+      tasks.push(
+        supabase
+          .from("bio_config")
+          .update({
+            display_name: cfg.display_name,
+            headline: cfg.headline,
+            sub_headline: cfg.sub_headline,
+            avatar_url: cfg.avatar_url,
+            footer_text: cfg.footer_text,
+          })
+          .eq("id", cfg.id),
+      );
+    }
+    const dirtyList = blocks.filter((b) => dirtyBlocks.has(b.id));
+    for (const b of dirtyList) {
+      tasks.push(
+        supabase
+          .from("bio_blocks")
+          .update({
+            kind: b.kind,
+            label: b.label,
+            description: b.description,
+            url: b.url,
+            icon: b.icon,
+            badge: b.badge,
+            highlight: b.highlight,
+            is_active: b.is_active,
+            position: b.position,
+            use_brand_color: b.use_brand_color,
+          })
+          .eq("id", b.id),
+      );
+    }
+    const results = await Promise.all(tasks);
+    setSavingAll(false);
+    const failed = results.filter((r: any) => r?.error).length;
+    if (failed > 0) {
+      toast.error(`${failed} alteração(ões) falharam`);
+    } else {
+      toast.success(`Tudo salvo (${tasks.length} alteração${tasks.length === 1 ? "" : "ões"})`);
+      setCfgDirty(false);
+      setDirtyBlocks(new Set());
+    }
+  };
+
+  const totalDirty = (cfgDirty ? 1 : 0) + dirtyBlocks.size;
+
   return (
     <div className="relative min-h-screen overflow-hidden grain">
       <div className="aurora-a" />
