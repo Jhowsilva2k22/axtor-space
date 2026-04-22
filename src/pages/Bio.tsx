@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import * as LucideIcons from "lucide-react";
 import { Loader2, ArrowUpRight } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import AmbientPlayer from "@/components/AmbientPlayer";
 
 type BioConfig = {
   display_name: string;
@@ -83,7 +84,8 @@ const Bio = () => {
       <div className="aurora-a" />
       <div className="aurora-b" />
 
-      <ThemeToggle className="absolute right-5 top-5 z-20" />
+      <AmbientPlayer src="/ambient.mp3" />
+      <ThemeToggle className="absolute left-5 top-5 z-20" />
 
       <main className="relative z-10 mx-auto max-w-md px-6 pb-16 pt-12">
         <div className="text-center">
@@ -116,6 +118,12 @@ const Bio = () => {
           <Link to="/" className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground hover:text-primary">
             {cfg?.footer_text ?? "voltar"}
           </Link>
+          <p className="mt-3 text-[9px] uppercase tracking-[0.25em] text-muted-foreground/40">
+            música:{" "}
+            <a href="https://www.bensound.com" target="_blank" rel="noopener noreferrer" className="hover:text-muted-foreground/70">
+              bensound
+            </a>
+          </p>
         </footer>
       </main>
     </div>
