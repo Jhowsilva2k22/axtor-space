@@ -60,7 +60,7 @@ export function captureUtm(): Utm {
 export async function trackPageView(path: string, meta?: Record<string, unknown>) {
   try {
     const utm = captureUtm();
-    await supabase.from("page_views").insert({
+    await supabase.from("page_views").insert([{
       path,
       session_id: getSessionId(),
       referrer: document.referrer || null,
@@ -68,7 +68,7 @@ export async function trackPageView(path: string, meta?: Record<string, unknown>
       device: detectDevice(),
       ...utm,
       meta: meta ?? null,
-    });
+    }]);
   } catch (e) {
     console.warn("trackPageView failed", e);
   }
@@ -82,7 +82,7 @@ export async function trackBioClick(block: {
 }) {
   try {
     const utm = captureUtm();
-    await supabase.from("bio_clicks").insert({
+    await supabase.from("bio_clicks").insert([{
       block_id: block.id ?? null,
       block_kind: block.kind ?? null,
       block_label: block.label ?? null,
@@ -91,7 +91,7 @@ export async function trackBioClick(block: {
       referrer: document.referrer || null,
       device: detectDevice(),
       ...utm,
-    });
+    }]);
   } catch (e) {
     console.warn("trackBioClick failed", e);
   }
@@ -115,14 +115,14 @@ export async function trackFunnel(
 ) {
   try {
     const utm = captureUtm();
-    await supabase.from("funnel_events").insert({
+    await supabase.from("funnel_events").insert([{
       event_name: event,
       session_id: getSessionId(),
       instagram_handle: data?.handle ?? null,
       diagnostic_id: data?.diagnostic_id ?? null,
       meta: data?.meta ?? null,
       ...utm,
-    });
+    }]);
   } catch (e) {
     console.warn("trackFunnel failed", e);
   }
