@@ -221,6 +221,7 @@ export type Database = {
       }
       bio_config: {
         Row: {
+          active_theme_slug: string
           avatar_url: string | null
           contact_url: string | null
           created_at: string
@@ -233,6 +234,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          active_theme_slug?: string
           avatar_url?: string | null
           contact_url?: string | null
           created_at?: string
@@ -245,6 +247,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          active_theme_slug?: string
           avatar_url?: string | null
           contact_url?: string | null
           created_at?: string
@@ -295,6 +298,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      bio_themes: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          is_default: boolean
+          name: string
+          preview_image_url: string | null
+          slug: string
+          tokens: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          name: string
+          preview_image_url?: string | null
+          slug: string
+          tokens: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          name?: string
+          preview_image_url?: string | null
+          slug?: string
+          tokens?: Json
+          updated_at?: string
+        }
+        Relationships: []
       }
       diagnostics: {
         Row: {
