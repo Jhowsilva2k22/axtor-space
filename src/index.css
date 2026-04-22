@@ -8,35 +8,75 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Noir & Gold — fundo preto profundo, dourado luxuoso */
-    --background: 0 0% 5%;
-    --foreground: 40 30% 95%;
+    /* ============================================
+       BRAND TOKENS — fonte única de verdade.
+       Templates futuros sobrescrevem APENAS estas variáveis.
+       Os tokens semânticos abaixo derivam destas.
+       ============================================ */
+    --brand-h: 43;
+    --brand-s: 55%;
+    --brand-l: 54%;
+    --brand-l-glow: 70%;
+    --brand-l-deep: 18%;
 
-    --card: 0 0% 8%;
-    --card-foreground: 40 30% 95%;
+    --surface-h: 0;
+    --surface-s: 0%;
+    --surface-l-bg: 5%;
+    --surface-l-card: 8%;
+    --surface-l-popover: 6%;
+    --surface-l-secondary: 12%;
+    --surface-l-muted: 14%;
+    --surface-l-input: 11%;
+    --surface-l-noir-top: 12%;
+    --surface-l-noir-bottom: 4%;
 
-    --popover: 0 0% 6%;
-    --popover-foreground: 40 30% 95%;
+    --foreground-h: 40;
+    --foreground-s: 30%;
+    --foreground-l: 95%;
+    --muted-fg-h: 40;
+    --muted-fg-s: 10%;
+    --muted-fg-l: 65%;
 
-    --primary: 43 55% 54%;            /* gold #c9a84c */
-    --primary-foreground: 0 0% 5%;
-    --primary-glow: 43 75% 70%;       /* light gold #f0d78c */
+    --font-display: 'Cormorant Garamond', 'Didot', 'Bodoni 72', serif;
+    --font-body: 'Manrope', system-ui, sans-serif;
+    --font-body-weight: 300;
 
-    --secondary: 0 0% 12%;
-    --secondary-foreground: 40 30% 95%;
+    --aurora-opacity-a: 0.22;
+    --aurora-opacity-b: 0.18;
+    --aurora-blur: 80px;
+    --halo-opacity: 0.35;
 
-    --muted: 0 0% 14%;
-    --muted-foreground: 40 10% 65%;
+    /* ============================================
+       SEMANTIC TOKENS — derivados (não duplique valores)
+       ============================================ */
+    --background: var(--surface-h) var(--surface-s) var(--surface-l-bg);
+    --foreground: var(--foreground-h) var(--foreground-s) var(--foreground-l);
 
-    --accent: 43 55% 54%;
-    --accent-foreground: 0 0% 5%;
+    --card: var(--surface-h) var(--surface-s) var(--surface-l-card);
+    --card-foreground: var(--foreground-h) var(--foreground-s) var(--foreground-l);
+
+    --popover: var(--surface-h) var(--surface-s) var(--surface-l-popover);
+    --popover-foreground: var(--foreground-h) var(--foreground-s) var(--foreground-l);
+
+    --primary: var(--brand-h) var(--brand-s) var(--brand-l);
+    --primary-foreground: var(--surface-h) var(--surface-s) var(--surface-l-bg);
+    --primary-glow: var(--brand-h) 75% var(--brand-l-glow);
+
+    --secondary: var(--surface-h) var(--surface-s) var(--surface-l-secondary);
+    --secondary-foreground: var(--foreground-h) var(--foreground-s) var(--foreground-l);
+
+    --muted: var(--surface-h) var(--surface-s) var(--surface-l-muted);
+    --muted-foreground: var(--muted-fg-h) var(--muted-fg-s) var(--muted-fg-l);
+
+    --accent: var(--brand-h) var(--brand-s) var(--brand-l);
+    --accent-foreground: var(--surface-h) var(--surface-s) var(--surface-l-bg);
 
     --destructive: 0 65% 50%;
-    --destructive-foreground: 40 30% 95%;
+    --destructive-foreground: var(--foreground-h) var(--foreground-s) var(--foreground-l);
 
-    --border: 43 25% 18%;
-    --input: 0 0% 11%;
-    --ring: 43 55% 54%;
+    --border: var(--brand-h) 25% var(--brand-l-deep);
+    --input: var(--surface-h) var(--surface-s) var(--surface-l-input);
+    --ring: var(--brand-h) var(--brand-s) var(--brand-l);
 
     --radius: 0.1875rem;
 
