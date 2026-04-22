@@ -663,6 +663,62 @@ const Admin = () => {
                   </p>
                 )}
               </Field>
+              <Field label="Capa de fundo (opcional)" full>
+                <div className="flex flex-col gap-3">
+                  {cfg.cover_url ? (
+                    <div className="relative h-32 w-full overflow-hidden rounded-sm border border-gold">
+                      <img src={cfg.cover_url} alt="capa" className="h-full w-full object-cover" />
+                      <div
+                        aria-hidden
+                        className="pointer-events-none absolute inset-0"
+                        style={{
+                          background:
+                            "radial-gradient(ellipse at center, transparent 0%, transparent 30%, hsl(var(--background) / 0.65) 70%, hsl(var(--background) / 0.92) 100%)",
+                        }}
+                      />
+                      <div className="absolute bottom-2 right-2 rounded-sm border border-gold bg-background/80 px-2 py-1 text-[9px] uppercase tracking-[0.2em] text-primary backdrop-blur">
+                        prévia com vinheta
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex h-32 w-full items-center justify-center rounded-sm border border-dashed border-gold/40 bg-card/30">
+                      <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+                        sem capa — fundo do tema
+                      </p>
+                    </div>
+                  )}
+                  <div className="flex flex-wrap gap-2">
+                    <label className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-sm border border-gold bg-card/40 px-4 text-[11px] uppercase tracking-[0.2em] text-primary transition-all hover:bg-gradient-gold-soft">
+                      {uploadingCover ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+                      {uploadingCover ? "Enviando..." : cfg.cover_url ? "Trocar capa" : "Enviar capa"}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={uploadingCover}
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (f) uploadCover(f);
+                          e.currentTarget.value = "";
+                        }}
+                      />
+                    </label>
+                    {cfg.cover_url && (
+                      <Button
+                        type="button"
+                        onClick={removeCover}
+                        variant="ghost"
+                        className="h-10 rounded-sm border border-border px-4 text-[11px] uppercase tracking-[0.2em] text-muted-foreground hover:text-destructive"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" /> Remover
+                      </Button>
+                    )}
+                  </div>
+                  <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">
+                    aplicada como fundo fixo (parallax) com blur e vinheta. máx 8MB.
+                  </p>
+                </div>
+              </Field>
             </div>
             <div className="mt-6 flex justify-end">
               <Button onClick={saveCfg} disabled={saving} className="btn-luxe h-11 rounded-sm px-6 text-xs uppercase tracking-[0.2em]">
