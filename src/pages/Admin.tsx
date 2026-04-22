@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Loader2, Plus, Save, Trash2, ArrowUp, ArrowDown, LogOut, ExternalLink, Eye, EyeOff } from "lucide-react";
+import { Upload } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -58,6 +59,7 @@ const Admin = () => {
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   const load = async () => {
     const [{ data: c }, { data: b }] = await Promise.all([
@@ -161,6 +163,36 @@ const Admin = () => {
     ]);
   };
 
+  const uploadAvatar = async (file: File) => {
+    if (!cfg) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Imagem muito grande (máx 5MB)");
+      return;
+    }
+    setUploadingAvatar(true);
+    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    const path = `bio/avatar-${Date.now()}.${ext}`;
+    const { error: upErr } = await supabase.storage.from("avatars").upload(path, file, {
+      cacheControl: "3600",
+      upsert: false,
+      contentType: file.type,
+    });
+    if (upErr) {
+      setUploadingAvatar(false);
+      return toast.error(upErr.message);
+    }
+    const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
+    const url = pub.publicUrl;
+    const { error: updErr } = await supabase
+      .from("bio_config")
+      .update({ avatar_url: url })
+      .eq("id", cfg.id);
+    setUploadingAvatar(false);
+    if (updErr) return toast.error(updErr.message);
+    setCfg({ ...cfg, avatar_url: url });
+    toast.success("Foto atualizada");
+  };
+
   return (
     <div className="min-h-screen grain">
       <header className="sticky top-0 z-30 border-b border-gold/30 bg-background/80 backdrop-blur">
@@ -193,8 +225,35 @@ const Admin = () => {
               <Field label="Nome de exibição">
                 <Input value={cfg.display_name} onChange={(e) => setCfg({ ...cfg, display_name: e.target.value })} className="h-11 rounded-sm border-gold bg-input" />
               </Field>
-              <Field label="URL da foto">
-                <Input value={cfg.avatar_url ?? ""} onChange={(e) => setCfg({ ...cfg, avatar_url: e.target.value })} placeholder="https://..." className="h-11 rounded-sm border-gold bg-input" />
+              <Field label="Foto de perfil">
+                <div className="flex items-center gap-3">
+                  {cfg.avatar_url ? (
+                    <img src={cfg.avatar_url} alt="avatar" className="h-11 w-11 shrink-0 rounded-full border border-gold object-cover" />
+                  ) : (
+                    <div className="h-11 w-11 shrink-0 rounded-full border border-dashed border-gold/50" />
+                  )}
+                  <label className="inline-flex h-11 cursor-pointer items-center gap-2 rounded-sm border border-gold bg-card/40 px-4 text-[11px] uppercase tracking-[0.2em] text-primary transition-all hover:bg-gradient-gold-soft">
+                    {uploadingAvatar ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+                    {uploadingAvatar ? "Enviando..." : "Enviar foto"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={uploadingAvatar}
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) uploadAvatar(f);
+                        e.currentTarget.value = "";
+                      }}
+                    />
+                  </label>
+                </div>
+                <Input
+                  value={cfg.avatar_url ?? ""}
+                  onChange={(e) => setCfg({ ...cfg, avatar_url: e.target.value })}
+                  placeholder="ou cole uma URL https://..."
+                  className="mt-2 h-9 rounded-sm border-gold/50 bg-input text-xs"
+                />
               </Field>
               <Field label="Headline (frase principal)" full>
                 <Textarea value={cfg.headline} onChange={(e) => setCfg({ ...cfg, headline: e.target.value })} rows={3} className="rounded-sm border-gold bg-input" />
