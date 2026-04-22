@@ -391,6 +391,23 @@ const Admin = () => {
           </section>
         </main>
       )}
+
+      {totalDirty > 0 && (
+        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-6">
+          <div className="pointer-events-auto flex items-center gap-4 rounded-sm border-gold-gradient bg-background/95 px-5 py-3 shadow-2xl backdrop-blur">
+            <span className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+              {totalDirty} alteração{totalDirty === 1 ? "" : "ões"} pendente{totalDirty === 1 ? "" : "s"}
+            </span>
+            <Button
+              onClick={saveAll}
+              disabled={savingAll}
+              className="btn-luxe h-10 rounded-sm px-5 text-[11px] uppercase tracking-[0.2em]"
+            >
+              {savingAll ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Save className="h-4 w-4" /> Salvar tudo</>}
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
