@@ -67,7 +67,7 @@ export async function trackPageView(path: string, meta?: Record<string, unknown>
       user_agent: navigator.userAgent,
       device: detectDevice(),
       ...utm,
-      meta: meta ?? null,
+      meta: (meta as never) ?? null,
     }]);
   } catch (e) {
     console.warn("trackPageView failed", e);
@@ -120,7 +120,7 @@ export async function trackFunnel(
       session_id: getSessionId(),
       instagram_handle: data?.handle ?? null,
       diagnostic_id: data?.diagnostic_id ?? null,
-      meta: data?.meta ?? null,
+      meta: (data?.meta as never) ?? null,
       ...utm,
     }]);
   } catch (e) {
