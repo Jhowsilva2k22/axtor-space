@@ -147,7 +147,7 @@ const Signup = () => {
     // Criar tenant
     const { data: tdata, error: terr } = await supabase.rpc(
       "create_tenant_for_user" as any,
-      { _slug: slug, _display_name: name.trim() } as any
+      { _slug: slug, _display_name: name.trim(), _invite_code: inviteCode || null } as any
     );
     setSubmitting(false);
     if (terr) {
@@ -157,7 +157,10 @@ const Signup = () => {
     const result = tdata as any as Created;
     await refresh();
     setCreated(result);
-    toast.success("bio criada com sucesso");
+    const planLabel = (tdata as any)?.plan;
+    if (planLabel === "partner") toast.success("bio criada — acesso parceiro liberado ✨");
+    else if (planLabel === "tester") toast.success("bio criada — acesso beta-tester liberado ✨");
+    else toast.success("bio criada com sucesso");
   };
 
   if (created) {
