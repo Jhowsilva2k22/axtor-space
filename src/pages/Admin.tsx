@@ -16,6 +16,9 @@ import { CampaignManager } from "@/components/CampaignManager";
 import { CategoriesManager, type Category } from "@/components/CategoriesManager";
 import { Combobox } from "@/components/Combobox";
 import { TenantSelector } from "@/components/TenantSelector";
+import { usePlanLimits } from "@/hooks/usePlanLimits";
+import { UpgradeModal } from "@/components/UpgradeModal";
+import { Lock } from "lucide-react";
 import {
   Select,
   SelectContent,
