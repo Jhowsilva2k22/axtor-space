@@ -225,6 +225,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_diagnostic_public: {
+        Args: { _id: string }
+        Returns: {
+          ai_summary: string
+          created_at: string
+          id: string
+          insights: Json
+          instagram_handle: string
+          is_private: boolean
+          profile_data: Json
+          scores: Json
+          status: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
