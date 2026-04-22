@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useCurrentTenant } from "@/hooks/useCurrentTenant";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle, useAdminLockedTheme } from "@/components/ThemeToggle";
 import { TenantSelector } from "@/components/TenantSelector";
@@ -62,17 +63,22 @@ const fmtUSD = (v: number) =>
 const fmtNum = (v: number) => new Intl.NumberFormat("pt-BR").format(v);
 
 const AdminAnalytics = () => {
-  const { user, isAdmin, loading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const { current: currentTenant, loading: tenantLoading } = useCurrentTenant();
   const [range, setRange] = useState<Range>(30);
   const [data, setData] = useState<Summary | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const load = async () => {
+    if (!currentTenant) return;
     setRefreshing(true);
     setLoading(true);
     try {
-      const { data: rpc, error } = await supabase.rpc("get_analytics_summary", { _days: range });
+      const { data: rpc, error } = await supabase.rpc("get_tenant_analytics", {
+        _tenant_id: currentTenant.id,
+        _days: range,
+      });
       if (error) throw error;
       setData((rpc as unknown as Summary) ?? null);
     } catch (error: any) {
@@ -85,11 +91,11 @@ const AdminAnalytics = () => {
   };
 
   useEffect(() => {
-    if (!authLoading && user && isAdmin) {
+    if (!authLoading && !tenantLoading && user && currentTenant) {
       void load();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authLoading, user, isAdmin, range]);
+  }, [authLoading, tenantLoading, user, currentTenant?.id, range]);
 
   const cost = useMemo(() => {
     if (!data) return null;
@@ -123,7 +129,6 @@ const AdminAnalytics = () => {
     );
   }
   if (!user) return <Navigate to="/admin/login" replace />;
-  if (!isAdmin) return <Navigate to="/" replace />;
 
   return (
     <div className="relative min-h-screen overflow-hidden grain">
