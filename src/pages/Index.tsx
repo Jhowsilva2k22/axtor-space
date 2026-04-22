@@ -52,6 +52,7 @@ const Index = () => {
   const [handle, setHandle] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [country, setCountry] = useState<CountryCode>("BR");
   const [name, setName] = useState("");
   const [loadingMsg, setLoadingMsg] = useState(LOADING_STEPS[0]);
   const [data, setData] = useState<DiagnosisData | null>(null);
