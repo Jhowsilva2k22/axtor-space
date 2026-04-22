@@ -742,6 +742,7 @@ export type Database = {
           id: string
           owner_user_id: string | null
           plan: string
+          plan_limits: Json
           slug: string
           status: string
           updated_at: string
@@ -752,6 +753,7 @@ export type Database = {
           id?: string
           owner_user_id?: string | null
           plan?: string
+          plan_limits?: Json
           slug: string
           status?: string
           updated_at?: string
@@ -762,6 +764,7 @@ export type Database = {
           id?: string
           owner_user_id?: string | null
           plan?: string
+          plan_limits?: Json
           slug?: string
           status?: string
           updated_at?: string
@@ -850,6 +853,11 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_slug_available: { Args: { _slug: string }; Returns: Json }
+      create_tenant_for_user: {
+        Args: { _display_name: string; _slug: string }
+        Returns: Json
+      }
       get_analytics_summary: { Args: { _days?: number }; Returns: Json }
       get_block_analytics: {
         Args: { _block_id: string; _days?: number }
