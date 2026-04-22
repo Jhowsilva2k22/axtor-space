@@ -4,7 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { ArrowRight, Sparkles, Lock, CheckCircle2, AlertTriangle, Loader2, Instagram, TrendingUp, Target, Zap, SearchX, Share2, Clock, Check } from "lucide-react";
-import { validateEmail, validateName, validatePhoneBR, maskPhoneBR, suggestEmailDomain } from "@/lib/validators";
+import { validateEmail, validateName, validatePhone, maskPhone, suggestEmailDomain, COUNTRIES, type CountryCode } from "@/lib/validators";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const PROXY = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/proxy-image?url=`;
 const proxied = (url?: string) => (url ? PROXY + encodeURIComponent(url) : "");
