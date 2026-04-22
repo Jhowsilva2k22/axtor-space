@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import * as LucideIcons from "lucide-react";
 import { Loader2, ArrowUpRight } from "lucide-react";
@@ -118,9 +117,9 @@ const Bio = () => {
         </div>
 
         <footer className="mt-16 text-center">
-          <Link to="/" className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground hover:text-primary">
+          <a href="/" target="_blank" rel="noopener" className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground hover:text-primary">
             {cfg?.footer_text ?? "voltar"}
-          </Link>
+          </a>
           <p className="mt-3 text-[9px] uppercase tracking-[0.25em] text-muted-foreground/40">
             música:{" "}
             <a href="https://www.bensound.com" target="_blank" rel="noopener noreferrer" className="hover:text-muted-foreground/70">
@@ -178,15 +177,15 @@ const BlockCard = ({ block }: { block: Block }) => {
       <ArrowUpRight className="h-4 w-4 shrink-0 text-primary opacity-60 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100" />
     </>
   );
-  if (isInternal) {
-    return (
-      <Link to={block.url} className={cls} onClick={onTrack}>
-        {inner}
-      </Link>
-    );
-  }
+  // Sempre abre em nova aba (inclusive rotas internas) para preservar a /bio aberta
   return (
-    <a href={block.url} target="_blank" rel="noopener noreferrer" className={cls} onClick={onTrack}>
+    <a
+      href={block.url}
+      target="_blank"
+      rel={isInternal ? "noopener" : "noopener noreferrer"}
+      className={cls}
+      onClick={onTrack}
+    >
       {inner}
     </a>
   );
