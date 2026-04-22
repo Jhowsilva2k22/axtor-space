@@ -16,6 +16,9 @@ import { CampaignManager } from "@/components/CampaignManager";
 import { CategoriesManager, type Category } from "@/components/CategoriesManager";
 import { Combobox } from "@/components/Combobox";
 import { TenantSelector } from "@/components/TenantSelector";
+import { usePlanLimits } from "@/hooks/usePlanLimits";
+import { UpgradeModal } from "@/components/UpgradeModal";
+import { Lock } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -90,6 +93,8 @@ const Admin = () => {
   const [cfg, setCfg] = useState<BioConfig | null>(null);
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [loading, setLoading] = useState(true);
+  const activeBlocksCount = blocks.filter((b) => b.is_active).length;
+  const plan = usePlanLimits(activeBlocksCount);
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [cfgDirty, setCfgDirty] = useState(false);
@@ -497,15 +502,39 @@ const Admin = () => {
             )}
             <TenantSelector />
             <ThemeToggle />
-            <Link to="/admin/templates" className="inline-flex h-10 items-center gap-2 rounded-sm border border-gold bg-card/40 px-4 text-[11px] uppercase tracking-[0.2em] text-primary transition-all hover:bg-gradient-gold-soft">
-              Templates <Palette className="h-3.5 w-3.5" />
-            </Link>
-            <Link to="/admin/analytics" className="inline-flex h-10 items-center gap-2 rounded-sm border border-gold bg-card/40 px-4 text-[11px] uppercase tracking-[0.2em] text-primary transition-all hover:bg-gradient-gold-soft">
-              Analytics <BarChart3 className="h-3.5 w-3.5" />
-            </Link>
-            <Link to="/admin/improvements" className="inline-flex h-10 items-center gap-2 rounded-sm border border-gold bg-card/40 px-4 text-[11px] uppercase tracking-[0.2em] text-primary transition-all hover:bg-gradient-gold-soft">
-              Sugestões IA <Sparkles className="h-3.5 w-3.5" />
-            </Link>
+            {plan.canUseThemes ? (
+              <Link to="/admin/templates" className="inline-flex h-10 items-center gap-2 rounded-sm border border-gold bg-card/40 px-4 text-[11px] uppercase tracking-[0.2em] text-primary transition-all hover:bg-gradient-gold-soft">
+                Templates <Palette className="h-3.5 w-3.5" />
+              </Link>
+            ) : (
+              <UpgradeModal feature="themes">
+                <button type="button" className="inline-flex h-10 items-center gap-2 rounded-sm border border-gold/30 bg-card/20 px-4 text-[11px] uppercase tracking-[0.2em] text-muted-foreground/60 transition-all hover:border-gold hover:text-primary">
+                  Templates <Lock className="h-3 w-3" />
+                </button>
+              </UpgradeModal>
+            )}
+            {plan.canUseAnalytics ? (
+              <Link to="/admin/analytics" className="inline-flex h-10 items-center gap-2 rounded-sm border border-gold bg-card/40 px-4 text-[11px] uppercase tracking-[0.2em] text-primary transition-all hover:bg-gradient-gold-soft">
+                Analytics <BarChart3 className="h-3.5 w-3.5" />
+              </Link>
+            ) : (
+              <UpgradeModal feature="analytics">
+                <button type="button" className="inline-flex h-10 items-center gap-2 rounded-sm border border-gold/30 bg-card/20 px-4 text-[11px] uppercase tracking-[0.2em] text-muted-foreground/60 transition-all hover:border-gold hover:text-primary">
+                  Analytics <Lock className="h-3 w-3" />
+                </button>
+              </UpgradeModal>
+            )}
+            {plan.canUseImprovements ? (
+              <Link to="/admin/improvements" className="inline-flex h-10 items-center gap-2 rounded-sm border border-gold bg-card/40 px-4 text-[11px] uppercase tracking-[0.2em] text-primary transition-all hover:bg-gradient-gold-soft">
+                Sugestões IA <Sparkles className="h-3.5 w-3.5" />
+              </Link>
+            ) : (
+              <UpgradeModal feature="improvements">
+                <button type="button" className="inline-flex h-10 items-center gap-2 rounded-sm border border-gold/30 bg-card/20 px-4 text-[11px] uppercase tracking-[0.2em] text-muted-foreground/60 transition-all hover:border-gold hover:text-primary">
+                  Sugestões IA <Lock className="h-3 w-3" />
+                </button>
+              </UpgradeModal>
+            )}
             <Link to="/bio" target="_blank" className="inline-flex h-10 items-center gap-2 rounded-sm border border-gold bg-card/40 px-4 text-[11px] uppercase tracking-[0.2em] text-primary transition-all hover:bg-gradient-gold-soft">
               Ver bio <ExternalLink className="h-3.5 w-3.5" />
             </Link>
@@ -596,9 +625,17 @@ const Admin = () => {
           <section>
             <div className="mb-6 flex items-center justify-between">
               <h2 className="font-display text-2xl">Blocos da bio</h2>
-              <Button onClick={addBlock} className="btn-luxe h-11 rounded-sm px-5 text-xs uppercase tracking-[0.2em]">
-                <Plus className="h-4 w-4" /> Novo bloco
-              </Button>
+              {plan.canAddBlock ? (
+                <Button onClick={addBlock} className="btn-luxe h-11 rounded-sm px-5 text-xs uppercase tracking-[0.2em]">
+                  <Plus className="h-4 w-4" /> Novo bloco
+                </Button>
+              ) : (
+                <UpgradeModal feature="blocks">
+                  <Button type="button" className="h-11 rounded-sm border border-gold/40 bg-card/40 px-5 text-xs uppercase tracking-[0.2em] text-muted-foreground hover:bg-gradient-gold-soft hover:text-primary">
+                    <Lock className="h-3.5 w-3.5" /> Limite Free atingido ({plan.limits.max_blocks})
+                  </Button>
+                </UpgradeModal>
+              )}
             </div>
             <div className="space-y-4">
               <DndContext

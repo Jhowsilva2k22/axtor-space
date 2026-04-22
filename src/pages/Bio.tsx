@@ -7,6 +7,7 @@ import AmbientPlayer from "@/components/AmbientPlayer";
 import FeedbackWidget from "@/components/FeedbackWidget";
 import { trackPageView, trackBioClick } from "@/lib/analytics";
 import { useTenant } from "@/hooks/useTenant";
+import PlanBadge from "@/components/PlanBadge";
 
 type BioConfig = {
   display_name: string;
@@ -206,6 +207,11 @@ const Bio = () => {
               bensound
             </a>
           </p>
+          {(tenant?.plan === "free" || !tenant?.plan) && (
+            <div className="mt-4">
+              <PlanBadge />
+            </div>
+          )}
         </footer>
       </main>
     </div>

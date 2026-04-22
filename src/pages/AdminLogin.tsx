@@ -1,5 +1,5 @@
 import { useState, FormEvent } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Navigate, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -63,6 +63,9 @@ const AdminLogin = () => {
         <Button type="submit" disabled={submitting} className="btn-luxe mt-6 h-12 w-full rounded-sm text-sm font-semibold uppercase tracking-[0.15em]">
           {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Entrar"}
         </Button>
+        <p className="mt-4 text-center text-xs text-muted-foreground">
+          ainda não tem conta? <Link to="/signup" className="text-primary hover:underline">criar grátis</Link>
+        </p>
       </form>
     </div>
   );
