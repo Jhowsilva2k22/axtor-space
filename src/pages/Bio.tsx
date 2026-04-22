@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import * as LucideIcons from "lucide-react";
-import { Loader2, ArrowUpRight } from "lucide-react";
+import { Loader2, ArrowUpRight, Search, X } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import AmbientPlayer from "@/components/AmbientPlayer";
 import { trackPageView, trackBioClick } from "@/lib/analytics";
@@ -26,6 +26,15 @@ type Block = {
   position: number;
   use_brand_color: boolean;
   size?: "sm" | "md" | "lg" | null;
+  category_id?: string | null;
+};
+
+type Category = {
+  id: string;
+  name: string;
+  slug: string;
+  icon: string | null;
+  position: number;
 };
 
 // Cor original de cada marca (gradiente quando faz sentido)
@@ -58,16 +67,22 @@ const getBrandStyle = (block: Block) => {
 const Bio = () => {
   const [cfg, setCfg] = useState<BioConfig | null>(null);
   const [blocks, setBlocks] = useState<Block[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [activeCat, setActiveCat] = useState<string>("all");
+  const [search, setSearch] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
-      const [{ data: c }, { data: b }] = await Promise.all([
+      const [{ data: c }, { data: b }, { data: cats }] = await Promise.all([
         supabase.from("bio_config").select("*").eq("singleton", true).maybeSingle(),
         supabase.from("bio_blocks").select("*").eq("is_active", true).order("position", { ascending: true }),
+        supabase.from("bio_categories").select("*").eq("is_active", true).order("position", { ascending: true }),
       ]);
       setCfg(c as any);
       setBlocks((b as any) ?? []);
+      setCategories((cats as any) ?? []);
       setLoading(false);
     })();
     trackPageView("/bio");
@@ -112,9 +127,51 @@ const Bio = () => {
         </div>
 
         <div id="blocks" className="stagger mt-12 space-y-3">
-          {blocks.map((b) => (
-            <BlockCard key={b.id} block={b} />
-          ))}
+          {categories.length > 0 && (
+            <div className="mb-6 flex flex-wrap items-center justify-center gap-2">
+              <CategoryChip active={activeCat === "all"} onClick={() => setActiveCat("all")}>
+                Todos
+              </CategoryChip>
+              {categories.map((c) => (
+                <CategoryChip key={c.id} active={activeCat === c.id} onClick={() => setActiveCat(c.id)}>
+                  {c.name}
+                </CategoryChip>
+              ))}
+              <button
+                onClick={() => setSearchOpen((v) => !v)}
+                aria-label="Buscar"
+                className={`inline-flex h-8 items-center justify-center rounded-sm border px-2 transition-all ${
+                  searchOpen ? "border-gold bg-gradient-gold-soft text-primary" : "border-gold/40 text-muted-foreground hover:border-gold hover:text-primary"
+                }`}
+              >
+                {searchOpen ? <X className="h-3.5 w-3.5" /> : <Search className="h-3.5 w-3.5" />}
+              </button>
+            </div>
+          )}
+          {searchOpen && (
+            <div className="mb-4 animate-fade-up">
+              <input
+                autoFocus
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Buscar..."
+                className="w-full rounded-sm border border-gold/40 bg-card/40 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/60 focus:border-gold focus:outline-none"
+              />
+            </div>
+          )}
+          {blocks
+            .filter((b) => activeCat === "all" || b.category_id === activeCat)
+            .filter((b) => {
+              if (!search.trim()) return true;
+              const q = search.toLowerCase();
+              return (
+                b.label.toLowerCase().includes(q) ||
+                (b.description ?? "").toLowerCase().includes(q)
+              );
+            })
+            .map((b) => (
+              <BlockCard key={b.id} block={b} />
+            ))}
         </div>
 
         <footer className="mt-16 text-center">
@@ -134,6 +191,7 @@ const Bio = () => {
 };
 
 const BlockCard = ({ block }: { block: Block }) => {
+  // (defined below)
   const Icon = (block.icon && (LucideIcons as any)[block.icon]) || LucideIcons.Link2;
   const isInternal = block.url.startsWith("/");
   const brand = getBrandStyle(block);
@@ -210,5 +268,26 @@ const BlockCard = ({ block }: { block: Block }) => {
     </a>
   );
 };
+
+const CategoryChip = ({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) => (
+  <button
+    onClick={onClick}
+    className={`inline-flex h-8 items-center rounded-sm border px-3 text-[10px] uppercase tracking-[0.2em] transition-all ${
+      active
+        ? "border-gold bg-gradient-gold-soft text-primary"
+        : "border-gold/40 bg-card/40 text-muted-foreground hover:border-gold hover:text-primary"
+    }`}
+  >
+    {children}
+  </button>
+);
 
 export default Bio;

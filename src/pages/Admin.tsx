@@ -13,6 +13,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { IconPicker } from "@/components/IconPicker";
 import { BlockMetricsBadge } from "@/components/BlockMetricsBadge";
 import { CampaignManager } from "@/components/CampaignManager";
+import { CategoriesManager, type Category } from "@/components/CategoriesManager";
 import {
   Select,
   SelectContent,
@@ -61,6 +62,7 @@ type Block = {
   is_active: boolean;
   use_brand_color: boolean;
   size: "sm" | "md" | "lg";
+  category_id: string | null;
 };
 
 const KINDS = [
@@ -88,14 +90,17 @@ const Admin = () => {
   const [cfgDirty, setCfgDirty] = useState(false);
   const [dirtyBlocks, setDirtyBlocks] = useState<Set<string>>(new Set());
   const [savingAll, setSavingAll] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
 
   const load = async () => {
-    const [{ data: c }, { data: b }] = await Promise.all([
+    const [{ data: c }, { data: b }, { data: cats }] = await Promise.all([
       supabase.from("bio_config").select("*").eq("singleton", true).maybeSingle(),
       supabase.from("bio_blocks").select("*").order("position", { ascending: true }),
+      supabase.from("bio_categories").select("*").order("position", { ascending: true }),
     ]);
     setCfg(c as any);
     setBlocks((b as any) ?? []);
+    setCategories((cats as any) ?? []);
     setCfgDirty(false);
     setDirtyBlocks(new Set());
     setLoading(false);
@@ -176,6 +181,7 @@ const Admin = () => {
         position: b.position,
         use_brand_color: b.use_brand_color,
         size: b.size,
+        category_id: b.category_id,
       })
       .eq("id", b.id);
     if (error) toast.error(error.message);
@@ -306,6 +312,7 @@ const Admin = () => {
             position: b.position,
             use_brand_color: b.use_brand_color,
             size: b.size,
+            category_id: b.category_id,
           })
           .eq("id", b.id),
       );
@@ -431,6 +438,7 @@ const Admin = () => {
                     <BlockEditor
                       key={b.id}
                       block={b}
+                      categories={categories}
                       isFirst={i === 0}
                       isLast={i === blocks.length - 1}
                       onChange={(p) => updateBlock(b.id, p)}
@@ -449,6 +457,8 @@ const Admin = () => {
               )}
             </div>
           </section>
+
+          <CategoriesManager />
         </main>
       )}
 
@@ -480,9 +490,10 @@ const Field = ({ label, children, full }: { label: string; children: React.React
 );
 
 const BlockEditor = ({
-  block, onChange, onSave, onDelete, onMoveUp, onMoveDown, isFirst, isLast,
+  block, categories, onChange, onSave, onDelete, onMoveUp, onMoveDown, isFirst, isLast,
 }: {
   block: Block;
+  categories: Category[];
   onChange: (p: Partial<Block>) => void;
   onSave: () => void;
   onDelete: () => void;
@@ -579,6 +590,20 @@ const BlockEditor = ({
               <SelectItem value="sm">Compacto</SelectItem>
               <SelectItem value="md">Normal</SelectItem>
               <SelectItem value="lg">Destaque (hero)</SelectItem>
+            </SelectContent>
+          </Select>
+        </Field>
+        <Field label="Categoria">
+          <Select
+            value={block.category_id ?? "__none__"}
+            onValueChange={(v) => onChange({ category_id: v === "__none__" ? null : v })}
+          >
+            <SelectTrigger className="h-11 rounded-sm border-gold bg-input"><SelectValue placeholder="Sem categoria" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none__">Sem categoria</SelectItem>
+              {categories.filter((c) => c.is_active).map((c) => (
+                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </Field>

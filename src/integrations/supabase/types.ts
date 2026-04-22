@@ -67,6 +67,7 @@ export type Database = {
       bio_blocks: {
         Row: {
           badge: string | null
+          category_id: string | null
           created_at: string
           description: string | null
           highlight: boolean
@@ -85,6 +86,7 @@ export type Database = {
         }
         Insert: {
           badge?: string | null
+          category_id?: string | null
           created_at?: string
           description?: string | null
           highlight?: boolean
@@ -103,6 +105,7 @@ export type Database = {
         }
         Update: {
           badge?: string | null
+          category_id?: string | null
           created_at?: string
           description?: string | null
           highlight?: boolean
@@ -118,6 +121,47 @@ export type Database = {
           updated_at?: string
           url?: string
           use_brand_color?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bio_blocks_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "bio_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bio_categories: {
+        Row: {
+          created_at: string
+          icon: string | null
+          id: string
+          is_active: boolean
+          name: string
+          position: number
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          position?: number
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          position?: number
+          slug?: string
+          updated_at?: string
         }
         Relationships: []
       }
