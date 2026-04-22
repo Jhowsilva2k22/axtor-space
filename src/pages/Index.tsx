@@ -219,18 +219,18 @@ const LeadStep = ({ handle, email, setEmail, phone, setPhone, name, setName, onS
     <form onSubmit={onSubmit} className="mt-8 space-y-4">
       <div>
         <label className="mb-2 block text-xs uppercase tracking-[0.2em] text-muted-foreground">Seu nome</label>
-        <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Como te chamamos?" className="h-12 rounded-xl border-gold bg-input" />
+        <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Como te chamamos?" className="h-11 rounded-sm border-gold bg-input font-light" />
       </div>
       <div>
         <label className="mb-2 block text-xs uppercase tracking-[0.2em] text-muted-foreground">Email</label>
-        <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="voce@exemplo.com" className="h-12 rounded-xl border-gold bg-input" />
+        <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="voce@exemplo.com" className="h-11 rounded-sm border-gold bg-input font-light" />
       </div>
       <div>
         <label className="mb-2 block text-xs uppercase tracking-[0.2em] text-muted-foreground">WhatsApp <span className="opacity-50">(opcional, mas recomendado)</span></label>
-        <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(11) 99999-9999" className="h-12 rounded-xl border-gold bg-input" />
+        <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(11) 99999-9999" className="h-11 rounded-sm border-gold bg-input font-light" />
       </div>
 
-      <Button type="submit" size="lg" className="btn-luxe h-14 w-full gap-2 rounded-2xl text-base font-semibold">
+      <Button type="submit" size="lg" className="btn-luxe h-12 w-full gap-2 rounded-sm text-sm font-semibold uppercase tracking-[0.15em]">
         Gerar meu diagnóstico agora <ArrowRight className="h-4 w-4" />
       </Button>
       <p className="text-center text-xs text-muted-foreground">
@@ -265,7 +265,7 @@ const PrivateStep = ({ data, onRetry }: { data: DiagnosisData; onRetry: () => vo
     <p className="mt-4 text-muted-foreground">
       Já salvamos seus dados — vamos te avisar assim que rodarmos a análise. Para gerar o diagnóstico real <strong>agora</strong>, abra seu perfil temporariamente:
     </p>
-    <div className="mt-8 rounded-2xl border-gold-gradient p-6 text-left text-sm">
+    <div className="mt-8 rounded-sm border-gold-gradient p-6 text-left text-sm font-light">
       <ol className="space-y-3 text-muted-foreground">
         <li><span className="text-primary">1.</span> Abra o app do Instagram → Configurações</li>
         <li><span className="text-primary">2.</span> Privacidade → desmarque "Conta privada"</li>
@@ -273,7 +273,7 @@ const PrivateStep = ({ data, onRetry }: { data: DiagnosisData; onRetry: () => vo
         <li><span className="text-primary">4.</span> Depois é só voltar para privado, se preferir</li>
       </ol>
     </div>
-    <Button onClick={onRetry} size="lg" className="btn-luxe mt-8 h-14 gap-2 rounded-2xl font-semibold">
+    <Button onClick={onRetry} size="lg" className="btn-luxe mt-8 h-12 gap-2 rounded-sm px-8 text-sm font-semibold uppercase tracking-[0.15em]">
       Tentar de novo <ArrowRight className="h-4 w-4" />
     </Button>
   </div>
