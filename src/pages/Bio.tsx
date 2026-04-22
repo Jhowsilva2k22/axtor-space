@@ -84,7 +84,7 @@ const Bio = () => {
       <div className="aurora-a" />
       <div className="aurora-b" />
 
-      <AmbientPlayer src={`/music/${localStorage.getItem("bio-music-pick") || "dreams"}.mp3`} />
+      <AmbientPlayer />
       <ThemeToggle className="absolute left-5 top-5 z-20" />
 
       <main className="relative z-10 mx-auto max-w-md px-6 pb-16 pt-12">
