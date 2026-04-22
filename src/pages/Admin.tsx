@@ -445,6 +445,12 @@ const Admin = () => {
             <h1 className="font-display text-2xl">Admin</h1>
           </div>
           <div className="flex items-center gap-2">
+            {totalDrafts > 0 && (
+              <span className="inline-flex h-9 items-center gap-1.5 rounded-sm border border-amber-500/60 bg-amber-500/10 px-3 text-[10px] uppercase tracking-[0.2em] text-amber-500">
+                <FileEdit className="h-3 w-3" />
+                {totalDrafts} rascunho{totalDrafts === 1 ? "" : "s"}
+              </span>
+            )}
             <ThemeToggle />
             <Link to="/admin/analytics" className="inline-flex h-10 items-center gap-2 rounded-sm border border-gold bg-card/40 px-4 text-[11px] uppercase tracking-[0.2em] text-primary transition-all hover:bg-gradient-gold-soft">
               Analytics <BarChart3 className="h-3.5 w-3.5" />
