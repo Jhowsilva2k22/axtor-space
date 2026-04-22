@@ -1,70 +1,65 @@
+# Fase 2 — Rota pública por subdomínio + Admin único
 
-# Próximo passo: Fase 1 do SaaS — fundação multi-tenant
-
-Você escolheu seguir. Vou propor o caminho **(b) — só o essencial no banco agora**, sem refatorar a UI ainda. Motivo: é o passo mais barato que desbloqueia tudo o resto, e mantém seu site atual funcionando 100% sem mudança visível.
+Decidido na Fase 1:
+- **Público:** `joanderson.axtor.space` (subdomínio wildcard, padrão Linktree/Beacons/Vercel)
+- **Admin:** `axtor.space/admin` único, detecta tenant pelo user logado (padrão Stripe/Linear/Notion)
 
 ## O que será feito
 
-### 1. Backup de segurança
-Gerar dump SQL completo do banco atual em `/mnt/documents/backup-pre-saas-2026-04-22.sql` antes de qualquer mudança estrutural.
+### 1. Resolver tenant pelo subdomínio (frontend)
+Criar `useTenant()` hook que:
+- Lê `window.location.hostname`
+- Extrai subdomínio (`joanderson` de `joanderson.axtor.space`)
+- Chama `resolve_tenant_by_slug(slug)` (já existe no banco)
+- Expõe `{ tenant, loading, error }` pro app inteiro
+- Casos especiais:
+  - `axtor.space` / `www.axtor.space` → landing (Fase 4) ou redirect pro tenant default por enquanto
+  - `id-preview-*.lovable.app` (ambiente Lovable) → usa `?tenant=slug` query string como fallback pra dev
+  - `localhost` → usa `?tenant=slug` ou tenant default
 
-### 2. Criar tabela `tenants`
-Cada tester vira uma linha aqui.
+### 2. Refatorar `Bio.tsx` pra usar tenant do contexto
+Trocar todas as queries de `bio_config / bio_blocks / bio_categories` pra filtrar por `tenant_id` vindo do `useTenant()`. Hoje busca o singleton; vai passar a buscar pelo tenant resolvido.
 
-```text
-tenants
-├─ id            uuid (pk)
-├─ slug          text unique  ← "joana", "pedro" (vira /t/joana)
-├─ display_name  text
-├─ owner_user_id uuid         ← quem loga no admin daquele tenant
-├─ plan          text         ← "free" | "pro" (futuro)
-├─ status        text         ← "active" | "suspended"
-├─ created_at, updated_at
-```
+### 3. Admin único em `/admin` detecta tenant pelo user logado
+- `useAuth` já dá `user.id`
+- Criar `useCurrentTenant()` que faz `SELECT * FROM tenants WHERE owner_user_id = auth.uid() AND status='active' LIMIT 1`
+- Todas as páginas admin (`Admin`, `AdminAnalytics`, `AdminBlockMetrics`, `AdminTemplates`, `AdminImprovements`) passam a usar esse tenant como contexto pras queries
+- Super admin (você, role `admin`) ganha um seletor de tenant no topo do painel pra trocar de visão (importante pra suporte)
 
-### 3. Criar tenant "joanderson" (você)
-Migrar seus dados atuais pra dentro dele, sem perder nada.
+### 4. Compatibilidade legada
+- Rota `/bio` continua existindo: redireciona pra `https://joanderson.axtor.space` (subdomínio do tenant default)
+- `/admin/login` continua igual
 
-### 4. Adicionar `tenant_id` nas tabelas que pertencem ao tenant
-- `bio_config`, `bio_blocks`, `bio_categories`, `bio_block_campaigns`
-- `leads`, `diagnostics`, `bio_clicks`, `funnel_events`, `page_views`
-- `user_feedback`, `improvement_runs`, `improvement_recommendations`, `bio_icon_generations`
+### 5. Wildcard DNS
+- Adicionar registro DNS `*.axtor.space` apontando pra Lovable (mesmo IP do domínio principal)
+- Lovable provisiona SSL wildcard automaticamente
+- **Você precisa fazer essa etapa manual no painel do registrador** — vou te dar o passo-a-passo no fim
 
-Backfill: tudo que existe hoje recebe o `tenant_id` do "joanderson".
+## O que NÃO será feito agora (fica pra fases seguintes)
 
-### 5. Criar role `tenant_owner` + função `is_tenant_owner(tenant_id)`
-Separar "super admin (você)" de "dono de tenant (tester)".
-
-### 6. Reescrever RLS para isolar por tenant
-Cada tester só enxerga os próprios dados. Você (super admin) continua vendo tudo.
-
-### 7. Função `resolve_tenant_by_slug(slug)`
-Usada pela rota pública `/t/:slug` pra carregar o bio certo.
-
-## O que NÃO será feito agora (fica pra Fase 2)
-
-- Refatorar `/bio`, `/admin`, `/admin/login` pra path-based `/t/:slug`
-- Onboarding (cadastro de novo tester)
-- Landing comercial em `axtor.space`
-- Cobrança / planos pagos
-
-Seu site continua **idêntico** depois dessa fase. A diferença é que o banco fica pronto pra receber múltiplos tenants quando a Fase 2 acontecer.
+- Onboarding self-service (Fase 3)
+- Landing comercial em `axtor.space/` (Fase 4)
+- Custom domain por tenant (Fase 5+)
+- Cobrança Stripe (Fase 5)
 
 ## Detalhes técnicos
 
-- Migrações SQL idempotentes, em ordem: `tenants` → seed do tenant joanderson → `ALTER TABLE ADD COLUMN tenant_id` (nullable) → backfill → `SET NOT NULL` → FK → reescrita das policies RLS.
-- `app_role` enum recebe valor novo `'tenant_owner'`.
-- Função `is_tenant_owner(_tenant_id)` SECURITY DEFINER, mesmo padrão do `has_role` (sem recursão).
-- Policies novas ficam no formato: `has_role(auth.uid(),'admin') OR is_tenant_owner(tenant_id)` para SELECT/UPDATE/DELETE; INSERT exige `is_tenant_owner(NEW.tenant_id)`.
-- Tabelas públicas (`bio_clicks`, `funnel_events`, `page_views`, `user_feedback`) mantêm INSERT aberto pra anon, mas precisam receber `tenant_id` no payload — o frontend hoje sempre passa o seu, então sem quebra.
+- `useTenant` cacheia o resultado em `sessionStorage` pra não chamar RPC em toda navegação
+- Erro de tenant não encontrado → página 404 customizada ("Esta bio não existe ou foi desativada")
+- Tenant `status != 'active'` → página de "suspenso"
+- Hook usa React Query pra revalidar no foco da janela
+- `useCurrentTenant()` no admin: se user é super admin E não é dono de nenhum tenant, mostra seletor obrigatório; se é dono de 1, vai direto; se é dono de vários, mostra seletor
 
 ## Custo estimado
 
-Baixo-médio. Uma migração grande + uma rodada de validação. Sem mudança de UI = sem ciclo de QA visual.
+Médio. Mexe em 6 páginas + cria 2 hooks novos + 1 ajuste DNS manual seu. Sem migração de banco (Fase 1 já preparou tudo). Uma rodada de QA visual no `/bio` via subdomínio + uma no `/admin`.
 
-## Depois disso, próximas fases (só pra você visualizar, não vamos fazer agora)
+## Risco
 
-- **Fase 2**: rota `/t/:slug` + admin path-based
-- **Fase 3**: onboarding self-service de novo tester
+Baixo. Se algo quebrar no subdomínio, `/bio` legado continua funcionando como fallback enquanto debugamos.
+
+## Próximas fases (referência)
+
+- **Fase 3**: onboarding self-service (`axtor.space/signup` → cria tenant + owner)
 - **Fase 4**: landing comercial em `axtor.space/`
-- **Fase 5**: cobrança (Stripe)
+- **Fase 5**: custom domain + cobrança Stripe
