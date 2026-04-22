@@ -95,10 +95,11 @@ const KINDS = [
 const Admin = () => {
   const { user, isAdmin, loading: authLoading, signOut } = useAuth();
   useAdminLockedTheme();
-  const { current: currentTenant } = useCurrentTenant();
+  const { current: currentTenant, loading: tenantLoading } = useCurrentTenant();
   const [cfg, setCfg] = useState<BioConfig | null>(null);
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const activeBlocksCount = blocks.filter((b) => b.is_active).length;
   const plan = usePlanLimits(activeBlocksCount);
   const [saving, setSaving] = useState(false);
@@ -112,12 +113,22 @@ const Admin = () => {
   const [publishingId, setPublishingId] = useState<string | null>(null);
 
   const load = async () => {
+    if (!currentTenant) {
+      setCfg(null);
+      setBlocks([]);
+      setCategories([]);
+      setLoadError(null);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
+    setLoadError(null);
     try {
       const [{ data: c, error: cfgError }, { data: b, error: blocksError }, { data: cats, error: catsError }] = await Promise.all([
-        supabase.from("bio_config").select("*").eq("singleton", true).maybeSingle(),
-        supabase.from("bio_blocks").select("*").order("position", { ascending: true }),
-        supabase.from("bio_categories").select("*").order("position", { ascending: true }),
+        supabase.from("bio_config").select("*").eq("tenant_id", currentTenant.id).eq("singleton", true).maybeSingle(),
+        supabase.from("bio_blocks").select("*").eq("tenant_id", currentTenant.id).order("position", { ascending: true }),
+        supabase.from("bio_categories").select("*").eq("tenant_id", currentTenant.id).order("position", { ascending: true }),
       ]);
 
       const error = cfgError ?? blocksError ?? catsError;
@@ -129,7 +140,9 @@ const Admin = () => {
       setCfgDirty(false);
       setDirtyBlocks(new Set());
     } catch (error: any) {
-      toast.error(error?.message ?? "Não foi possível carregar o painel");
+      const message = error?.message ?? "Não foi possível carregar o painel";
+      toast.error(message);
+      setLoadError(message);
       setCfg(null);
       setBlocks([]);
       setCategories([]);
@@ -139,12 +152,12 @@ const Admin = () => {
   };
 
   useEffect(() => {
-    if (!authLoading && user) {
+    if (!authLoading && !tenantLoading && user) {
       void load();
     }
-  }, [authLoading, user]);
+  }, [authLoading, tenantLoading, user, currentTenant?.id]);
 
-  if (authLoading) {
+  if (authLoading || tenantLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center grain">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -609,9 +622,31 @@ const Admin = () => {
         </div>
       </header>
 
-      {loading || !cfg ? (
+      {!currentTenant ? (
+        <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3 px-6 text-center">
+          <p className="font-display text-2xl">Nenhum tenant selecionado</p>
+          <p className="max-w-md text-sm text-muted-foreground">
+            Entre novamente ou selecione um tenant para abrir o painel.
+          </p>
+        </div>
+      ) : loading ? (
         <div className="flex min-h-[40vh] items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      ) : loadError ? (
+        <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4 px-6 text-center">
+          <p className="font-display text-2xl">Não foi possível abrir o painel</p>
+          <p className="max-w-md text-sm text-muted-foreground">{loadError}</p>
+          <Button onClick={() => void load()} className="btn-luxe h-11 rounded-sm px-6 text-xs uppercase tracking-[0.2em]">
+            Tentar novamente
+          </Button>
+        </div>
+      ) : !cfg ? (
+        <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4 px-6 text-center">
+          <p className="font-display text-2xl">Configuração da bio não encontrada</p>
+          <p className="max-w-md text-sm text-muted-foreground">
+            Esse tenant ainda não tem uma configuração inicial da bio disponível.
+          </p>
         </div>
       ) : (
         <main className="mx-auto max-w-5xl space-y-12 px-6 py-10">
