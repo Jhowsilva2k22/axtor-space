@@ -78,6 +78,7 @@ export type Database = {
           kind: string
           label: string
           position: number
+          size: string
           updated_at: string
           url: string
           use_brand_color: boolean
@@ -95,6 +96,7 @@ export type Database = {
           kind?: string
           label: string
           position?: number
+          size?: string
           updated_at?: string
           url: string
           use_brand_color?: boolean
@@ -112,6 +114,7 @@ export type Database = {
           kind?: string
           label?: string
           position?: number
+          size?: string
           updated_at?: string
           url?: string
           use_brand_color?: boolean
