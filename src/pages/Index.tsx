@@ -8,6 +8,7 @@ import { ArrowRight, Sparkles, Lock, CheckCircle2, AlertTriangle, Loader2, Insta
 import { validateEmail, validateName, validatePhone, maskPhone, suggestEmailDomain, COUNTRIES, type CountryCode } from "@/lib/validators";
 import { trackPageView, trackFunnel } from "@/lib/analytics";
 import { useEffect } from "react";
+import FeedbackWidget from "@/components/FeedbackWidget";
 import {
   Select,
   SelectContent,
@@ -205,6 +206,7 @@ const Index = () => {
       <footer className="relative z-10 border-t border-gold/30 text-center text-xs uppercase tracking-[0.25em] text-muted-foreground py-[20px]">
         Diagnóstico Premium · feito para quem leva o digital a sério
       </footer>
+      <FeedbackWidget pagePath="/" />
     </div>
   );
 };
