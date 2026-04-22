@@ -261,7 +261,7 @@ const HandleStep = ({ handle, setHandle, onSubmit }: any) => (
           <div className="inline-flex h-9 w-9 items-center justify-center rounded-sm bg-gradient-gold-soft">
             <it.icon className="h-5 w-5 text-primary" />
           </div>
-          <h3 className="mt-4 font-display text-2xl">{it.title}</h3>
+          <h3 className="mt-4 font-display text-2xl text-card-foreground">{it.title}</h3>
           <p className="mt-2 text-sm font-light text-muted-foreground">{it.desc}</p>
         </div>
       ))}
