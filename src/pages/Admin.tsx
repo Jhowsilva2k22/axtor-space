@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Loader2, Plus, Save, Trash2, ArrowUp, ArrowDown, LogOut, ExternalLink, Eye, EyeOff, BarChart3 } from "lucide-react";
+import { Loader2, Plus, Save, Trash2, ArrowUp, ArrowDown, LogOut, ExternalLink, Eye, EyeOff, BarChart3, GripVertical } from "lucide-react";
 import { Upload } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { IconPicker } from "@/components/IconPicker";
@@ -20,6 +20,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 type BioConfig = {
   id: string;
@@ -43,6 +60,7 @@ type Block = {
   position: number;
   is_active: boolean;
   use_brand_color: boolean;
+  size: "sm" | "md" | "lg";
 };
 
 const KINDS = [
@@ -157,6 +175,7 @@ const Admin = () => {
         is_active: b.is_active,
         position: b.position,
         use_brand_color: b.use_brand_color,
+        size: b.size,
       })
       .eq("id", b.id);
     if (error) toast.error(error.message);
@@ -194,6 +213,27 @@ const Admin = () => {
       supabase.from("bio_blocks").update({ position: c.position }).eq("id", a.id),
       supabase.from("bio_blocks").update({ position: a.position }).eq("id", c.id),
     ]);
+  };
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = blocks.findIndex((b) => b.id === active.id);
+    const newIndex = blocks.findIndex((b) => b.id === over.id);
+    if (oldIndex < 0 || newIndex < 0) return;
+    const reordered = arrayMove(blocks, oldIndex, newIndex).map((b, i) => ({ ...b, position: i + 1 }));
+    setBlocks(reordered);
+    const updates = reordered.map((b) =>
+      supabase.from("bio_blocks").update({ position: b.position }).eq("id", b.id),
+    );
+    const results = await Promise.all(updates);
+    const failed = results.filter((r: any) => r?.error).length;
+    if (failed > 0) toast.error("Falha ao salvar nova ordem");
   };
 
   const uploadAvatar = async (file: File) => {
@@ -265,6 +305,7 @@ const Admin = () => {
             is_active: b.is_active,
             position: b.position,
             use_brand_color: b.use_brand_color,
+            size: b.size,
           })
           .eq("id", b.id),
       );
@@ -377,19 +418,30 @@ const Admin = () => {
               </Button>
             </div>
             <div className="space-y-4">
-              {blocks.map((b, i) => (
-                <BlockEditor
-                  key={b.id}
-                  block={b}
-                  isFirst={i === 0}
-                  isLast={i === blocks.length - 1}
-                  onChange={(p) => updateBlock(b.id, p)}
-                  onSave={() => saveBlock(b)}
-                  onDelete={() => deleteBlock(b.id)}
-                  onMoveUp={() => move(i, -1)}
-                  onMoveDown={() => move(i, 1)}
-                />
-              ))}
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext
+                  items={blocks.map((b) => b.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {blocks.map((b, i) => (
+                    <BlockEditor
+                      key={b.id}
+                      block={b}
+                      isFirst={i === 0}
+                      isLast={i === blocks.length - 1}
+                      onChange={(p) => updateBlock(b.id, p)}
+                      onSave={() => saveBlock(b)}
+                      onDelete={() => deleteBlock(b.id)}
+                      onMoveUp={() => move(i, -1)}
+                      onMoveDown={() => move(i, 1)}
+                    />
+                  ))}
+                </SortableContext>
+              </DndContext>
               {blocks.length === 0 && (
                 <p className="rounded-sm border-gold-gradient p-8 text-center text-sm text-muted-foreground">
                   Nenhum bloco ainda. Clique em "Novo bloco" pra começar.
@@ -439,10 +491,30 @@ const BlockEditor = ({
   isFirst: boolean;
   isLast: boolean;
 }) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: block.id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.6 : 1,
+    zIndex: isDragging ? 20 : "auto" as const,
+  };
   return (
-    <div className={`rounded-sm border p-5 transition-all ${block.is_active ? "border-gold bg-card/60" : "border-border bg-card/30 opacity-60"}`}>
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`rounded-sm border p-5 transition-all ${block.is_active ? "border-gold bg-card/60" : "border-border bg-card/30 opacity-60"} ${isDragging ? "shadow-2xl" : ""}`}
+    >
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            {...attributes}
+            {...listeners}
+            className="hidden cursor-grab touch-none rounded-sm border border-border p-1.5 text-muted-foreground hover:text-primary active:cursor-grabbing md:inline-flex"
+            title="Arraste para reordenar"
+          >
+            <GripVertical className="h-3.5 w-3.5" />
+          </button>
           <button onClick={onMoveUp} disabled={isFirst} className="rounded-sm border border-border p-1.5 text-muted-foreground hover:text-primary disabled:opacity-30">
             <ArrowUp className="h-3.5 w-3.5" />
           </button>
@@ -499,6 +571,16 @@ const BlockEditor = ({
         </Field>
         <Field label="Badge (opcional)">
           <Input value={block.badge ?? ""} onChange={(e) => onChange({ badge: e.target.value })} placeholder="novo, popular, afiliado..." className="h-11 rounded-sm border-gold bg-input" />
+        </Field>
+        <Field label="Tamanho">
+          <Select value={block.size ?? "md"} onValueChange={(v) => onChange({ size: v as "sm" | "md" | "lg" })}>
+            <SelectTrigger className="h-11 rounded-sm border-gold bg-input"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="sm">Compacto</SelectItem>
+              <SelectItem value="md">Normal</SelectItem>
+              <SelectItem value="lg">Destaque (hero)</SelectItem>
+            </SelectContent>
+          </Select>
         </Field>
         <Field label="URL" full>
           <Input value={block.url} onChange={(e) => onChange({ url: e.target.value })} placeholder="https:// ou /rota interna" className="h-11 rounded-sm border-gold bg-input" />

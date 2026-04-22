@@ -25,6 +25,7 @@ type Block = {
   highlight: boolean;
   position: number;
   use_brand_color: boolean;
+  size?: "sm" | "md" | "lg" | null;
 };
 
 // Cor original de cada marca (gradiente quando faz sentido)
@@ -139,7 +140,26 @@ const BlockCard = ({ block }: { block: Block }) => {
   const hasCustomIcon = !!block.icon_url;
   const onTrack = () =>
     trackBioClick({ id: block.id, kind: block.kind, label: block.label, url: block.url });
-  const cls = `block-shimmer group relative flex w-full items-center gap-4 overflow-hidden rounded-sm border p-4 transition-all duration-300 hover:-translate-y-0.5 ${
+  const size = block.size ?? "md";
+  const sizeCls =
+    size === "sm"
+      ? "gap-3 p-3"
+      : size === "lg"
+        ? "gap-5 p-6"
+        : "gap-4 p-4";
+  const iconBoxCls =
+    size === "sm" ? "h-9 w-9" : size === "lg" ? "h-14 w-14" : "h-11 w-11";
+  const iconSvgCls =
+    size === "sm" ? "h-4 w-4" : size === "lg" ? "h-7 w-7" : "h-5 w-5";
+  const customIconCls =
+    size === "sm" ? "h-6 w-6" : size === "lg" ? "h-9 w-9" : "h-7 w-7";
+  const labelCls =
+    size === "sm"
+      ? "text-xs"
+      : size === "lg"
+        ? "text-base"
+        : "text-sm";
+  const cls = `block-shimmer group relative flex w-full items-center overflow-hidden rounded-sm border transition-all duration-300 hover:-translate-y-0.5 ${sizeCls} ${
     block.highlight
       ? "border-gold bg-gradient-gold-soft shadow-gold hover:shadow-gold-lg"
       : "border-gold/40 bg-card/60 hover:border-gold hover:bg-card/80"
@@ -147,23 +167,23 @@ const BlockCard = ({ block }: { block: Block }) => {
   const inner = (
     <>
       <div
-        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-sm ${
+        className={`flex shrink-0 items-center justify-center rounded-sm ${iconBoxCls} ${
           hasCustomIcon ? "bg-background/40" : brand ? "" : block.highlight ? "bg-background/40" : "bg-gradient-gold-soft"
         }`}
         style={!hasCustomIcon && brand ? { background: brand.bg } : undefined}
       >
         {hasCustomIcon ? (
-          <img src={block.icon_url!} alt="" className="h-7 w-7 object-contain" />
+          <img src={block.icon_url!} alt="" className={`${customIconCls} object-contain`} />
         ) : (
           <Icon
-            className={`h-5 w-5 ${brand ? "" : "text-primary"}`}
+            className={`${iconSvgCls} ${brand ? "" : "text-primary"}`}
             style={brand ? { color: brand.color } : undefined}
           />
         )}
       </div>
       <div className="min-w-0 flex-1 text-left">
         <div className="flex items-center gap-2">
-          <p className="truncate text-sm font-medium uppercase tracking-[0.08em] text-foreground">{block.label}</p>
+          <p className={`truncate font-medium uppercase tracking-[0.08em] text-foreground ${labelCls}`}>{block.label}</p>
           {block.badge && (
             <span className="shrink-0 rounded-sm border border-gold bg-background/40 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.2em] text-primary">
               {block.badge}
