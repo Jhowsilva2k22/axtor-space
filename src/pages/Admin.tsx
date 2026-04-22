@@ -490,9 +490,10 @@ const Field = ({ label, children, full }: { label: string; children: React.React
 );
 
 const BlockEditor = ({
-  block, onChange, onSave, onDelete, onMoveUp, onMoveDown, isFirst, isLast,
+  block, categories, onChange, onSave, onDelete, onMoveUp, onMoveDown, isFirst, isLast,
 }: {
   block: Block;
+  categories: Category[];
   onChange: (p: Partial<Block>) => void;
   onSave: () => void;
   onDelete: () => void;
