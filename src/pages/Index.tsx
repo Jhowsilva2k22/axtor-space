@@ -86,7 +86,7 @@ const Index = () => {
       setEmail(emailCheck.suggestion);
       return;
     }
-    const phoneCheck = validatePhoneBR(phone, false);
+    const phoneCheck = validatePhone(phone, country);
     if (!phoneCheck.ok) {
       toast.error(phoneCheck.error!);
       return;
@@ -101,11 +101,14 @@ const Index = () => {
     }, 2200);
 
     try {
+      const dial = COUNTRIES.find((c) => c.code === country)!.dial;
+      const fullPhone = `${dial} ${phone}`.trim();
       const { data: result, error } = await supabase.functions.invoke("analyze-instagram", {
         body: {
           handle,
           email: email || null,
-          phone: phone || null,
+          phone: fullPhone,
+          phone_country: country,
           full_name: name || null,
         },
       });
