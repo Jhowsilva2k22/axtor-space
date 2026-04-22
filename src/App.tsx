@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
 import { TenantProvider } from "@/hooks/useTenant";
+import { CurrentTenantProvider } from "@/hooks/useCurrentTenant";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
@@ -28,8 +29,9 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <TenantProvider>
-            <ThemeProvider>
-              <Routes>
+            <CurrentTenantProvider>
+              <ThemeProvider>
+                <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/d/:id" element={<SharePage />} />
             <Route path="/bio" element={<Bio />} />
@@ -44,8 +46,9 @@ const App = () => (
             <Route path="/:slug" element={<Bio />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
-              </Routes>
-            </ThemeProvider>
+                </Routes>
+              </ThemeProvider>
+            </CurrentTenantProvider>
           </TenantProvider>
         </AuthProvider>
       </BrowserRouter>
