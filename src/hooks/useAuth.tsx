@@ -34,17 +34,45 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
+    let unmounted = false;
+
+    // Listener primeiro (síncrono). Roda também no INITIAL_SESSION.
     const { data: sub } = supabase.auth.onAuthStateChange((_evt, s) => {
+      if (unmounted) return;
       setSession(s);
       setUser(s?.user ?? null);
-      setTimeout(() => checkAdmin(s?.user?.id), 0);
+      // Defer: evita deadlock dentro do callback do supabase
+      setTimeout(() => {
+        if (unmounted) return;
+        checkAdmin(s?.user?.id).finally(() => {
+          if (!unmounted) setLoading(false);
+        });
+      }, 0);
     });
+
+    // Fallback: se por algum motivo o auth não responder rápido, libera o app
+    // (assim a página não fica eternamente em "loading" após hard refresh).
+    const safety = setTimeout(() => {
+      if (!unmounted) setLoading(false);
+    }, 4000);
+
+    // Garante que pegamos a sessão mesmo se o evento já passou
     supabase.auth.getSession().then(({ data: { session: s } }) => {
+      if (unmounted) return;
       setSession(s);
       setUser(s?.user ?? null);
-      checkAdmin(s?.user?.id).finally(() => setLoading(false));
+      checkAdmin(s?.user?.id).finally(() => {
+        if (!unmounted) setLoading(false);
+      });
+    }).catch(() => {
+      if (!unmounted) setLoading(false);
     });
-    return () => sub.subscription.unsubscribe();
+
+    return () => {
+      unmounted = true;
+      clearTimeout(safety);
+      sub.subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
