@@ -221,3 +221,62 @@ const footer = {
   margin: 0,
   textAlign: 'center' as const,
 }
+const inviterCard = {
+  backgroundColor: 'rgba(192, 192, 192, 0.05)',
+  border: '1px solid rgba(192, 192, 192, 0.18)',
+  borderRadius: '10px',
+  padding: '12px 14px',
+  margin: '0 0 24px',
+}
+const inviterAvatar = { borderRadius: '50%', border: '1px solid rgba(192, 192, 192, 0.4)', display: 'block' }
+const inviterAvatarFallback = {
+  width: '40px', height: '40px', borderRadius: '50%',
+  border: '1px solid rgba(192, 192, 192, 0.4)',
+  backgroundColor: '#1a1a1a', color: '#c0c0c0',
+  fontFamily: "'Cormorant Garamond', Didot, serif",
+  fontSize: '20px', lineHeight: '40px', textAlign: 'center' as const,
+}
+const inviterLabel = {
+  fontSize: '10px', color: '#888', textTransform: 'uppercase' as const,
+  letterSpacing: '0.16em', margin: 0,
+}
+const inviterNameStyle = { fontSize: '13px', color: '#f5e9c8', margin: '2px 0 0', fontWeight: 500 }
+const inviterHandle = { color: '#c9a84c', fontWeight: 400, fontSize: '12px' }
+const mockupWrap = { textAlign: 'center' as const, margin: '8px 0 28px' }
+const mockupLabel = {
+  fontSize: '10px', color: '#888', textTransform: 'uppercase' as const,
+  letterSpacing: '0.2em', margin: '0 0 12px',
+}
+const mockupCard = {
+  backgroundColor: '#0a0a0a',
+  border: '1px solid rgba(201, 168, 76, 0.22)',
+  borderRadius: '14px', padding: '22px 18px 18px',
+  maxWidth: '280px', margin: '0 auto',
+}
+const mockupAvatar = {
+  width: '52px', height: '52px', borderRadius: '50%',
+  backgroundColor: '#1a1a1a', border: '1px solid rgba(201, 168, 76, 0.5)',
+  color: '#c9a84c', fontFamily: "'Cormorant Garamond', Didot, serif",
+  fontSize: '24px', lineHeight: '52px', textAlign: 'center' as const,
+  margin: '0 auto 10px',
+}
+const mockupName = {
+  fontFamily: "'Cormorant Garamond', Didot, serif",
+  fontSize: '17px', color: '#f5e9c8', margin: '0 0 4px', textAlign: 'center' as const,
+}
+const mockupHeadline = {
+  fontSize: '11px', color: '#999', margin: '0 0 16px', lineHeight: 1.4, textAlign: 'center' as const,
+}
+const mockupBlock = {
+  backgroundColor: 'rgba(201, 168, 76, 0.12)',
+  border: '1px solid rgba(201, 168, 76, 0.35)',
+  borderRadius: '8px', padding: '9px 12px',
+  fontSize: '11px', color: '#c9a84c', margin: '0 0 7px',
+  textAlign: 'center' as const, letterSpacing: '0.04em',
+}
+const mockupBlockGhost = {
+  border: '1px dashed rgba(201, 168, 76, 0.25)',
+  borderRadius: '8px', padding: '9px 12px',
+  fontSize: '10px', color: '#666', margin: '0',
+  textAlign: 'center' as const, letterSpacing: '0.04em',
+}
