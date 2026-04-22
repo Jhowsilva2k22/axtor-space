@@ -11,6 +11,7 @@ import Bio from "./pages/Bio.tsx";
 import AdminLogin from "./pages/AdminLogin.tsx";
 import Admin from "./pages/Admin.tsx";
 import AdminAnalytics from "./pages/AdminAnalytics.tsx";
+import AdminBlockMetrics from "./pages/AdminBlockMetrics.tsx";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/admin/analytics" element={<AdminAnalytics />} />
+            <Route path="/admin/blocks/:id" element={<AdminBlockMetrics />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
