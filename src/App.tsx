@@ -18,6 +18,8 @@ import AdminBlockMetrics from "./pages/AdminBlockMetrics.tsx";
 import AdminTemplates from "./pages/AdminTemplates.tsx";
 import AdminImprovements from "./pages/AdminImprovements.tsx";
 import RedirectCampaign from "./pages/RedirectCampaign.tsx";
+import Landing from "./pages/Landing.tsx";
+import Signup from "./pages/Signup.tsx";
 
 const queryClient = new QueryClient();
 
@@ -32,7 +34,9 @@ const App = () => (
             <CurrentTenantProvider>
               <ThemeProvider>
                 <Routes>
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<Landing />} />
+            <Route path="/old" element={<Index />} />
+            <Route path="/signup" element={<Signup />} />
             <Route path="/d/:id" element={<SharePage />} />
             <Route path="/bio" element={<Bio />} />
             <Route path="/admin/login" element={<AdminLogin />} />
