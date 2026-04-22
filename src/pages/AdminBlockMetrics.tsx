@@ -3,7 +3,7 @@ import { Link, Navigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { ArrowLeft, Loader2 } from "lucide-react";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { useAdminLockedTheme } from "@/components/ThemeToggle";
 import { toast } from "sonner";
 import {
   Select,
@@ -49,6 +49,7 @@ type Analytics = {
 const AdminBlockMetrics = () => {
   const { id } = useParams<{ id: string }>();
   const { user, isAdmin, loading: authLoading } = useAuth();
+  useAdminLockedTheme();
   const [block, setBlock] = useState<Block | null>(null);
   const [data, setData] = useState<Analytics | null>(null);
   const [days, setDays] = useState(30);
@@ -116,7 +117,6 @@ const AdminBlockMetrics = () => {
                 <SelectItem value="90">90 dias</SelectItem>
               </SelectContent>
             </Select>
-            <ThemeToggle />
           </div>
         </div>
       </header>

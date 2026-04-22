@@ -19,6 +19,27 @@ export const useTheme = () => {
   return { theme, setTheme, toggle: () => setTheme(theme === "noir" ? "ivory" : "noir") };
 };
 
+/**
+ * Força o tema escuro (noir) enquanto a página estiver montada,
+ * SEM apagar a preferência do usuário no localStorage.
+ * Usado nas páginas /admin* — o painel é back-office e fica sempre
+ * no tema padrão pra evitar contraste ruim em controles densos.
+ * Ao desmontar, restaura a preferência salva (noir/ivory).
+ */
+export const useAdminLockedTheme = () => {
+  useEffect(() => {
+    const root = document.documentElement;
+    const hadIvory = root.classList.contains("theme-ivory");
+    root.classList.remove("theme-ivory");
+    return () => {
+      // restaura preferência salva (não a do momento da montagem)
+      const saved = (typeof window !== "undefined" && localStorage.getItem("app-theme")) || "noir";
+      if (saved === "ivory") root.classList.add("theme-ivory");
+      else if (!hadIvory) root.classList.remove("theme-ivory");
+    };
+  }, []);
+};
+
 export const ThemeToggle = ({ className = "" }: { className?: string }) => {
   const { theme, toggle } = useTheme();
   return (
