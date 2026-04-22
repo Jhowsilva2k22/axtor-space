@@ -1,6 +1,24 @@
 import { useEffect, useState } from "react";
 import { Sun, Moon } from "lucide-react";
 
+// Tokens do tema padrão "gold-noir" — duplicados aqui pra não criar
+// dependência circular com ThemeProvider. Devem espelhar o fallback de lá.
+const GOLD_NOIR_TOKENS: Record<string, string> = {
+  "--brand-h": "43",
+  "--brand-s": "55%",
+  "--brand-l": "54%",
+  "--brand-l-glow": "68%",
+  "--surface-h": "30",
+  "--surface-s": "12%",
+  "--surface-l-bg": "5%",
+  "--surface-l-card": "8%",
+  "--surface-l-border": "14%",
+  "--font-display": "Cormorant Garamond, serif",
+  "--font-body": "Manrope, sans-serif",
+  "--aurora-opacity": "0.45",
+  "--radius": "0.125rem",
+};
+
 type Theme = "noir" | "ivory";
 
 export const useTheme = () => {
@@ -20,23 +38,17 @@ export const useTheme = () => {
 };
 
 /**
- * Força o tema escuro (noir) enquanto a página estiver montada,
- * SEM apagar a preferência do usuário no localStorage.
- * Usado nas páginas /admin* — o painel é back-office e fica sempre
- * no tema padrão pra evitar contraste ruim em controles densos.
- * Ao desmontar, restaura a preferência salva (noir/ivory).
+ * Trava o TEMA VISUAL no padrão "gold-noir" enquanto a página admin
+ * estiver montada. NÃO interfere no toggle claro/escuro (.theme-ivory),
+ * que continua livre — admin pode alternar claro/escuro normalmente,
+ * só não vê os temas customizados de tester (rosé, oceano etc).
+ * Ao desmontar, o ThemeProvider reaplica o tema ativo da bio.
  */
 export const useAdminLockedTheme = () => {
   useEffect(() => {
     const root = document.documentElement;
-    const hadIvory = root.classList.contains("theme-ivory");
-    root.classList.remove("theme-ivory");
-    return () => {
-      // restaura preferência salva (não a do momento da montagem)
-      const saved = (typeof window !== "undefined" && localStorage.getItem("app-theme")) || "noir";
-      if (saved === "ivory") root.classList.add("theme-ivory");
-      else if (!hadIvory) root.classList.remove("theme-ivory");
-    };
+    Object.entries(GOLD_NOIR_TOKENS).forEach(([k, v]) => root.style.setProperty(k, v));
+    root.dataset.auroraEnabled = "true";
   }, []);
 };
 
