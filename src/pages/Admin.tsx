@@ -206,7 +206,7 @@ const Admin = () => {
   // Campos que entram em rascunho. position/is_active são sempre publicados (UX direta).
   const DRAFT_FIELDS: (keyof Block)[] = [
     "kind", "label", "description", "url", "icon", "icon_url",
-    "badge", "highlight", "use_brand_color", "size", "category_id",
+    "badge", "highlight", "use_brand_color", "category_id",
   ];
 
   // Mescla campos publicados + rascunho para exibição/edição no admin.
