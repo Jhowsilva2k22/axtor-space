@@ -175,6 +175,7 @@ const Index = () => {
             handle={handle}
             email={email} setEmail={setEmail}
             phone={phone} setPhone={setPhone}
+            country={country} setCountry={setCountry}
             name={name} setName={setName}
             onSubmit={handleSubmitLead}
             onBack={() => setStep("handle")}
