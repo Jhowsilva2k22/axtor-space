@@ -491,10 +491,30 @@ const BlockEditor = ({
   isFirst: boolean;
   isLast: boolean;
 }) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: block.id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.6 : 1,
+    zIndex: isDragging ? 20 : "auto" as const,
+  };
   return (
-    <div className={`rounded-sm border p-5 transition-all ${block.is_active ? "border-gold bg-card/60" : "border-border bg-card/30 opacity-60"}`}>
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`rounded-sm border p-5 transition-all ${block.is_active ? "border-gold bg-card/60" : "border-border bg-card/30 opacity-60"} ${isDragging ? "shadow-2xl" : ""}`}
+    >
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            {...attributes}
+            {...listeners}
+            className="hidden cursor-grab touch-none rounded-sm border border-border p-1.5 text-muted-foreground hover:text-primary active:cursor-grabbing md:inline-flex"
+            title="Arraste para reordenar"
+          >
+            <GripVertical className="h-3.5 w-3.5" />
+          </button>
           <button onClick={onMoveUp} disabled={isFirst} className="rounded-sm border border-border p-1.5 text-muted-foreground hover:text-primary disabled:opacity-30">
             <ArrowUp className="h-3.5 w-3.5" />
           </button>
