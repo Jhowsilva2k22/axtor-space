@@ -165,6 +165,13 @@ All colors MUST be HSL.
     letter-spacing: -0.015em;
     font-feature-settings: "lnum";
   }
+
+  /* Caret visível em todos os inputs/textarea, em qualquer tema */
+  input,
+  textarea,
+  [contenteditable="true"] {
+    caret-color: hsl(var(--primary));
+  }
 }
 
 @layer utilities {
