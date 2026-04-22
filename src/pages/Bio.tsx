@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import * as LucideIcons from "lucide-react";
-import { Loader2, ArrowUpRight } from "lucide-react";
+import { Loader2, ArrowUpRight, Sun, Moon } from "lucide-react";
 
 type BioConfig = {
   display_name: string;
@@ -27,6 +27,18 @@ const Bio = () => {
   const [cfg, setCfg] = useState<BioConfig | null>(null);
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [loading, setLoading] = useState(true);
+  const [theme, setTheme] = useState<"noir" | "ivory">(() => {
+    if (typeof window === "undefined") return "noir";
+    return (localStorage.getItem("bio-theme") as "noir" | "ivory") || "noir";
+  });
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === "ivory") root.classList.add("theme-ivory");
+    else root.classList.remove("theme-ivory");
+    localStorage.setItem("bio-theme", theme);
+    return () => root.classList.remove("theme-ivory");
+  }, [theme]);
 
   useEffect(() => {
     (async () => {
@@ -50,27 +62,42 @@ const Bio = () => {
 
   return (
     <div className="relative min-h-screen overflow-hidden grain">
-      <div className="pointer-events-none absolute -top-40 left-1/2 h-[600px] w-[800px] -translate-x-1/2 rounded-full bg-primary/10 blur-[120px]" />
+      {/* Aurora dourada animada */}
+      <div className="aurora-a" />
+      <div className="aurora-b" />
+
+      {/* Toggle tema claro/escuro */}
+      <button
+        type="button"
+        onClick={() => setTheme(theme === "noir" ? "ivory" : "noir")}
+        aria-label={theme === "noir" ? "Mudar para tema claro" : "Mudar para tema escuro"}
+        className="absolute right-5 top-5 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-gold bg-card/60 text-primary backdrop-blur transition-all hover:scale-105 hover:shadow-gold"
+      >
+        {theme === "noir" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+      </button>
 
       <main className="relative z-10 mx-auto max-w-md px-6 pb-16 pt-12">
         <div className="text-center">
-          {cfg?.avatar_url ? (
-            <img src={cfg.avatar_url} alt={cfg.display_name} className="mx-auto h-28 w-28 rounded-full border border-gold object-cover shadow-gold" />
-          ) : (
-            <div className="mx-auto flex h-28 w-28 items-center justify-center rounded-full border border-gold bg-gradient-gold-soft font-display text-4xl text-gold">
-              {cfg?.display_name?.[0] ?? "J"}
-            </div>
-          )}
-          <h1 className="mt-6 font-display text-4xl leading-tight">{cfg?.display_name}</h1>
-          <p className="mx-auto mt-4 max-w-sm text-sm font-light leading-relaxed text-muted-foreground">
+          <div className="relative mx-auto h-28 w-28 animate-fade-up">
+            <div className="avatar-halo" />
+            {cfg?.avatar_url ? (
+              <img src={cfg.avatar_url} alt={cfg.display_name} className="relative z-10 h-28 w-28 rounded-full border border-gold object-cover shadow-gold" />
+            ) : (
+              <div className="relative z-10 flex h-28 w-28 items-center justify-center rounded-full border border-gold bg-gradient-gold-soft font-display text-4xl text-gold">
+                {cfg?.display_name?.[0] ?? "J"}
+              </div>
+            )}
+          </div>
+          <h1 className="mt-6 animate-fade-up font-display text-4xl leading-tight" style={{ animationDelay: "0.1s" }}>{cfg?.display_name}</h1>
+          <p className="mx-auto mt-4 max-w-sm animate-fade-up text-sm font-light leading-relaxed text-muted-foreground" style={{ animationDelay: "0.2s" }}>
             {cfg?.headline}
           </p>
           {cfg?.sub_headline && (
-            <p className="mt-3 text-[11px] uppercase tracking-[0.3em] text-primary">{cfg.sub_headline}</p>
+            <p className="mt-3 animate-fade-up text-[11px] uppercase tracking-[0.3em] text-primary" style={{ animationDelay: "0.3s" }}>{cfg.sub_headline}</p>
           )}
         </div>
 
-        <div id="blocks" className="mt-12 space-y-3">
+        <div id="blocks" className="stagger mt-12 space-y-3">
           {blocks.map((b) => (
             <BlockCard key={b.id} block={b} />
           ))}
@@ -89,7 +116,7 @@ const Bio = () => {
 const BlockCard = ({ block }: { block: Block }) => {
   const Icon = (block.icon && (LucideIcons as any)[block.icon]) || LucideIcons.Link2;
   const isInternal = block.url.startsWith("/");
-  const cls = `group relative flex w-full items-center gap-4 overflow-hidden rounded-sm border p-4 transition-all hover:-translate-y-0.5 ${
+  const cls = `block-shimmer group relative flex w-full items-center gap-4 overflow-hidden rounded-sm border p-4 transition-all duration-300 hover:-translate-y-0.5 ${
     block.highlight
       ? "border-gold bg-gradient-gold-soft shadow-gold hover:shadow-gold-lg"
       : "border-gold/40 bg-card/60 hover:border-gold hover:bg-card/80"
