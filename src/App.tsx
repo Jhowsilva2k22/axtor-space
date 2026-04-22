@@ -17,6 +17,7 @@ import AdminAnalytics from "./pages/AdminAnalytics.tsx";
 import AdminBlockMetrics from "./pages/AdminBlockMetrics.tsx";
 import AdminTemplates from "./pages/AdminTemplates.tsx";
 import AdminImprovements from "./pages/AdminImprovements.tsx";
+import AdminInvites from "./pages/AdminInvites.tsx";
 import RedirectCampaign from "./pages/RedirectCampaign.tsx";
 import Landing from "./pages/Landing.tsx";
 import Signup from "./pages/Signup.tsx";
@@ -45,6 +46,7 @@ const App = () => (
             <Route path="/admin/blocks/:id" element={<AdminBlockMetrics />} />
             <Route path="/admin/templates" element={<AdminTemplates />} />
             <Route path="/admin/improvements" element={<AdminImprovements />} />
+            <Route path="/admin/invites" element={<AdminInvites />} />
             <Route path="/r/:slug" element={<RedirectCampaign />} />
             {/* Path-based público: axtor.space/:slug → bio do tenant */}
             <Route path="/:slug" element={<Bio />} />

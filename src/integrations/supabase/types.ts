@@ -626,6 +626,57 @@ export type Database = {
           },
         ]
       }
+      invite_codes: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string
+          email_sent_at: string | null
+          expires_at: string | null
+          id: string
+          mode: string
+          note: string | null
+          revoked_at: string | null
+          target_email: string | null
+          type: string
+          updated_at: string
+          used_at: string | null
+          used_by_user_id: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by: string
+          email_sent_at?: string | null
+          expires_at?: string | null
+          id?: string
+          mode: string
+          note?: string | null
+          revoked_at?: string | null
+          target_email?: string | null
+          type: string
+          updated_at?: string
+          used_at?: string | null
+          used_by_user_id?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string
+          email_sent_at?: string | null
+          expires_at?: string | null
+          id?: string
+          mode?: string
+          note?: string | null
+          revoked_at?: string | null
+          target_email?: string | null
+          type?: string
+          updated_at?: string
+          used_at?: string | null
+          used_by_user_id?: string | null
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           created_at: string
@@ -855,7 +906,7 @@ export type Database = {
     Functions: {
       check_slug_available: { Args: { _slug: string }; Returns: Json }
       create_tenant_for_user: {
-        Args: { _display_name: string; _slug: string }
+        Args: { _display_name: string; _invite_code?: string; _slug: string }
         Returns: Json
       }
       get_analytics_summary: { Args: { _days?: number }; Returns: Json }
@@ -906,6 +957,10 @@ export type Database = {
           slug: string
           status: string
         }[]
+      }
+      validate_invite_code: {
+        Args: { _code: string; _email?: string }
+        Returns: Json
       }
     }
     Enums: {
