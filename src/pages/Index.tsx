@@ -265,7 +265,7 @@ const PrivateStep = ({ data, onRetry }: { data: DiagnosisData; onRetry: () => vo
     <p className="mt-4 text-muted-foreground">
       Já salvamos seus dados — vamos te avisar assim que rodarmos a análise. Para gerar o diagnóstico real <strong>agora</strong>, abra seu perfil temporariamente:
     </p>
-    <div className="mt-8 rounded-sm border border-gold bg-card/60 p-6 text-left text-sm">
+    <div className="mt-8 rounded-2xl border-gold-gradient p-6 text-left text-sm">
       <ol className="space-y-3 text-muted-foreground">
         <li><span className="text-primary">1.</span> Abra o app do Instagram → Configurações</li>
         <li><span className="text-primary">2.</span> Privacidade → desmarque "Conta privada"</li>
@@ -273,7 +273,7 @@ const PrivateStep = ({ data, onRetry }: { data: DiagnosisData; onRetry: () => vo
         <li><span className="text-primary">4.</span> Depois é só voltar para privado, se preferir</li>
       </ol>
     </div>
-    <Button onClick={onRetry} size="lg" className="mt-8 h-14 gap-2 bg-gradient-to-r from-primary to-primary-glow font-medium text-primary-foreground hover:opacity-90">
+    <Button onClick={onRetry} size="lg" className="btn-luxe mt-8 h-14 gap-2 rounded-2xl font-semibold">
       Tentar de novo <ArrowRight className="h-4 w-4" />
     </Button>
   </div>
