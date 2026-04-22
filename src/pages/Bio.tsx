@@ -15,6 +15,7 @@ type BioConfig = {
   sub_headline: string | null;
   avatar_url: string | null;
   footer_text: string | null;
+  cover_url: string | null;
 };
 type Block = {
   id: string;
