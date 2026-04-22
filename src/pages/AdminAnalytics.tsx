@@ -68,18 +68,26 @@ const AdminAnalytics = () => {
 
   const load = async () => {
     setRefreshing(true);
-    const { data: rpc, error } = await supabase.rpc("get_analytics_summary", { _days: range });
-    if (!error && rpc) {
-      setData(rpc as unknown as Summary);
+    setLoading(true);
+    try {
+      const { data: rpc, error } = await supabase.rpc("get_analytics_summary", { _days: range });
+      if (error) throw error;
+      setData((rpc as unknown as Summary) ?? null);
+    } catch (error: any) {
+      toast.error?.(error?.message ?? "Não foi possível carregar os analytics");
+      setData(null);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
-    setLoading(false);
-    setRefreshing(false);
   };
 
   useEffect(() => {
-    if (isAdmin) load();
+    if (!authLoading && user && isAdmin) {
+      void load();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAdmin, range]);
+  }, [authLoading, user, isAdmin, range]);
 
   const cost = useMemo(() => {
     if (!data) return null;

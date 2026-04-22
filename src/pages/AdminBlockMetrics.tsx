@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { toast } from "sonner";
 import {
   Select,
   SelectContent,
@@ -54,18 +55,30 @@ const AdminBlockMetrics = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isAdmin || !id) return;
+    if (authLoading || !user || !isAdmin || !id) return;
+
     setLoading(true);
     (async () => {
-      const [{ data: b }, { data: a }] = await Promise.all([
-        supabase.from("bio_blocks").select("id,label,url,kind").eq("id", id).maybeSingle(),
-        supabase.rpc("get_block_analytics", { _block_id: id, _days: days }),
-      ]);
-      setBlock((b as any) ?? null);
-      setData((a as unknown as Analytics) ?? null);
-      setLoading(false);
+      try {
+        const [{ data: b, error: blockError }, { data: a, error: analyticsError }] = await Promise.all([
+          supabase.from("bio_blocks").select("id,label,url,kind").eq("id", id).maybeSingle(),
+          supabase.rpc("get_block_analytics", { _block_id: id, _days: days }),
+        ]);
+
+        const error = blockError ?? analyticsError;
+        if (error) throw error;
+
+        setBlock((b as any) ?? null);
+        setData((a as unknown as Analytics) ?? null);
+      } catch (error: any) {
+        toast.error(error?.message ?? "Não foi possível carregar as métricas");
+        setBlock(null);
+        setData(null);
+      } finally {
+        setLoading(false);
+      }
     })();
-  }, [isAdmin, id, days]);
+  }, [authLoading, user, isAdmin, id, days]);
 
   if (authLoading) {
     return (
