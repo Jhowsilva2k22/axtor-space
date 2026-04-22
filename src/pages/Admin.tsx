@@ -365,25 +365,42 @@ const Admin = () => {
     }
     const dirtyList = blocks.filter((b) => dirtyBlocks.has(b.id));
     for (const b of dirtyList) {
-      tasks.push(
-        supabase
-          .from("bio_blocks")
-          .update({
-            kind: b.kind,
-            label: b.label,
-            description: b.description,
-            url: b.url,
-            icon: b.icon,
-            badge: b.badge,
-            highlight: b.highlight,
-            is_active: b.is_active,
-            position: b.position,
-            use_brand_color: b.use_brand_color,
-            size: b.size,
-            category_id: b.category_id,
-          })
-          .eq("id", b.id),
-      );
+      if (publishImmediate) {
+        tasks.push(
+          supabase
+            .from("bio_blocks")
+            .update({
+              kind: b.kind,
+              label: b.label,
+              description: b.description,
+              url: b.url,
+              icon: b.icon,
+              badge: b.badge,
+              highlight: b.highlight,
+              is_active: b.is_active,
+              position: b.position,
+              use_brand_color: b.use_brand_color,
+              size: b.size,
+              category_id: b.category_id,
+              draft_data: null,
+              has_draft: false,
+            })
+            .eq("id", b.id),
+        );
+      } else {
+        const draft = buildDraft(b);
+        tasks.push(
+          supabase
+            .from("bio_blocks")
+            .update({
+              position: b.position,
+              is_active: b.is_active,
+              draft_data: draft,
+              has_draft: true,
+            })
+            .eq("id", b.id),
+        );
+      }
     }
     const results = await Promise.all(tasks);
     setSavingAll(false);
@@ -391,13 +408,31 @@ const Admin = () => {
     if (failed > 0) {
       toast.error(`${failed} alteração(ões) falharam`);
     } else {
-      toast.success(`Tudo salvo (${tasks.length} alteração${tasks.length === 1 ? "" : "ões"})`);
+      const verb = publishImmediate ? "publicada" : "salva como rascunho";
+      toast.success(`${tasks.length} alteração${tasks.length === 1 ? "" : "ões"} ${verb}${publishImmediate ? "" : "s"}`);
       setCfgDirty(false);
+      // Refletir local: marca has_draft=true se foi rascunho
+      if (!publishImmediate) {
+        setBlocks((bs) =>
+          bs.map((b) =>
+            dirtyBlocks.has(b.id)
+              ? { ...b, draft_data: buildDraft(b), has_draft: true }
+              : b,
+          ),
+        );
+      } else {
+        setBlocks((bs) =>
+          bs.map((b) =>
+            dirtyBlocks.has(b.id) ? { ...b, draft_data: null, has_draft: false } : b,
+          ),
+        );
+      }
       setDirtyBlocks(new Set());
     }
   };
 
   const totalDirty = (cfgDirty ? 1 : 0) + dirtyBlocks.size;
+  const totalDrafts = blocks.filter((b) => b.has_draft).length;
 
   return (
     <div className="relative min-h-screen overflow-hidden grain">
