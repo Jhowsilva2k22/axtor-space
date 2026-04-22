@@ -219,11 +219,14 @@ const ThemeCard = ({
           <button
             onClick={onPreview}
             disabled={isActive}
-            className={`inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-sm border px-3 text-[10px] uppercase tracking-[0.2em] transition-all disabled:cursor-not-allowed disabled:opacity-40 ${
-              isPreviewing
-                ? "border-gold bg-gradient-gold-soft text-primary"
-                : "border-gold/40 text-muted-foreground hover:border-gold hover:text-primary"
-            }`}
+            style={{
+              borderColor: isPreviewing ? "hsl(43 55% 54%)" : "hsl(43 55% 54% / 0.4)",
+              background: isPreviewing
+                ? "linear-gradient(135deg, hsl(43 55% 54% / 0.18), hsl(43 55% 54% / 0.06))"
+                : "transparent",
+              color: isPreviewing ? "hsl(43 55% 68%)" : "hsl(40 10% 65%)",
+            }}
+            className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-sm border px-3 text-[10px] uppercase tracking-[0.2em] transition-all disabled:cursor-not-allowed disabled:opacity-40 hover:!border-[hsl(43_55%_54%)] hover:!text-[hsl(43_55%_68%)]"
           >
             {isPreviewing ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
             {isPreviewing ? "encerrar" : "preview"}
@@ -231,7 +234,13 @@ const ThemeCard = ({
           <button
             onClick={onActivate}
             disabled={isActive || saving}
-            className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-sm border border-gold bg-gradient-gold-soft px-3 text-[10px] uppercase tracking-[0.2em] text-primary transition-all hover:shadow-gold disabled:cursor-not-allowed disabled:opacity-40"
+            style={{
+              borderColor: "hsl(43 55% 54%)",
+              background:
+                "linear-gradient(135deg, hsl(43 55% 54% / 0.22), hsl(43 55% 54% / 0.08))",
+              color: "hsl(43 55% 72%)",
+            }}
+            className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-sm border px-3 text-[10px] uppercase tracking-[0.2em] transition-all hover:shadow-gold disabled:cursor-not-allowed disabled:opacity-40"
           >
             {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
             {isActive ? "ativo" : "definir ativo"}
