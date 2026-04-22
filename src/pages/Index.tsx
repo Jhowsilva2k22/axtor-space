@@ -298,6 +298,30 @@ const PrivateStep = ({ data, onRetry }: { data: DiagnosisData; onRetry: () => vo
   </div>
 );
 
+const NotFoundStep = ({ handle, onRetry }: { handle: string; onRetry: () => void }) => (
+  <div className="animate-fade-up mx-auto max-w-xl text-center">
+    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-sm border border-gold bg-card">
+      <SearchX className="h-7 w-7 text-primary" />
+    </div>
+    <h2 className="mt-6 font-display text-4xl">
+      Não encontramos <span className="text-gold italic">@{handle}</span>
+    </h2>
+    <p className="mt-4 text-muted-foreground">
+      Esse perfil não existe ou está indisponível no Instagram. Verifique se o @ está escrito corretamente — sem espaços, acentos ou caracteres especiais.
+    </p>
+    <div className="mt-8 rounded-sm border-gold-gradient p-6 text-left text-sm font-light">
+      <ol className="space-y-3 text-muted-foreground">
+        <li><span className="text-primary">1.</span> Abra o Instagram e copie seu @ exato</li>
+        <li><span className="text-primary">2.</span> Confira se o perfil está público</li>
+        <li><span className="text-primary">3.</span> Volte aqui e tente novamente</li>
+      </ol>
+    </div>
+    <Button onClick={onRetry} size="lg" className="btn-luxe mt-8 h-12 gap-2 rounded-sm px-8 text-sm font-semibold uppercase tracking-[0.15em]">
+      Tentar de novo <ArrowRight className="h-4 w-4" />
+    </Button>
+  </div>
+);
+
 const ResultStep = ({ data, onRestart }: { data: DiagnosisData; onRestart: () => void }) => {
   const d = data.diagnosis!;
   const p = data.profile!;
