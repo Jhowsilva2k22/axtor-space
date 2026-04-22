@@ -1,0 +1,179 @@
+import * as React from 'npm:react@18.3.1'
+import {
+  Body, Button, Container, Head, Heading, Hr, Html, Preview, Section, Text,
+} from 'npm:@react-email/components@0.0.22'
+import type { TemplateEntry } from './registry.ts'
+
+const SITE_NAME = 'axtor'
+
+interface TesterInviteProps {
+  name?: string
+  inviteUrl?: string
+  note?: string
+}
+
+const TesterInviteEmail = ({
+  name,
+  inviteUrl = 'https://axtor.space/signup',
+  note,
+}: TesterInviteProps) => (
+  <Html lang="pt-BR" dir="ltr">
+    <Head />
+    <Preview>Você foi convidada como beta-tester da {SITE_NAME}</Preview>
+    <Body style={main}>
+      <Container style={container}>
+        <Section style={header}>
+          <Text style={brand}>{SITE_NAME}</Text>
+          <Text style={badge}>✦ convite beta-tester</Text>
+        </Section>
+
+        <Heading style={h1}>
+          {name ? `${name}, você foi escolhida.` : 'Você foi escolhida.'}
+        </Heading>
+
+        <Text style={text}>
+          Convite especial pra testar a axtor antes de todo mundo — acesso completo
+          liberado como <strong style={gold}>beta-tester</strong>, sem cobrança.
+        </Text>
+
+        <Text style={text}>
+          Tudo desbloqueado: blocos ilimitados, analytics, campanhas, melhorias com IA
+          e temas premium. Sua opinião vai moldar o que a axtor vira.
+        </Text>
+
+        {note ? (
+          <Section style={noteBox}>
+            <Text style={noteText}>{note}</Text>
+          </Section>
+        ) : null}
+
+        <Section style={ctaWrap}>
+          <Button style={button} href={inviteUrl}>
+            Criar minha conta
+          </Button>
+        </Section>
+
+        <Text style={smallText}>
+          Ou copie e cole este link no navegador:
+        </Text>
+        <Text style={linkText}>{inviteUrl}</Text>
+
+        <Hr style={hr} />
+
+        <Text style={footer}>
+          Esse convite é único e foi gerado especialmente pra você. Se não esperava
+          recebê-lo, pode ignorar este email.
+        </Text>
+      </Container>
+    </Body>
+  </Html>
+)
+
+export const template = {
+  component: TesterInviteEmail,
+  subject: (data: Record<string, any>) =>
+    data?.name ? `${data.name}, seu acesso beta da axtor está liberado` : 'Seu acesso beta da axtor está liberado',
+  displayName: 'Convite beta-tester',
+  previewData: {
+    name: 'Maria',
+    inviteUrl: 'https://axtor.space/signup?invite=XYZ789&email=maria@example.com',
+    note: 'beta-tester onda 1',
+  },
+} satisfies TemplateEntry
+
+const main = {
+  backgroundColor: '#ffffff',
+  fontFamily: "'Manrope', -apple-system, BlinkMacSystemFont, sans-serif",
+  margin: 0,
+  padding: '40px 0',
+}
+const container = {
+  maxWidth: '560px',
+  margin: '0 auto',
+  padding: '32px 28px',
+  backgroundColor: '#0d0d0d',
+  borderRadius: '12px',
+  border: '1px solid rgba(192, 192, 192, 0.18)',
+}
+const header = { marginBottom: '32px', textAlign: 'center' as const }
+const brand = {
+  fontFamily: "'Cormorant Garamond', Didot, serif",
+  fontSize: '32px',
+  letterSpacing: '0.12em',
+  color: '#c9a84c',
+  margin: 0,
+  fontWeight: 400,
+}
+const badge = {
+  fontSize: '11px',
+  letterSpacing: '0.18em',
+  textTransform: 'uppercase' as const,
+  color: '#c0c0c0',
+  marginTop: '8px',
+  opacity: 0.85,
+}
+const h1 = {
+  fontFamily: "'Cormorant Garamond', Didot, serif",
+  fontSize: '28px',
+  fontWeight: 400,
+  color: '#f5e9c8',
+  margin: '0 0 24px',
+  lineHeight: 1.25,
+}
+const text = {
+  fontSize: '15px',
+  color: '#d8d3c5',
+  lineHeight: 1.65,
+  margin: '0 0 18px',
+  fontWeight: 300,
+}
+const gold = { color: '#c9a84c', fontWeight: 500 }
+const noteBox = {
+  backgroundColor: 'rgba(192, 192, 192, 0.06)',
+  border: '1px solid rgba(192, 192, 192, 0.18)',
+  borderRadius: '8px',
+  padding: '14px 16px',
+  margin: '8px 0 24px',
+}
+const noteText = {
+  fontSize: '13px',
+  color: '#c0c0c0',
+  margin: 0,
+  fontStyle: 'italic' as const,
+}
+const ctaWrap = { textAlign: 'center' as const, margin: '32px 0 24px' }
+const button = {
+  backgroundColor: '#c9a84c',
+  color: '#0d0d0d',
+  padding: '14px 32px',
+  borderRadius: '8px',
+  fontSize: '15px',
+  fontWeight: 600,
+  textDecoration: 'none',
+  display: 'inline-block',
+  letterSpacing: '0.02em',
+}
+const smallText = {
+  fontSize: '12px',
+  color: '#888',
+  margin: '20px 0 4px',
+  textAlign: 'center' as const,
+}
+const linkText = {
+  fontSize: '12px',
+  color: '#c9a84c',
+  margin: 0,
+  textAlign: 'center' as const,
+  wordBreak: 'break-all' as const,
+}
+const hr = {
+  borderColor: 'rgba(201, 168, 76, 0.15)',
+  margin: '32px 0 20px',
+}
+const footer = {
+  fontSize: '11px',
+  color: '#777',
+  lineHeight: 1.6,
+  margin: 0,
+  textAlign: 'center' as const,
+}
