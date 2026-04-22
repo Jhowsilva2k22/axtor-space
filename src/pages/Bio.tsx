@@ -151,20 +151,33 @@ const Bio = () => {
 
         <div id="blocks" className="stagger mt-12 space-y-3">
           {categories.length > 0 && (
-            <div className="mb-6 flex flex-wrap items-center justify-center gap-2">
-              <CategoryChip active={activeCat === "all"} onClick={() => setActiveCat("all")}>
-                Todos
-              </CategoryChip>
-              {categories.map((c) => (
-                <CategoryChip key={c.id} active={activeCat === c.id} onClick={() => setActiveCat(c.id)}>
-                  {c.name}
-                </CategoryChip>
-              ))}
+            <div className="relative mb-6 flex items-center gap-2">
+              {/* Scroll horizontal das pills com fade nas bordas */}
+              <div className="relative min-w-0 flex-1">
+                <div
+                  className="flex items-center gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                >
+                  <CategoryChip active={activeCat === "all"} onClick={() => setActiveCat("all")}>
+                    Todos
+                  </CategoryChip>
+                  {categories.map((c) => (
+                    <CategoryChip key={c.id} active={activeCat === c.id} onClick={() => setActiveCat(c.id)}>
+                      {c.name}
+                    </CategoryChip>
+                  ))}
+                </div>
+                {/* fade nas bordas pra sinalizar scroll */}
+                <div className="pointer-events-none absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-background to-transparent" />
+                <div className="pointer-events-none absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-background to-transparent" />
+              </div>
+              {/* Botão de busca sticky à direita, separado das pills */}
               <button
                 onClick={() => setSearchOpen((v) => !v)}
                 aria-label="Buscar"
-                className={`inline-flex h-8 items-center justify-center rounded-sm border px-2 transition-all ${
-                  searchOpen ? "border-gold bg-gradient-gold-soft text-primary" : "border-gold/40 text-muted-foreground hover:border-gold hover:text-primary"
+                className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-all ${
+                  searchOpen
+                    ? "border-gold bg-gradient-gold-soft text-primary shadow-gold"
+                    : "border-gold/40 text-muted-foreground hover:border-gold hover:text-primary"
                 }`}
               >
                 {searchOpen ? <X className="h-3.5 w-3.5" /> : <Search className="h-3.5 w-3.5" />}
@@ -294,10 +307,10 @@ const CategoryChip = ({
 }) => (
   <button
     onClick={onClick}
-    className={`inline-flex h-8 items-center rounded-sm border px-3 text-[10px] uppercase tracking-[0.2em] transition-all ${
+    className={`inline-flex h-9 shrink-0 items-center whitespace-nowrap rounded-full border px-4 text-[10px] uppercase tracking-[0.2em] transition-all ${
       active
-        ? "border-gold bg-gradient-gold-soft text-primary"
-        : "border-gold/40 bg-card/40 text-muted-foreground hover:border-gold hover:text-primary"
+        ? "border-gold bg-primary text-primary-foreground shadow-gold"
+        : "border-gold/30 bg-card/40 text-muted-foreground hover:border-gold hover:text-primary"
     }`}
   >
     {children}
