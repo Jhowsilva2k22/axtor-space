@@ -1,11 +1,10 @@
 # Project Memory
 
 ## Core
-Tema: Noir & Gold (default) + Ivory & Gold alternativo. Cores via tokens HSL em index.css.
-Tipografia: Cormorant Garamond (display) + Manrope (body). Nunca trocar sem pedido.
-Roles em tabela separada `user_roles` + `has_role` SECURITY DEFINER. Nunca usar localStorage para admin.
-Bio (`/bio`) tem AmbientPlayer com 8 faixas instrumentais aleatórias — curadoria aprovada, não trocar.
-Comunicação em PT-BR, tom direto e curto.
+Tema dual: dark (padrão) + light (.theme-ivory). SEMPRE usar tokens semânticos do design system — nunca text-white/text-black/text-gray-*.
+Pareamento obrigatório de fundo/texto: bg-card → text-card-foreground, bg-background → text-foreground, bg-primary → text-primary-foreground, bg-popover → text-popover-foreground, bg-muted → text-muted-foreground.
+Inputs precisam ter caret-color visível (já configurado global em index.css usando hsl(var(--primary))).
+Domínio produção: axtor.space (primary) + www.axtor.space. Hostinger DNS, SaaS path-based /t/{slug} no MVP.
 
 ## Memories
-- [Ambient Player](mem://features/ambient-player) — Música ambiente aleatória no /bio (fade-in sutil, 8 faixas piano)
+- [Design rules](mem://design/rules.md) — Regras completas de tokens semânticos e pareamento de cores
