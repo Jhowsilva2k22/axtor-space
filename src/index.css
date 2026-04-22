@@ -108,15 +108,18 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Inter Tight', system-ui, sans-serif;
+    font-feature-settings: "ss01", "cv11";
+    letter-spacing: -0.005em;
     background: var(--gradient-noir);
     background-attachment: fixed;
   }
 
   h1, h2, h3, .font-display {
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 500;
-    letter-spacing: -0.01em;
+    font-family: 'Bodoni Moda', 'Didot', 'Bodoni 72', serif;
+    font-weight: 400;
+    letter-spacing: -0.025em;
+    font-feature-settings: "lnum";
   }
 }
 
