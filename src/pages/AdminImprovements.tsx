@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { useAdminLockedTheme } from "@/components/ThemeToggle";
+import { TenantSelector } from "@/components/TenantSelector";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -180,6 +181,8 @@ export default function AdminImprovements() {
             </Button>
             <h1 className="text-lg font-semibold">Sugestões Inteligentes</h1>
           </div>
+          <div className="flex items-center gap-2">
+          <TenantSelector />
           <Button onClick={generate} disabled={generating}>
             {generating ? (
               <>
@@ -191,6 +194,7 @@ export default function AdminImprovements() {
               </>
             )}
           </Button>
+          </div>
         </div>
       </header>
 

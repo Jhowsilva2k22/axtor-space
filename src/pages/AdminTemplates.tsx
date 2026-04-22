@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { type ThemeTokens } from "@/components/ThemeProvider";
 import { useAdminLockedTheme } from "@/components/ThemeToggle";
+import { TenantSelector } from "@/components/TenantSelector";
 import { toast } from "sonner";
 import {
   Loader2,
@@ -103,12 +104,15 @@ const AdminTemplates = () => {
               </span>
             </p>
           </div>
+          <div className="flex items-center gap-2">
+          <TenantSelector />
           <button
             onClick={resetToDefault}
             className="inline-flex h-10 items-center gap-2 rounded-sm border border-gold bg-gradient-gold-soft px-4 text-[11px] uppercase tracking-[0.2em] text-primary transition-all hover:shadow-gold"
           >
             <RotateCcw className="h-3.5 w-3.5" /> Voltar pro padrão
           </button>
+          </div>
         </div>
 
         {loading ? (
