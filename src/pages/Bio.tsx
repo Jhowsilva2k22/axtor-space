@@ -109,15 +109,15 @@ const BlockCard = ({ block }: { block: Block }) => {
       </div>
       <div className="min-w-0 flex-1 text-left">
         <div className="flex items-center gap-2">
-          <p className="truncate text-sm font-medium uppercase tracking-[0.1em] text-foreground">{block.label}</p>
+          <p className="text-sm font-medium uppercase leading-snug tracking-[0.1em] text-foreground">{block.label}</p>
           {block.badge && (
-            <span className="shrink-0 rounded-sm border border-gold bg-background/40 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.2em] text-primary">
+            <span className="shrink-0 self-start rounded-sm border border-gold bg-background/40 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.2em] text-primary">
               {block.badge}
             </span>
           )}
         </div>
         {block.description && (
-          <p className="mt-1 truncate text-xs font-light text-muted-foreground">{block.description}</p>
+          <p className="mt-1 text-xs font-light leading-relaxed text-muted-foreground">{block.description}</p>
         )}
       </div>
       <ArrowUpRight className="h-4 w-4 shrink-0 text-primary opacity-60 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100" />
