@@ -612,7 +612,7 @@ const ResultStep = ({ data, onRestart }: { data: DiagnosisData; onRestart: () =>
               <p className="text-xs font-light text-muted-foreground">Me segue no Instagram pra mais análises e estratégias.</p>
             </div>
             <a
-              href="https://instagram.com/eusoujoanderson"
+              href="https://instagram.com/eusoujoanderson1"
               target="_blank"
               rel="noopener noreferrer"
               className="rounded-sm border border-gold bg-background/50 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-primary transition-all hover:bg-gradient-gold-soft"
