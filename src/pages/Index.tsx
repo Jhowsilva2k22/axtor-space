@@ -3,17 +3,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { ArrowRight, Sparkles, Lock, CheckCircle2, AlertTriangle, Loader2, Instagram, TrendingUp, Target, Zap, SearchX } from "lucide-react";
+import { ArrowRight, Sparkles, Lock, CheckCircle2, AlertTriangle, Loader2, Instagram, TrendingUp, Target, Zap, SearchX, Share2, Clock, Check } from "lucide-react";
 
 const PROXY = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/proxy-image?url=`;
 const proxied = (url?: string) => (url ? PROXY + encodeURIComponent(url) : "");
 
-type Step = "handle" | "lead" | "loading" | "result" | "private" | "not_found";
+type Step = "handle" | "lead" | "loading" | "result" | "private" | "not_found" | "blocked";
 
 interface DiagnosisData {
   status: string;
   handle?: string;
   message?: string;
+  unlocks_at?: string;
+  diagnostic_id?: string;
+  cached?: boolean;
   profile?: any;
   profile_preview?: any;
   diagnosis?: {
