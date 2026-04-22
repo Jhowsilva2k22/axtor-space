@@ -80,6 +80,25 @@ export const CategoriesManager = () => {
     setItems((s) => [...s, data as any]);
   };
 
+  const addPreset = async (preset: { name: string; slug: string; icon: string }) => {
+    // garante slug único
+    let slug = preset.slug;
+    let n = 1;
+    while (items.some((i) => i.slug === slug)) {
+      n += 1;
+      slug = `${preset.slug}-${n}`;
+    }
+    const nextPos = (items[items.length - 1]?.position ?? 0) + 1;
+    const { data, error } = await supabase
+      .from("bio_categories")
+      .insert({ name: preset.name, slug, icon: preset.icon, position: nextPos })
+      .select()
+      .single();
+    if (error) return toast.error(error.message);
+    setItems((s) => [...s, data as any]);
+    toast.success(`"${preset.name}" adicionada`);
+  };
+
   const update = async (id: string, patch: Partial<Category>) => {
     setItems((s) => s.map((c) => (c.id === id ? { ...c, ...patch } : c)));
     const { error } = await supabase.from("bio_categories").update(patch).eq("id", id);
