@@ -25,6 +25,7 @@ type Block = {
   highlight: boolean;
   position: number;
   use_brand_color: boolean;
+  size?: "sm" | "md" | "lg" | null;
 };
 
 // Cor original de cada marca (gradiente quando faz sentido)
