@@ -5,6 +5,9 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { ArrowRight, Sparkles, Lock, CheckCircle2, AlertTriangle, Loader2, Instagram, TrendingUp, Target, Zap } from "lucide-react";
 
+const PROXY = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/proxy-image?url=`;
+const proxied = (url?: string) => (url ? PROXY + encodeURIComponent(url) : "");
+
 type Step = "handle" | "lead" | "loading" | "result" | "private";
 
 interface DiagnosisData {
@@ -282,16 +285,26 @@ const ResultStep = ({ data, onRestart }: { data: DiagnosisData; onRestart: () =>
   return (
     <div className="animate-fade-up space-y-12">
       {/* Header perfil */}
-      <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:text-left">
+      <div className="flex flex-col items-center gap-6 text-center sm:flex-row sm:items-start sm:gap-8 sm:text-left">
         {p.profilePicUrl && (
-          <img src={p.profilePicUrl} alt={p.username} className="h-20 w-20 rounded-full border-2 border-primary/50" referrerPolicy="no-referrer" />
+          <div className="relative shrink-0">
+            <img
+              src={proxied(p.profilePicUrl)}
+              alt={p.username}
+              className="h-24 w-24 rounded-full border border-primary/40 object-cover"
+              onError={(e) => ((e.currentTarget.style.display = "none"))}
+            />
+            <div className="absolute -inset-1 -z-10 rounded-full bg-primary/20 blur-xl" />
+          </div>
         )}
-        <div className="flex-1">
-          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">diagnóstico de</p>
-          <h2 className="font-display text-3xl sm:text-4xl">@{p.username}</h2>
-          <p className="text-sm text-muted-foreground">{p.fullName}</p>
+        <div className="min-w-0 flex-1">
+          <p className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground">diagnóstico de</p>
+          <h2 className="mt-1 break-all font-display text-3xl leading-none sm:text-4xl">
+            @{p.username}
+          </h2>
+          {p.fullName && <p className="mt-2 text-sm text-muted-foreground">{p.fullName}</p>}
         </div>
-        <div className="flex gap-6 text-center">
+        <div className="flex shrink-0 gap-8 text-center sm:text-right">
           <Stat label="Seguidores" value={fmt(p.followersCount)} />
           <Stat label="Posts" value={fmt(p.postsCount)} />
         </div>

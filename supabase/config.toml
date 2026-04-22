@@ -2,3 +2,6 @@ project_id = "bdxkcfngskagriaapepo"
 
 [functions.analyze-instagram]
 verify_jwt = false
+
+[functions.proxy-image]
+verify_jwt = false
