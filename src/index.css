@@ -306,8 +306,8 @@ All colors MUST be HSL.
     max-width: 900px;
     max-height: 900px;
     margin-left: -35vw;
-    background: radial-gradient(circle at center, hsl(var(--primary) / 0.22), transparent 60%);
-    filter: blur(80px);
+    background: radial-gradient(circle at center, hsl(var(--primary) / var(--aurora-opacity-a)), transparent 60%);
+    filter: blur(var(--aurora-blur));
     animation: aurora-drift 18s ease-in-out infinite;
     pointer-events: none;
   }
@@ -319,7 +319,7 @@ All colors MUST be HSL.
     height: 60vw;
     max-width: 800px;
     max-height: 800px;
-    background: radial-gradient(circle at center, hsl(var(--primary-glow) / 0.18), transparent 60%);
+    background: radial-gradient(circle at center, hsl(var(--primary-glow) / var(--aurora-opacity-b)), transparent 60%);
     filter: blur(90px);
     animation: aurora-drift-slow 22s ease-in-out infinite;
     pointer-events: none;
