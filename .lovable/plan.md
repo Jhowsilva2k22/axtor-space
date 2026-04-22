@@ -1,45 +1,35 @@
 
 
-## Deixar o gerenciador de Categorias auto-explicativo
+## Plano: reduzir digitação no admin com Combobox + presets
 
-### 1. Trocar o campo de ícone (texto cru) por um seletor visual
-Hoje você vê "Share2", "MessageCircle" como texto e tem que adivinhar. Vou trocar pelo mesmo **IconPicker** que já existe nos blocos (`src/components/IconPicker.tsx`) — abre um popover com os ícones desenhados, você clica no que quer.
+### Componente novo
+- **`src/components/Combobox.tsx`** — input híbrido (digita ou escolhe). Reusa `Popover` + `Command` do shadcn. Aceita `presets`, `value`, `onChange`, `placeholder`, `allowCustom` (default true).
 
-### 2. Mostrar o ícone renderizado ao lado do nome
-Em cada linha de categoria vai aparecer o **ícone real** (não o texto "Share2") na frente do nome, igual aparece nos blocos. Assim você bate o olho e entende.
+### Aplicar em `src/pages/Admin.tsx` (BlockEditor)
+1. **Badge** → Combobox com presets: `NOVO`, `OFERTA`, `EM BREVE`, `ESGOTADO`, `POPULAR`, `GRÁTIS`, `LIMITADO`, `EXCLUSIVO`. Custom permitido.
+2. **Footer text** (em ConfigEditor) → Combobox com presets: `joandersonsilva.com.br`, `© 2026 Joanderson Silva`, `Feito com presença`, vazio. Custom permitido.
 
-### 3. Tornar o "risco" autoexplicativo
-Em vez de só riscar o botão das prontas, vou:
-- Deixar com aparência de "✓ já adicionada" (check verde + texto normal, sem risco)
-- Tooltip explícito: "Já está na sua lista"
-- Manter desabilitado pra não duplicar
+### Aplicar em `src/components/CampaignManager.tsx`
+3. **UTM source** → Combobox com presets: `instagram`, `whatsapp`, `bio`, `email`, `youtube`, `tiktok`, `organic`, `direct`. Custom permitido.
+4. **UTM medium** → Combobox com presets: `social`, `cpc`, `referral`, `email`, `organic`, `affiliate`, `bio-link`. Custom permitido.
+5. **UTM campaign** → Combobox com sugestão automática baseada no `block.label` (ex: bloco "Curso Pai Presente" → sugere `curso-pai-presente`). Custom permitido.
 
-### 4. Mini-explicação no topo do card
-Adicionar 1 linha curta de ajuda no topo do card Categorias:
-> *"Categorias agrupam seus blocos na /bio. Crie aqui e depois escolha em cada bloco no campo Categoria."*
+### O que NÃO muda (continua digitação livre — é correto assim)
+- URL do bloco
+- Label do bloco  
+- Description do bloco
+- Headline / sub-headline / display_name da bio
+- Nome de categoria custom
 
-E no dropdown "Categoria" dentro do bloco, um texto auxiliar pequeno:
-> *"Gerencie a lista no card Categorias abaixo"* (com link âncora rolando até lá)
-
-### 5. Esconder o slug atrás de um "avançado"
-O campo `slug` (redes-sociais, contato…) é técnico — usuário final não precisa ver. Vou colocar atrás de um botão "⚙ avançado" que expande. O slug continua sendo gerado automático a partir do nome.
-
----
+### Resultado
+- Quem quer rápido: 2 cliques resolvem badge+UTM
+- Quem quer custom: digita normal — nada é perdido
+- Métricas continuam consistentes (presets evitam typo tipo "Instagran")
 
 ### Arquivos afetados
-- `src/components/CategoriesManager.tsx` — IconPicker, ícone renderizado, slug avançado, texto de ajuda, tooltip nas prontas
-- `src/pages/Admin.tsx` — texto auxiliar no dropdown Categoria do bloco + âncora pro card
+- ➕ `src/components/Combobox.tsx` (novo)
+- ✏️ `src/pages/Admin.tsx` (badge + footer)
+- ✏️ `src/components/CampaignManager.tsx` (3 UTMs)
 
-### Resultado final
-Cada categoria vai aparecer assim:
-```text
-[↑ ↓]  🔗 Redes sociais            [ATIVA ●]  [🗑]
-       ⚙ avançado
-```
-E as prontas:
-```text
-[+ Produtos]  [+ Serviços]  [✓ Redes sociais (já adicionada)]
-```
-
-Sem precisar saber o que é "Share2" nem o que é "slug".
+Sem migration de banco. Sem quebrar nada existente.
 
