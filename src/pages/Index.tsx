@@ -93,6 +93,8 @@ const Index = () => {
       setData(result);
       if (result.status === "private_profile") {
         setStep("private");
+      } else if (result.status === "rate_limited") {
+        setStep("blocked");
       } else if (result.status === "completed") {
         // Se a IA não conseguiu pontuar (perfil vazio/inexistente), tratar como não encontrado
         const score = result?.diagnosis?.score_geral ?? 0;
