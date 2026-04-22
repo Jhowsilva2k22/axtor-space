@@ -13,5 +13,6 @@ Manter `docs/CHECKPOINT-*.md` atualizado a cada milestone significativo.
 - [Onboarding checklist](mem://features/onboarding) — Checklist persistente no Admin
 - [Bio templates](mem://features/bio-templates) — Presets por nicho (coach/artist/ecommerce/infoproduct)
 - [Invite idempotency](mem://features/invite-idempotency) — Auto-revoga pendentes ao criar invite mesmo email
+- [QR Code](mem://features/qr-code) — Dialog no /admin com PNG/SVG e logo Axtor central
 - [Ambient player](mem://features/ambient-player) — (existente)
 - [Design rules](mem://design/rules) — (existente)

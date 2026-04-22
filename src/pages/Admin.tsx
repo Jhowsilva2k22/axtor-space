@@ -18,6 +18,7 @@ import { Combobox } from "@/components/Combobox";
 import { TenantSelector } from "@/components/TenantSelector";
 import { OnboardingChecklist } from "@/components/OnboardingChecklist";
 import { BioTemplatePicker } from "@/components/BioTemplatePicker";
+import { QRCodeDialog } from "@/components/QRCodeDialog";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { useCurrentTenant } from "@/hooks/useCurrentTenant";
 import { UpgradeModal } from "@/components/UpgradeModal";
@@ -588,6 +589,12 @@ const Admin = () => {
               <Link to="/admin/invites" className="inline-flex h-10 items-center gap-2 rounded-sm border border-gold bg-card/40 px-4 text-[11px] uppercase tracking-[0.2em] text-primary transition-all hover:bg-gradient-gold-soft">
                 Convites <Gift className="h-3.5 w-3.5" />
               </Link>
+            )}
+            {currentTenant && (
+              <QRCodeDialog
+                url={`${window.location.origin}/${currentTenant.slug}`}
+                slug={currentTenant.slug}
+              />
             )}
             <Link to="/bio" target="_blank" className="inline-flex h-10 items-center gap-2 rounded-sm border border-gold bg-card/40 px-4 text-[11px] uppercase tracking-[0.2em] text-primary transition-all hover:bg-gradient-gold-soft">
               Ver bio <ExternalLink className="h-3.5 w-3.5" />
