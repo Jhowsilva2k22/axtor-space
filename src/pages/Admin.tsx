@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Loader2, Plus, Save, Trash2, ArrowUp, ArrowDown, LogOut, ExternalLink, Eye, EyeOff } from "lucide-react";
+import { Loader2, Plus, Save, Trash2, ArrowUp, ArrowDown, LogOut, ExternalLink, Eye, EyeOff, BarChart3 } from "lucide-react";
 import { Upload } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import {
@@ -290,6 +290,9 @@ const Admin = () => {
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
+            <Link to="/admin/analytics" className="inline-flex h-10 items-center gap-2 rounded-sm border border-gold bg-card/40 px-4 text-[11px] uppercase tracking-[0.2em] text-primary transition-all hover:bg-gradient-gold-soft">
+              Analytics <BarChart3 className="h-3.5 w-3.5" />
+            </Link>
             <Link to="/bio" target="_blank" className="inline-flex h-10 items-center gap-2 rounded-sm border border-gold bg-card/40 px-4 text-[11px] uppercase tracking-[0.2em] text-primary transition-all hover:bg-gradient-gold-soft">
               Ver bio <ExternalLink className="h-3.5 w-3.5" />
             </Link>
