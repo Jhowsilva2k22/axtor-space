@@ -12,6 +12,7 @@ import { Upload } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { IconPicker } from "@/components/IconPicker";
 import { BlockMetricsBadge } from "@/components/BlockMetricsBadge";
+import { CampaignManager } from "@/components/CampaignManager";
 import {
   Select,
   SelectContent,
@@ -515,6 +516,7 @@ const BlockEditor = ({
           <Save className="h-3.5 w-3.5" /> Salvar bloco
         </Button>
       </div>
+      <CampaignManager blockId={block.id} />
     </div>
   );
 };
