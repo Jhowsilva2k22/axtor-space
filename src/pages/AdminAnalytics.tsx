@@ -3,7 +3,7 @@ import { Link, Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { useAdminLockedTheme } from "@/components/ThemeToggle";
+import { ThemeToggle, useAdminLockedTheme } from "@/components/ThemeToggle";
 import { toast } from "sonner";
 import {
   Loader2,
@@ -152,6 +152,7 @@ const AdminAnalytics = () => {
           <Button variant="outline" size="icon" onClick={load} disabled={refreshing}>
             <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
           </Button>
+          <ThemeToggle />
         </div>
       </header>
 
