@@ -90,6 +90,23 @@ const Signup = () => {
     return { color: "text-destructive", text: REASONS[slugStatus.reason ?? ""] ?? "indisponível" };
   }, [slug, checking, slugStatus]);
 
+  // validação invite code com debounce
+  useEffect(() => {
+    if (!inviteCode) { setInviteStatus(null); return; }
+    setInviteChecking(true);
+    const t = window.setTimeout(async () => {
+      const { data, error } = await supabase.rpc("validate_invite_code" as any, {
+        _code: inviteCode,
+        _email: email || null,
+      });
+      setInviteChecking(false);
+      if (error) { setInviteStatus({ valid: false, reason: "invalid_format" }); return; }
+      const d = data as any;
+      setInviteStatus({ valid: !!d?.valid, type: d?.type, reason: d?.reason });
+    }, 400);
+    return () => window.clearTimeout(t);
+  }, [inviteCode, email]);
+
   if (authLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center grain">
