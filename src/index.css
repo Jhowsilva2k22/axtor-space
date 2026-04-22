@@ -38,11 +38,14 @@ All colors MUST be HSL.
     --input: 0 0% 11%;
     --ring: 43 55% 54%;
 
-    --radius: 0.25rem;
+    --radius: 1rem;
 
     --gradient-gold: linear-gradient(135deg, hsl(43 55% 54%), hsl(43 75% 70%));
+    --gradient-gold-soft: linear-gradient(135deg, hsl(43 55% 54% / 0.18), hsl(43 75% 70% / 0.06));
+    --gradient-gold-edge: linear-gradient(135deg, hsl(43 55% 54% / 0.5), hsl(43 75% 70% / 0.1) 50%, hsl(43 55% 54% / 0.5));
     --gradient-noir: radial-gradient(ellipse at top, hsl(0 0% 12%), hsl(0 0% 4%));
     --shadow-gold: 0 20px 60px -20px hsl(43 55% 54% / 0.35);
+    --shadow-gold-lg: 0 30px 90px -20px hsl(43 55% 54% / 0.55), 0 0 0 1px hsl(43 55% 54% / 0.3);
     --shadow-deep: 0 30px 80px -20px hsl(0 0% 0% / 0.8);
 
     --sidebar-background: 0 0% 98%;
@@ -108,17 +111,17 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Inter Tight', system-ui, sans-serif;
-    font-feature-settings: "ss01", "cv11";
-    letter-spacing: -0.005em;
+    font-family: 'Manrope', system-ui, sans-serif;
+    font-feature-settings: "ss01", "ss02", "cv11";
+    letter-spacing: -0.01em;
     background: var(--gradient-noir);
     background-attachment: fixed;
   }
 
   h1, h2, h3, .font-display {
-    font-family: 'Bodoni Moda', 'Didot', 'Bodoni 72', serif;
-    font-weight: 400;
-    letter-spacing: -0.025em;
+    font-family: 'Playfair Display', 'Didot', 'Bodoni 72', serif;
+    font-weight: 500;
+    letter-spacing: -0.03em;
     font-feature-settings: "lnum";
   }
 }
@@ -135,6 +138,22 @@ All colors MUST be HSL.
   }
   .shadow-gold {
     box-shadow: var(--shadow-gold);
+  }
+  .shadow-gold-lg {
+    box-shadow: var(--shadow-gold-lg);
+  }
+  .bg-gradient-gold {
+    background: var(--gradient-gold);
+  }
+  .bg-gradient-gold-soft {
+    background: var(--gradient-gold-soft);
+  }
+  /* Edge gradient using border-image so it works with rounded corners */
+  .border-gold-gradient {
+    border: 1px solid transparent;
+    background:
+      linear-gradient(hsl(var(--card)), hsl(var(--card))) padding-box,
+      var(--gradient-gold-edge) border-box;
   }
   .grain::before {
     content: '';
@@ -162,5 +181,37 @@ All colors MUST be HSL.
   }
   .animate-fade-up {
     animation: fade-up 0.6s ease-out both;
+  }
+
+  /* Premium button: gold gradient + shimmer sweep + lift */
+  @keyframes btn-shimmer {
+    0% { transform: translateX(-120%) skewX(-20deg); }
+    100% { transform: translateX(220%) skewX(-20deg); }
+  }
+  .btn-luxe {
+    position: relative;
+    overflow: hidden;
+    background: var(--gradient-gold);
+    color: hsl(var(--primary-foreground));
+    box-shadow: 0 10px 30px -10px hsl(43 55% 54% / 0.5), inset 0 1px 0 hsl(43 90% 85% / 0.4);
+    transition: transform 0.35s cubic-bezier(.2,.8,.2,1), box-shadow 0.35s ease, filter 0.35s ease;
+  }
+  .btn-luxe:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 50px -15px hsl(43 55% 54% / 0.7), inset 0 1px 0 hsl(43 90% 85% / 0.6);
+    filter: brightness(1.05);
+  }
+  .btn-luxe:active { transform: translateY(0); }
+  .btn-luxe::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 50%; height: 100%;
+    background: linear-gradient(90deg, transparent, hsl(0 0% 100% / 0.45), transparent);
+    transform: translateX(-120%) skewX(-20deg);
+    pointer-events: none;
+  }
+  .btn-luxe:hover::after {
+    animation: btn-shimmer 1.1s ease-out;
   }
 }
