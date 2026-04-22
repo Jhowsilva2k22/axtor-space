@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState, FormEvent } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useCurrentTenant } from "@/hooks/useCurrentTenant";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Loader2, Sparkles, Check, X, ExternalLink, Copy } from "lucide-react";
+import { Loader2, Sparkles, Check, X, ExternalLink, Copy, Gift } from "lucide-react";
 import { ThemeToggle, useAdminLockedTheme } from "@/components/ThemeToggle";
 
 const slugify = (s: string) =>
@@ -26,6 +26,15 @@ const REASONS: Record<string, string> = {
   invalid_format: "use apenas letras minúsculas, números e hífens",
   reserved: "este nome é reservado",
   taken: "já está em uso",
+};
+
+const INVITE_REASONS: Record<string, string> = {
+  invalid_format: "código inválido",
+  not_found: "código não encontrado",
+  revoked: "código revogado",
+  already_used: "código já utilizado",
+  expired: "código expirado",
+  email_mismatch: "este código é para outro email",
 };
 
 type Created = { tenant_id: string; slug: string; url: string };
