@@ -40,6 +40,8 @@ const App = () => (
             <Route path="/admin/templates" element={<AdminTemplates />} />
             <Route path="/admin/improvements" element={<AdminImprovements />} />
             <Route path="/r/:slug" element={<RedirectCampaign />} />
+            {/* Path-based público: axtor.space/:slug → bio do tenant */}
+            <Route path="/:slug" element={<Bio />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
               </Routes>

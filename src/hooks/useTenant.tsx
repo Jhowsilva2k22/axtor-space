@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useLocation } from "react-router-dom";
 
 export type Tenant = {
   id: string;
@@ -23,6 +24,29 @@ const DEFAULT_TENANT_SLUG = "joanderson";
 const ROOT_DOMAINS = ["axtor.space", "www.axtor.space", "lovable.app", "lovable.dev"];
 const PREVIEW_HOST_PATTERNS = [/^id-preview--/, /\.lovable\.app$/, /\.lovableproject\.com$/];
 
+// Rotas reservadas — primeiro segmento da URL que NÃO é slug de tenant
+const RESERVED_PATHS = new Set([
+  "admin",
+  "bio",
+  "d",
+  "r",
+  "api",
+  "auth",
+  "login",
+  "signup",
+  "signin",
+  "signout",
+  "logout",
+  "assets",
+  "static",
+  "public",
+  "favicon.ico",
+  "robots.txt",
+  "sitemap.xml",
+]);
+
+const SLUG_RE = /^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$/;
+
 const resolveSlugFromLocation = (): string => {
   if (typeof window === "undefined") return DEFAULT_TENANT_SLUG;
   const url = new URL(window.location.href);
@@ -32,15 +56,20 @@ const resolveSlugFromLocation = (): string => {
   if (qs) return qs;
 
   const host = url.hostname;
+  const firstSegment = url.pathname.split("/").filter(Boolean)[0]?.toLowerCase() ?? "";
+  const pathSlug =
+    firstSegment && !RESERVED_PATHS.has(firstSegment) && SLUG_RE.test(firstSegment)
+      ? firstSegment
+      : null;
 
-  // 2) localhost / IPs / preview da Lovable → tenant default
-  if (host === "localhost" || /^\d+\.\d+\.\d+\.\d+$/.test(host)) return DEFAULT_TENANT_SLUG;
-  if (PREVIEW_HOST_PATTERNS.some((re) => re.test(host))) return DEFAULT_TENANT_SLUG;
+  // 2) localhost / IPs / preview da Lovable → path-slug se houver, senão default
+  if (host === "localhost" || /^\d+\.\d+\.\d+\.\d+$/.test(host)) return pathSlug ?? DEFAULT_TENANT_SLUG;
+  if (PREVIEW_HOST_PATTERNS.some((re) => re.test(host))) return pathSlug ?? DEFAULT_TENANT_SLUG;
 
-  // 3) Domínio raiz da axtor.space → tenant default (até a Fase 4 ter landing)
-  if (ROOT_DOMAINS.includes(host)) return DEFAULT_TENANT_SLUG;
+  // 3) Domínio raiz da axtor.space → path-based (axtor.space/joanderson) ou default
+  if (ROOT_DOMAINS.includes(host)) return pathSlug ?? DEFAULT_TENANT_SLUG;
 
-  // 4) Subdomínio: pega a primeira parte (joanderson de joanderson.axtor.space)
+  // 4) Subdomínio (legado/premium): pega a primeira parte (joanderson de joanderson.axtor.space)
   const parts = host.split(".");
   if (parts.length >= 3) return parts[0];
 
@@ -70,6 +99,7 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
   const [tenant, setTenant] = useState<Tenant | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<TenantCtx["error"]>(null);
+  const location = useLocation();
 
   useEffect(() => {
     let cancelled = false;
@@ -119,7 +149,7 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [location.pathname]);
 
   return <Ctx.Provider value={{ tenant, loading, error }}>{children}</Ctx.Provider>;
 };
