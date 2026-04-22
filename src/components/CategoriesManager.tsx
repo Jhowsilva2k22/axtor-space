@@ -184,6 +184,36 @@ export const CategoriesManager = () => {
           ))}
         </div>
       )}
+
+      {/* Presets — adicione com 1 clique */}
+      <div className="mt-6 rounded-sm border border-gold/30 bg-card/30 p-4">
+        <div className="mb-3 flex items-center gap-2">
+          <Sparkles className="h-3.5 w-3.5 text-primary" />
+          <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+            Adicionar pronta
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {PRESETS.map((p) => {
+            const exists = items.some((i) => i.slug === p.slug || i.name.toLowerCase() === p.name.toLowerCase());
+            return (
+              <button
+                key={p.slug}
+                onClick={() => addPreset(p)}
+                disabled={exists}
+                title={exists ? "Já adicionada" : `Adicionar "${p.name}"`}
+                className={`inline-flex h-8 items-center gap-1.5 rounded-sm border px-3 text-[10px] uppercase tracking-[0.2em] transition-all ${
+                  exists
+                    ? "border-border bg-muted/20 text-muted-foreground/50 line-through"
+                    : "border-gold/40 bg-card/40 text-primary hover:border-gold hover:bg-gradient-gold-soft"
+                }`}
+              >
+                <Plus className="h-3 w-3" /> {p.name}
+              </button>
+            );
+          })}
+        </div>
+      </div>
     </section>
   );
 };
