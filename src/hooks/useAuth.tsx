@@ -20,34 +20,48 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   const checkAdmin = async (uid: string | undefined) => {
-    if (!uid) {
-      setIsAdmin(false);
-      return;
-    }
-    const { data } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", uid)
-      .eq("role", "admin")
-      .maybeSingle();
-    setIsAdmin(!!data);
+    if (!uid) return false;
+
+    const timeoutPromise = new Promise<boolean>((resolve) => {
+      window.setTimeout(() => resolve(false), 2500);
+    });
+
+    const rolePromise = (async () => {
+      try {
+        const { data, error } = await supabase.rpc("has_role", { _user_id: uid, _role: "admin" });
+        if (error) return false;
+        return !!data;
+      } catch {
+        return false;
+      }
+    })();
+
+    return Promise.race<boolean>([rolePromise, timeoutPromise]);
   };
 
   useEffect(() => {
     let unmounted = false;
+    let authCheckVersion = 0;
+
+    const syncAuthState = (s: Session | null) => {
+      const currentVersion = ++authCheckVersion;
+
+      setSession(s);
+      setUser(s?.user ?? null);
+
+      window.setTimeout(() => {
+        void checkAdmin(s?.user?.id).then((admin) => {
+          if (unmounted || currentVersion !== authCheckVersion) return;
+          setIsAdmin(admin);
+          setLoading(false);
+        });
+      }, 0);
+    };
 
     // Listener primeiro (síncrono). Roda também no INITIAL_SESSION.
     const { data: sub } = supabase.auth.onAuthStateChange((_evt, s) => {
       if (unmounted) return;
-      setSession(s);
-      setUser(s?.user ?? null);
-      // Defer: evita deadlock dentro do callback do supabase
-      setTimeout(() => {
-        if (unmounted) return;
-        checkAdmin(s?.user?.id).finally(() => {
-          if (!unmounted) setLoading(false);
-        });
-      }, 0);
+      syncAuthState(s);
     });
 
     // Fallback: se por algum motivo o auth não responder rápido, libera o app
@@ -59,13 +73,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Garante que pegamos a sessão mesmo se o evento já passou
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       if (unmounted) return;
-      setSession(s);
-      setUser(s?.user ?? null);
-      checkAdmin(s?.user?.id).finally(() => {
-        if (!unmounted) setLoading(false);
-      });
+      syncAuthState(s);
     }).catch(() => {
-      if (!unmounted) setLoading(false);
+      if (unmounted) return;
+      setIsAdmin(false);
+      setLoading(false);
     });
 
     return () => {

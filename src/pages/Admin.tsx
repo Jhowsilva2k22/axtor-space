@@ -97,22 +97,37 @@ const Admin = () => {
   const [publishingId, setPublishingId] = useState<string | null>(null);
 
   const load = async () => {
-    const [{ data: c }, { data: b }, { data: cats }] = await Promise.all([
-      supabase.from("bio_config").select("*").eq("singleton", true).maybeSingle(),
-      supabase.from("bio_blocks").select("*").order("position", { ascending: true }),
-      supabase.from("bio_categories").select("*").order("position", { ascending: true }),
-    ]);
-    setCfg(c as any);
-    setBlocks((b as any) ?? []);
-    setCategories((cats as any) ?? []);
-    setCfgDirty(false);
-    setDirtyBlocks(new Set());
-    setLoading(false);
+    setLoading(true);
+    try {
+      const [{ data: c, error: cfgError }, { data: b, error: blocksError }, { data: cats, error: catsError }] = await Promise.all([
+        supabase.from("bio_config").select("*").eq("singleton", true).maybeSingle(),
+        supabase.from("bio_blocks").select("*").order("position", { ascending: true }),
+        supabase.from("bio_categories").select("*").order("position", { ascending: true }),
+      ]);
+
+      const error = cfgError ?? blocksError ?? catsError;
+      if (error) throw error;
+
+      setCfg((c as any) ?? null);
+      setBlocks((b as any) ?? []);
+      setCategories((cats as any) ?? []);
+      setCfgDirty(false);
+      setDirtyBlocks(new Set());
+    } catch (error: any) {
+      toast.error(error?.message ?? "Não foi possível carregar o painel");
+      setCfg(null);
+      setBlocks([]);
+      setCategories([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    if (isAdmin) load();
-  }, [isAdmin]);
+    if (!authLoading && user && isAdmin) {
+      void load();
+    }
+  }, [authLoading, user, isAdmin]);
 
   if (authLoading) {
     return (
