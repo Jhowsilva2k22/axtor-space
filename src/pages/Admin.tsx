@@ -311,7 +311,7 @@ const Admin = () => {
             <h2 className="font-display text-2xl">Cabeçalho da <span className="text-gold italic">bio</span></h2>
             <div className="mt-6 grid gap-4 md:grid-cols-2">
               <Field label="Nome de exibição">
-                <Input value={cfg.display_name} onChange={(e) => setCfg({ ...cfg, display_name: e.target.value })} className="h-11 rounded-sm border-gold bg-input" />
+                <Input value={cfg.display_name} onChange={(e) => updateCfg({ display_name: e.target.value })} className="h-11 rounded-sm border-gold bg-input" />
               </Field>
               <Field label="Foto de perfil">
                 <div className="flex items-center gap-3">
@@ -338,19 +338,19 @@ const Admin = () => {
                 </div>
                 <Input
                   value={cfg.avatar_url ?? ""}
-                  onChange={(e) => setCfg({ ...cfg, avatar_url: e.target.value })}
+                  onChange={(e) => updateCfg({ avatar_url: e.target.value })}
                   placeholder="ou cole uma URL https://..."
                   className="mt-2 h-9 rounded-sm border-gold/50 bg-input text-xs"
                 />
               </Field>
               <Field label="Headline (frase principal)" full>
-                <Textarea value={cfg.headline} onChange={(e) => setCfg({ ...cfg, headline: e.target.value })} rows={3} className="rounded-sm border-gold bg-input" />
+                <Textarea value={cfg.headline} onChange={(e) => updateCfg({ headline: e.target.value })} rows={3} className="rounded-sm border-gold bg-input" />
               </Field>
               <Field label="Sub-headline (linha pequena)">
-                <Input value={cfg.sub_headline ?? ""} onChange={(e) => setCfg({ ...cfg, sub_headline: e.target.value })} className="h-11 rounded-sm border-gold bg-input" />
+                <Input value={cfg.sub_headline ?? ""} onChange={(e) => updateCfg({ sub_headline: e.target.value })} className="h-11 rounded-sm border-gold bg-input" />
               </Field>
               <Field label="Footer">
-                <Input value={cfg.footer_text ?? ""} onChange={(e) => setCfg({ ...cfg, footer_text: e.target.value })} className="h-11 rounded-sm border-gold bg-input" />
+                <Input value={cfg.footer_text ?? ""} onChange={(e) => updateCfg({ footer_text: e.target.value })} className="h-11 rounded-sm border-gold bg-input" />
               </Field>
             </div>
             <div className="mt-6 flex justify-end">
