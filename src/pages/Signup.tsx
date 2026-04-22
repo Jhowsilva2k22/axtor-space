@@ -170,7 +170,7 @@ const Signup = () => {
           <Sparkles className="h-5 w-5 text-primary" />
         </div>
         <h1 className="mt-6 text-center font-display text-3xl">Crie sua <span className="text-gold italic">bio</span></h1>
-        <p className="mt-2 text-center text-xs uppercase tracking-[0.25em] text-muted-foreground">grátis · 3 blocos · pronto em 30s</p>
+        <p className="mt-2 text-center text-xs uppercase tracking-[0.25em] text-muted-foreground">grátis pra começar · sem cartão · sem código</p>
 
         <div className="mt-8 space-y-4">
           <div>
