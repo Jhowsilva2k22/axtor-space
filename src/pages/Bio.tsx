@@ -269,4 +269,25 @@ const BlockCard = ({ block }: { block: Block }) => {
   );
 };
 
+const CategoryChip = ({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) => (
+  <button
+    onClick={onClick}
+    className={`inline-flex h-8 items-center rounded-sm border px-3 text-[10px] uppercase tracking-[0.2em] transition-all ${
+      active
+        ? "border-gold bg-gradient-gold-soft text-primary"
+        : "border-gold/40 bg-card/40 text-muted-foreground hover:border-gold hover:text-primary"
+    }`}
+  >
+    {children}
+  </button>
+);
+
 export default Bio;
