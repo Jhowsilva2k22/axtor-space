@@ -194,6 +194,8 @@ export const CampaignManager = ({ blockId, blockLabel }: { blockId: string; bloc
                           onChange={(v) => update(c.id, { utm_source: v })}
                           presets={["instagram", "whatsapp", "bio", "email", "youtube", "tiktok", "organic", "direct"]}
                           placeholder="instagram"
+                          customLabel="Usar origem personalizada"
+                          slugify
                         />
                       </FieldSm>
                       <FieldSm label="utm_medium">
@@ -202,6 +204,8 @@ export const CampaignManager = ({ blockId, blockLabel }: { blockId: string; bloc
                           onChange={(v) => update(c.id, { utm_medium: v })}
                           presets={["social", "cpc", "referral", "email", "organic", "affiliate", "bio-link"]}
                           placeholder="stories"
+                          customLabel="Usar mídia personalizada"
+                          slugify
                         />
                       </FieldSm>
                       <FieldSm label="utm_campaign" full>
@@ -210,6 +214,8 @@ export const CampaignManager = ({ blockId, blockLabel }: { blockId: string; bloc
                           onChange={(v) => update(c.id, { utm_campaign: v })}
                           presets={campaignPresets}
                           placeholder={campaignSuggestion || "lancamento-04"}
+                          customLabel="Usar campanha personalizada"
+                          slugify
                         />
                       </FieldSm>
                     </div>

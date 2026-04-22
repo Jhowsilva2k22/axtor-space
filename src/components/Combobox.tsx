@@ -20,6 +20,10 @@ export type ComboboxProps = {
   emptyText?: string;
   allowCustom?: boolean;
   className?: string;
+  /** Texto curto pro grupo "Personalizado" (ex: "Usar badge personalizada"). */
+  customLabel?: string;
+  /** Se true, aplica slugify (lowercase, sem acento, hifens) ao confirmar. */
+  slugify?: boolean;
 };
 
 /**
@@ -34,12 +38,23 @@ export const Combobox: React.FC<ComboboxProps> = ({
   emptyText = "Nada encontrado.",
   allowCustom = true,
   className,
+  customLabel,
+  slugify: shouldSlugify = false,
 }) => {
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
 
+  const toSlug = (s: string) =>
+    s
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "")
+      .slice(0, 40);
+
   const handleSelect = (val: string) => {
-    onChange(val);
+    onChange(shouldSlugify && val ? toSlug(val) : val);
     setOpen(false);
     setQuery("");
   };
@@ -113,10 +128,13 @@ export const Combobox: React.FC<ComboboxProps> = ({
               )}
             </CommandGroup>
             {showCustomOption && (
-              <CommandGroup heading="Personalizado">
+              <CommandGroup heading={customLabel ?? "Personalizado"}>
                 <CommandItem value={`__custom__${trimmed}`} onSelect={() => handleSelect(trimmed)}>
                   <Check className="mr-2 h-4 w-4 opacity-0" />
                   Usar "<span className="font-medium">{trimmed}</span>"
+                  {shouldSlugify && toSlug(trimmed) !== trimmed && (
+                    <span className="ml-auto text-[10px] text-amber-500">→ {toSlug(trimmed)}</span>
+                  )}
                 </CommandItem>
               </CommandGroup>
             )}

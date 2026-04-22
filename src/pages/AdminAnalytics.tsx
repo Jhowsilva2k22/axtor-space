@@ -19,7 +19,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 
-type Range = 7 | 30 | 90;
+type Range = 1 | 7 | 30 | 90;
 
 type Summary = {
   period_days: number;
@@ -137,7 +137,7 @@ const AdminAnalytics = () => {
         </div>
         <div className="flex items-center gap-2">
           <div className="flex rounded-sm border border-gold/40 p-1">
-            {([7, 30, 90] as Range[]).map((r) => (
+            {([1, 7, 30, 90] as Range[]).map((r) => (
               <button
                 key={r}
                 onClick={() => setRange(r)}
@@ -145,7 +145,7 @@ const AdminAnalytics = () => {
                   range === r ? "bg-gradient-gold-soft text-primary" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                {r}d
+                {r === 1 ? "24h" : `${r}d`}
               </button>
             ))}
           </div>
