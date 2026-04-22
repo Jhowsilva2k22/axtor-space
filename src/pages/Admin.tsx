@@ -15,6 +15,7 @@ import { BlockMetricsBadge } from "@/components/BlockMetricsBadge";
 import { CampaignManager } from "@/components/CampaignManager";
 import { CategoriesManager, type Category } from "@/components/CategoriesManager";
 import { Combobox } from "@/components/Combobox";
+import { TenantSelector } from "@/components/TenantSelector";
 import {
   Select,
   SelectContent,
