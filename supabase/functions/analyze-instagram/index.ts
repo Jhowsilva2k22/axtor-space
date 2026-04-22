@@ -115,6 +115,82 @@ Deno.serve(async (req) => {
 
     const handle = sanitizeHandle(handleRaw);
 
+    // 0. Verifica limites por @
+    const now = Date.now();
+    const twelveHoursAgo = new Date(now - 12 * 60 * 60 * 1000).toISOString();
+    const sevenDaysAgo = new Date(now - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+    // 0.1 Cache: análise completed nas últimas 12h → devolve a antiga
+    const { data: recent } = await supabase
+      .from("diagnostics")
+      .select("*")
+      .eq("instagram_handle", handle)
+      .eq("status", "completed")
+      .gte("created_at", twelveHoursAgo)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (recent) {
+      const profile = (recent.profile_data ?? {}) as Record<string, unknown>;
+      const insights = (recent.insights ?? {}) as Record<string, unknown>;
+      const scores = (recent.scores ?? {}) as Record<string, number>;
+      return new Response(
+        JSON.stringify({
+          status: "completed",
+          cached: true,
+          handle,
+          diagnostic_id: recent.id,
+          profile: {
+            username: profile?.username,
+            fullName: profile?.fullName,
+            biography: profile?.biography,
+            profilePicUrl: profile?.profilePicUrl,
+            followersCount: profile?.followersCount,
+            followsCount: profile?.followsCount,
+            postsCount: profile?.postsCount,
+            verified: profile?.verified,
+            businessCategoryName: profile?.businessCategoryName,
+            externalUrl: profile?.externalUrl,
+          },
+          diagnosis: {
+            score_geral: insights?.score_geral ?? 0,
+            scores,
+            pontos_fortes: insights?.pontos_fortes ?? [],
+            gaps_criticos: insights?.gaps_criticos ?? [],
+            plano_acao: insights?.plano_acao ?? [],
+            veredicto: recent.ai_summary ?? "",
+          },
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    // 0.2 Bloqueio semanal: 3 análises completed nos últimos 7 dias
+    const { data: weekly } = await supabase
+      .from("diagnostics")
+      .select("created_at")
+      .eq("instagram_handle", handle)
+      .eq("status", "completed")
+      .gte("created_at", sevenDaysAgo)
+      .order("created_at", { ascending: true });
+
+    if (weekly && weekly.length >= 3) {
+      const oldest = new Date(weekly[0].created_at).getTime();
+      const unlocksAt = new Date(oldest + 7 * 24 * 60 * 60 * 1000).toISOString();
+      return new Response(
+        JSON.stringify({
+          status: "rate_limited",
+          handle,
+          reason: "weekly_limit",
+          unlocks_at: unlocksAt,
+          message:
+            "Esse perfil já recebeu 3 análises essa semana. Compartilhe seu diagnóstico ou volte em breve.",
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
     // 1. Cria/atualiza lead
     const { data: lead, error: leadErr } = await supabase
       .from("leads")
