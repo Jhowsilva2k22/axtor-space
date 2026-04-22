@@ -62,6 +62,7 @@ type Block = {
   is_active: boolean;
   use_brand_color: boolean;
   size: "sm" | "md" | "lg";
+  category_id: string | null;
 };
 
 const KINDS = [
