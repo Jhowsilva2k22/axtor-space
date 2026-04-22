@@ -29,30 +29,27 @@ export const SignupEmail = ({
 }: SignupEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Confirm your email for {siteName}</Preview>
+    <Preview>Confirme seu email — bem-vindo à Axtor</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Confirm your email</Heading>
+        <Text style={brand}>AXTOR</Text>
+        <Heading style={h1}>
+          Bem-vindo à <span style={hAccent}>Axtor</span>
+        </Heading>
         <Text style={text}>
-          Thanks for signing up for{' '}
-          <Link href={siteUrl} style={link}>
-            <strong>{siteName}</strong>
-          </Link>
-          !
-        </Text>
-        <Text style={text}>
-          Please confirm your email address (
+          Falta só um passo pra liberar sua bio. Confirme o email{' '}
           <Link href={`mailto:${recipient}`} style={link}>
             {recipient}
-          </Link>
-          ) by clicking the button below:
+          </Link>{' '}
+          clicando no botão abaixo.
         </Text>
         <Button style={button} href={confirmationUrl}>
-          Verify Email
+          Confirmar email
         </Button>
-        <Text style={footer}>
-          If you didn't create an account, you can safely ignore this email.
+        <Text style={small}>
+          Se você não criou uma conta na Axtor, pode ignorar este email.
         </Text>
+        <Text style={footer}>axtor.space — sua bio inteligente</Text>
       </Container>
     </Body>
   </Html>
@@ -60,27 +57,69 @@ export const SignupEmail = ({
 
 export default SignupEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
-const container = { padding: '20px 25px' }
+const main = {
+  backgroundColor: '#ffffff',
+  fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+  padding: '40px 0',
+}
+const container = {
+  padding: '40px 32px',
+  maxWidth: '520px',
+  margin: '0 auto',
+  border: '1px solid #e5d9b8',
+  borderRadius: '4px',
+}
+const brand = {
+  fontSize: '11px',
+  letterSpacing: '0.4em',
+  color: '#c9a84c',
+  fontWeight: 600 as const,
+  margin: '0 0 24px',
+  textTransform: 'uppercase' as const,
+}
 const h1 = {
-  fontSize: '22px',
-  fontWeight: 'bold' as const,
-  color: '#000000',
-  margin: '0 0 20px',
+  fontFamily: "'Cormorant Garamond', Georgia, serif",
+  fontSize: '34px',
+  fontWeight: 400 as const,
+  color: '#0d0d0d',
+  margin: '0 0 24px',
+  lineHeight: '1.15',
 }
+const hAccent = { color: '#c9a84c', fontStyle: 'italic' as const }
 const text = {
-  fontSize: '14px',
-  color: '#55575d',
-  lineHeight: '1.5',
-  margin: '0 0 25px',
+  fontSize: '15px',
+  color: '#3d3d3d',
+  lineHeight: '1.65',
+  margin: '0 0 28px',
+  fontWeight: 300 as const,
 }
-const link = { color: 'inherit', textDecoration: 'underline' }
+const link = { color: '#c9a84c', textDecoration: 'underline' }
 const button = {
-  backgroundColor: '#000000',
-  color: '#ffffff',
-  fontSize: '14px',
-  borderRadius: '8px',
-  padding: '12px 20px',
+  backgroundColor: '#0d0d0d',
+  color: '#c9a84c',
+  fontSize: '11px',
+  letterSpacing: '0.2em',
+  fontWeight: 600 as const,
+  borderRadius: '2px',
+  padding: '14px 28px',
   textDecoration: 'none',
+  textTransform: 'uppercase' as const,
+  border: '1px solid #c9a84c',
+  display: 'inline-block',
 }
-const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
+const small = {
+  fontSize: '13px',
+  color: '#777',
+  lineHeight: '1.6',
+  margin: '32px 0 0',
+  fontWeight: 300 as const,
+}
+const footer = {
+  fontSize: '10px',
+  color: '#aaa',
+  letterSpacing: '0.25em',
+  margin: '40px 0 0',
+  textTransform: 'uppercase' as const,
+  borderTop: '1px solid #f0e8d4',
+  paddingTop: '20px',
+}
