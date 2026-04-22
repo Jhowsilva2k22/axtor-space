@@ -11,5 +11,7 @@ Manter `docs/CHECKPOINT-*.md` atualizado a cada milestone significativo.
 - [Auth & sessão](mem://preferences/auth-session) — Regras de loading, redirect e signOut
 - [Email branding](mem://features/email-branding) — Templates auth gold-noir PT-BR
 - [Onboarding checklist](mem://features/onboarding) — Checklist persistente no Admin
+- [Bio templates](mem://features/bio-templates) — Presets por nicho (coach/artist/ecommerce/infoproduct)
+- [Invite idempotency](mem://features/invite-idempotency) — Auto-revoga pendentes ao criar invite mesmo email
 - [Ambient player](mem://features/ambient-player) — (existente)
 - [Design rules](mem://design/rules) — (existente)
