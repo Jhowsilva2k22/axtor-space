@@ -531,7 +531,17 @@ const Admin = () => {
                 <Input value={cfg.sub_headline ?? ""} onChange={(e) => updateCfg({ sub_headline: e.target.value })} className="h-11 rounded-sm border-gold bg-input" />
               </Field>
               <Field label="Footer">
-                <Input value={cfg.footer_text ?? ""} onChange={(e) => updateCfg({ footer_text: e.target.value })} className="h-11 rounded-sm border-gold bg-input" />
+                <Combobox
+                  value={cfg.footer_text ?? ""}
+                  onChange={(v) => updateCfg({ footer_text: v })}
+                  presets={[
+                    "joandersonsilva.com.br",
+                    "© 2026 Joanderson Silva",
+                    "Feito com presença",
+                    "Todos os direitos reservados",
+                  ]}
+                  placeholder="Texto do rodapé (opcional)"
+                />
               </Field>
             </div>
             <div className="mt-6 flex justify-end">
