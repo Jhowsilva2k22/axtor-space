@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Loader2, Sparkles } from "lucide-react";
+import { trackPageView } from "@/lib/analytics";
 
 const PROXY = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/proxy-image?url=`;
 const proxied = (url?: string) => (url ? PROXY + encodeURIComponent(url) : "");
@@ -19,6 +20,7 @@ const SharePage = () => {
       setLoading(false);
       return;
     }
+    trackPageView(`/d/${id}`, { diagnostic_id: id });
     (async () => {
       const { data: rows, error } = await supabase.rpc("get_diagnostic_public", { _id: id });
       const diag = Array.isArray(rows) ? rows[0] : rows;

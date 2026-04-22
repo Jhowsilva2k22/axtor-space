@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { ArrowRight, Sparkles, Lock, CheckCircle2, AlertTriangle, Loader2, Instagram, TrendingUp, Target, Zap, SearchX, Share2, Clock, Check, Crown, MessageCircle } from "lucide-react";
 import { validateEmail, validateName, validatePhone, maskPhone, suggestEmailDomain, COUNTRIES, type CountryCode } from "@/lib/validators";
+import { trackPageView, trackFunnel } from "@/lib/analytics";
+import { useEffect } from "react";
 import {
   Select,
   SelectContent,
@@ -58,6 +60,11 @@ const Index = () => {
   const [loadingMsg, setLoadingMsg] = useState(LOADING_STEPS[0]);
   const [data, setData] = useState<DiagnosisData | null>(null);
 
+  useEffect(() => {
+    trackPageView("/");
+    trackFunnel("diag_landing_view");
+  }, []);
+
   const handleSubmitHandle = (e: React.FormEvent) => {
     e.preventDefault();
     const cleaned = handle.trim().replace(/^@+/, "").toLowerCase();
@@ -67,6 +74,7 @@ const Index = () => {
       return;
     }
     setHandle(cleaned);
+    trackFunnel("diag_handle_submit", { handle: cleaned });
     setStep("lead");
   };
 
@@ -93,6 +101,7 @@ const Index = () => {
       return;
     }
     setStep("loading");
+    trackFunnel("diag_lead_submit", { handle });
 
     // Anima as mensagens de loading
     let i = 0;
@@ -122,6 +131,7 @@ const Index = () => {
       setData(result);
       if (result.status === "private_profile") {
         setStep("private");
+        trackFunnel("diag_result_private", { handle, diagnostic_id: result.diagnostic_id ?? null });
       } else if (result.status === "rate_limited") {
         setStep("blocked");
       } else if (result.status === "completed") {
@@ -129,11 +139,14 @@ const Index = () => {
         const score = result?.diagnosis?.score_geral ?? 0;
         if (!result.profile?.username || score === 0) {
           setStep("not_found");
+          trackFunnel("diag_result_failed", { handle, diagnostic_id: result.diagnostic_id ?? null });
         } else {
           setStep("result");
+          trackFunnel("diag_result_view", { handle, diagnostic_id: result.diagnostic_id ?? null, meta: { score, cached: !!result.cached } });
         }
       } else if (result.status === "failed") {
         setStep("not_found");
+        trackFunnel("diag_result_failed", { handle });
       } else {
         toast.error(result.error || "Não conseguimos analisar esse perfil agora.");
         setStep("handle");

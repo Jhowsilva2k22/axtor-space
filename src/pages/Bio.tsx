@@ -5,6 +5,7 @@ import * as LucideIcons from "lucide-react";
 import { Loader2, ArrowUpRight } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import AmbientPlayer from "@/components/AmbientPlayer";
+import { trackPageView, trackBioClick } from "@/lib/analytics";
 
 type BioConfig = {
   display_name: string;
@@ -68,6 +69,7 @@ const Bio = () => {
       setBlocks((b as any) ?? []);
       setLoading(false);
     })();
+    trackPageView("/bio");
   }, []);
 
   if (loading) {
@@ -134,6 +136,8 @@ const BlockCard = ({ block }: { block: Block }) => {
   const Icon = (block.icon && (LucideIcons as any)[block.icon]) || LucideIcons.Link2;
   const isInternal = block.url.startsWith("/");
   const brand = getBrandStyle(block);
+  const onTrack = () =>
+    trackBioClick({ id: block.id, kind: block.kind, label: block.label, url: block.url });
   const cls = `block-shimmer group relative flex w-full items-center gap-4 overflow-hidden rounded-sm border p-4 transition-all duration-300 hover:-translate-y-0.5 ${
     block.highlight
       ? "border-gold bg-gradient-gold-soft shadow-gold hover:shadow-gold-lg"
@@ -170,13 +174,13 @@ const BlockCard = ({ block }: { block: Block }) => {
   );
   if (isInternal) {
     return (
-      <Link to={block.url} className={cls}>
+      <Link to={block.url} className={cls} onClick={onTrack}>
         {inner}
       </Link>
     );
   }
   return (
-    <a href={block.url} target="_blank" rel="noopener noreferrer" className={cls}>
+    <a href={block.url} target="_blank" rel="noopener noreferrer" className={cls} onClick={onTrack}>
       {inner}
     </a>
   );

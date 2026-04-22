@@ -62,6 +62,51 @@ export type Database = {
         }
         Relationships: []
       }
+      bio_clicks: {
+        Row: {
+          block_id: string | null
+          block_kind: string | null
+          block_label: string | null
+          block_url: string | null
+          created_at: string
+          device: string | null
+          id: string
+          referrer: string | null
+          session_id: string
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          block_id?: string | null
+          block_kind?: string | null
+          block_label?: string | null
+          block_url?: string | null
+          created_at?: string
+          device?: string | null
+          id?: string
+          referrer?: string | null
+          session_id: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          block_id?: string | null
+          block_kind?: string | null
+          block_label?: string | null
+          block_url?: string | null
+          created_at?: string
+          device?: string | null
+          id?: string
+          referrer?: string | null
+          session_id?: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Relationships: []
+      }
       bio_config: {
         Row: {
           avatar_url: string | null
@@ -154,6 +199,45 @@ export type Database = {
           },
         ]
       }
+      funnel_events: {
+        Row: {
+          created_at: string
+          diagnostic_id: string | null
+          event_name: string
+          id: string
+          instagram_handle: string | null
+          meta: Json | null
+          session_id: string
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          created_at?: string
+          diagnostic_id?: string | null
+          event_name: string
+          id?: string
+          instagram_handle?: string | null
+          meta?: Json | null
+          session_id: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          created_at?: string
+          diagnostic_id?: string | null
+          event_name?: string
+          id?: string
+          instagram_handle?: string | null
+          meta?: Json | null
+          session_id?: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           created_at: string
@@ -199,6 +283,48 @@ export type Database = {
         }
         Relationships: []
       }
+      page_views: {
+        Row: {
+          created_at: string
+          device: string | null
+          id: string
+          meta: Json | null
+          path: string
+          referrer: string | null
+          session_id: string
+          user_agent: string | null
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          created_at?: string
+          device?: string | null
+          id?: string
+          meta?: Json | null
+          path: string
+          referrer?: string | null
+          session_id: string
+          user_agent?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          created_at?: string
+          device?: string | null
+          id?: string
+          meta?: Json | null
+          path?: string
+          referrer?: string | null
+          session_id?: string
+          user_agent?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -225,6 +351,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_analytics_summary: { Args: { _days?: number }; Returns: Json }
       get_diagnostic_public: {
         Args: { _id: string }
         Returns: {
