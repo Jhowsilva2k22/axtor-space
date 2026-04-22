@@ -16,6 +16,7 @@ import { CampaignManager } from "@/components/CampaignManager";
 import { CategoriesManager, type Category } from "@/components/CategoriesManager";
 import { Combobox } from "@/components/Combobox";
 import { TenantSelector } from "@/components/TenantSelector";
+import { OnboardingChecklist } from "@/components/OnboardingChecklist";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { Lock } from "lucide-react";
@@ -601,8 +602,22 @@ const Admin = () => {
         </div>
       ) : (
         <main className="mx-auto max-w-5xl space-y-12 px-6 py-10">
+          <OnboardingChecklist
+            hasAvatar={!!cfg.avatar_url}
+            hasHeadline={!!cfg.headline && cfg.headline.trim().length > 0 && cfg.headline !== "Bem-vindo à minha bio"}
+            hasActiveBlock={blocks.some((b) => b.is_active)}
+            bioUrl={tenantSlug ? `/${tenantSlug}` : "/bio"}
+            onFocusHeader={() => {
+              const el = document.getElementById("admin-header-section");
+              el?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }}
+            onFocusBlocks={() => {
+              const el = document.getElementById("admin-blocks-section");
+              el?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }}
+          />
           {/* Cabeçalho da bio */}
-          <section className="rounded-sm border-gold-gradient p-6">
+          <section id="admin-header-section" className="rounded-sm border-gold-gradient p-6">
             <h2 className="font-display text-2xl">Cabeçalho da <span className="text-gold italic">bio</span></h2>
             <div className="mt-6 grid gap-4 md:grid-cols-2">
               <Field label="Nome de exibição">
