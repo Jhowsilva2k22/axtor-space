@@ -71,6 +71,7 @@ const effortColor = (v: string) =>
 
 export default function AdminImprovements() {
   const { user, loading: authLoading } = useAuth();
+  useAdminLockedTheme();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [recs, setRecs] = useState<Recommendation[]>([]);
   const [feedback, setFeedback] = useState<Feedback[]>([]);
