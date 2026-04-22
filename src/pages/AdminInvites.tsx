@@ -119,6 +119,39 @@ const AdminInvites = () => {
     if (!inv.target_email) return;
     const inviteUrl = buildLink(inv);
     const templateName = inv.type === "partner" ? "partner-invite" : "tester-invite";
+
+    // Busca dados do convidador (tenant do admin que criou o convite)
+    let inviterData: {
+      inviterName?: string;
+      inviterSlug?: string;
+      inviterAvatarUrl?: string;
+      inviterHeadline?: string;
+    } = {};
+    try {
+      const { data: tenant } = await supabase
+        .from("tenants")
+        .select("slug, display_name, id")
+        .eq("owner_user_id", user.id)
+        .eq("status", "active")
+        .limit(1)
+        .maybeSingle();
+      if (tenant) {
+        inviterData.inviterName = tenant.display_name;
+        inviterData.inviterSlug = tenant.slug;
+        const { data: cfg } = await supabase
+          .from("bio_config")
+          .select("avatar_url, headline")
+          .eq("tenant_id", tenant.id)
+          .maybeSingle();
+        if (cfg) {
+          inviterData.inviterAvatarUrl = cfg.avatar_url ?? undefined;
+          inviterData.inviterHeadline = cfg.headline ?? undefined;
+        }
+      }
+    } catch {
+      // segue sem dados do convidador — template tem fallback
+    }
+
     const { error } = await supabase.functions.invoke("send-transactional-email", {
       body: {
         templateName,
@@ -128,6 +161,7 @@ const AdminInvites = () => {
           name: inv.note || undefined,
           inviteUrl,
           note: inv.note || undefined,
+          ...inviterData,
         },
       },
     });

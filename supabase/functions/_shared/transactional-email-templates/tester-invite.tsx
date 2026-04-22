@@ -1,6 +1,6 @@
 import * as React from 'npm:react@18.3.1'
 import {
-  Body, Button, Container, Head, Heading, Hr, Html, Preview, Section, Text,
+  Body, Button, Column, Container, Head, Heading, Hr, Html, Preview, Row, Section, Text,
 } from 'npm:@react-email/components@0.0.22'
 import type { TemplateEntry } from './registry.ts'
 
@@ -10,12 +10,20 @@ interface TesterInviteProps {
   name?: string
   inviteUrl?: string
   note?: string
+  inviterName?: string
+  inviterSlug?: string
+  inviterAvatarUrl?: string
+  inviterHeadline?: string
 }
 
 const TesterInviteEmail = ({
   name,
   inviteUrl = 'https://axtor.space/signup',
   note,
+  inviterName,
+  inviterSlug,
+  inviterAvatarUrl,
+  inviterHeadline,
 }: TesterInviteProps) => (
   <Html lang="pt-BR" dir="ltr">
     <Head />
@@ -30,6 +38,27 @@ const TesterInviteEmail = ({
         <Heading style={h1}>
           {name ? `${name}, você foi escolhida.` : 'Você foi escolhida.'}
         </Heading>
+
+        {inviterName ? (
+          <Section style={inviterCard}>
+            <Row>
+              <Column style={{ width: '48px', verticalAlign: 'middle' }}>
+                {inviterAvatarUrl ? (
+                  <img src={inviterAvatarUrl} alt={inviterName} width="40" height="40" style={inviterAvatar} />
+                ) : (
+                  <div style={inviterAvatarFallback}>{inviterName.charAt(0).toUpperCase()}</div>
+                )}
+              </Column>
+              <Column style={{ verticalAlign: 'middle', paddingLeft: '12px' }}>
+                <Text style={inviterLabel}>convidada por</Text>
+                <Text style={inviterNameStyle}>
+                  {inviterName}
+                  {inviterSlug ? <span style={inviterHandle}> · axtor.space/{inviterSlug}</span> : null}
+                </Text>
+              </Column>
+            </Row>
+          </Section>
+        ) : null}
 
         <Text style={text}>
           Convite especial pra testar a axtor antes de todo mundo — acesso completo
@@ -46,6 +75,18 @@ const TesterInviteEmail = ({
             <Text style={noteText}>{note}</Text>
           </Section>
         ) : null}
+
+        <Section style={mockupWrap}>
+          <Text style={mockupLabel}>assim sua bio vai ficar</Text>
+          <div style={mockupCard}>
+            <div style={mockupAvatar}>{(name || 'A').charAt(0).toUpperCase()}</div>
+            <Text style={mockupName}>{name || 'sua marca'}</Text>
+            <Text style={mockupHeadline}>{inviterHeadline || 'sua headline aqui — algo que define você'}</Text>
+            <div style={mockupBlock}>★ link principal</div>
+            <div style={mockupBlock}>✦ instagram</div>
+            <div style={mockupBlockGhost}>+ adicionar mais</div>
+          </div>
+        </Section>
 
         <Section style={ctaWrap}>
           <Button style={button} href={inviteUrl}>
@@ -78,6 +119,9 @@ export const template = {
     name: 'Maria',
     inviteUrl: 'https://axtor.space/signup?invite=XYZ789&email=maria@example.com',
     note: 'beta-tester onda 1',
+    inviterName: 'Joanderson Silva',
+    inviterSlug: 'joanderson',
+    inviterHeadline: 'Ajudo pais a se reaproximarem dos filhos com presença real.',
   },
 } satisfies TemplateEntry
 
@@ -176,4 +220,63 @@ const footer = {
   lineHeight: 1.6,
   margin: 0,
   textAlign: 'center' as const,
+}
+const inviterCard = {
+  backgroundColor: 'rgba(192, 192, 192, 0.05)',
+  border: '1px solid rgba(192, 192, 192, 0.18)',
+  borderRadius: '10px',
+  padding: '12px 14px',
+  margin: '0 0 24px',
+}
+const inviterAvatar = { borderRadius: '50%', border: '1px solid rgba(192, 192, 192, 0.4)', display: 'block' }
+const inviterAvatarFallback = {
+  width: '40px', height: '40px', borderRadius: '50%',
+  border: '1px solid rgba(192, 192, 192, 0.4)',
+  backgroundColor: '#1a1a1a', color: '#c0c0c0',
+  fontFamily: "'Cormorant Garamond', Didot, serif",
+  fontSize: '20px', lineHeight: '40px', textAlign: 'center' as const,
+}
+const inviterLabel = {
+  fontSize: '10px', color: '#888', textTransform: 'uppercase' as const,
+  letterSpacing: '0.16em', margin: 0,
+}
+const inviterNameStyle = { fontSize: '13px', color: '#f5e9c8', margin: '2px 0 0', fontWeight: 500 }
+const inviterHandle = { color: '#c9a84c', fontWeight: 400, fontSize: '12px' }
+const mockupWrap = { textAlign: 'center' as const, margin: '8px 0 28px' }
+const mockupLabel = {
+  fontSize: '10px', color: '#888', textTransform: 'uppercase' as const,
+  letterSpacing: '0.2em', margin: '0 0 12px',
+}
+const mockupCard = {
+  backgroundColor: '#0a0a0a',
+  border: '1px solid rgba(201, 168, 76, 0.22)',
+  borderRadius: '14px', padding: '22px 18px 18px',
+  maxWidth: '280px', margin: '0 auto',
+}
+const mockupAvatar = {
+  width: '52px', height: '52px', borderRadius: '50%',
+  backgroundColor: '#1a1a1a', border: '1px solid rgba(201, 168, 76, 0.5)',
+  color: '#c9a84c', fontFamily: "'Cormorant Garamond', Didot, serif",
+  fontSize: '24px', lineHeight: '52px', textAlign: 'center' as const,
+  margin: '0 auto 10px',
+}
+const mockupName = {
+  fontFamily: "'Cormorant Garamond', Didot, serif",
+  fontSize: '17px', color: '#f5e9c8', margin: '0 0 4px', textAlign: 'center' as const,
+}
+const mockupHeadline = {
+  fontSize: '11px', color: '#999', margin: '0 0 16px', lineHeight: 1.4, textAlign: 'center' as const,
+}
+const mockupBlock = {
+  backgroundColor: 'rgba(201, 168, 76, 0.12)',
+  border: '1px solid rgba(201, 168, 76, 0.35)',
+  borderRadius: '8px', padding: '9px 12px',
+  fontSize: '11px', color: '#c9a84c', margin: '0 0 7px',
+  textAlign: 'center' as const, letterSpacing: '0.04em',
+}
+const mockupBlockGhost = {
+  border: '1px dashed rgba(201, 168, 76, 0.25)',
+  borderRadius: '8px', padding: '9px 12px',
+  fontSize: '10px', color: '#666', margin: '0',
+  textAlign: 'center' as const, letterSpacing: '0.04em',
 }

@@ -17,3 +17,14 @@ Os 6 templates em `supabase/functions/_shared/email-templates/` (signup, recover
 Após editar QUALQUER template, redeploy obrigatório: `supabase--deploy_edge_functions(["auth-email-hook"])`.
 
 Site name: "Axtor" (não usar `siteName` prop como "link-essence-suite"). Sender: `notify.axtor.space`.
+
+## Templates transacionais (separados dos auth)
+
+`partner-invite.tsx` e `tester-invite.tsx` em `_shared/transactional-email-templates/` são os emails de convite REAIS (enviados via `send-transactional-email`). Os templates `invite.tsx` em `_shared/email-templates/` são do Supabase Auth e o app NÃO usa.
+
+Ambos templates de invite recebem props opcionais do convidador via `templateData`:
+- `inviterName` · `inviterSlug` · `inviterAvatarUrl` · `inviterHeadline`
+
+`AdminInvites.sendInviteEmail` busca esses dados do tenant + bio_config do criador antes de invocar a edge function. Templates têm fallback gracioso quando ausentes.
+
+Visual: bloco "convidada por" no topo + mockup ilustrado de bio (avatar circular + 2 botões dourados + ghost button) antes do CTA. Após editar qualquer um, redeploy: `supabase--deploy_edge_functions(["send-transactional-email"])`.
