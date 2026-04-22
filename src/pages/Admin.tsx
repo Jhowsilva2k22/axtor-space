@@ -590,6 +590,12 @@ const Admin = () => {
                 Convites <Gift className="h-3.5 w-3.5" />
               </Link>
             )}
+            {current && (
+              <QRCodeDialog
+                url={`${window.location.origin}/${current.slug}`}
+                slug={current.slug}
+              />
+            )}
             <Link to="/bio" target="_blank" className="inline-flex h-10 items-center gap-2 rounded-sm border border-gold bg-card/40 px-4 text-[11px] uppercase tracking-[0.2em] text-primary transition-all hover:bg-gradient-gold-soft">
               Ver bio <ExternalLink className="h-3.5 w-3.5" />
             </Link>
