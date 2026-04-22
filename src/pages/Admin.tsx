@@ -573,16 +573,26 @@ const Admin = () => {
 
       {totalDirty > 0 && (
         <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-6">
-          <div className="pointer-events-auto flex items-center gap-4 rounded-sm border-gold-gradient bg-background/95 px-5 py-3 shadow-2xl backdrop-blur">
+          <div className="pointer-events-auto flex flex-wrap items-center gap-4 rounded-sm border-gold-gradient bg-background/95 px-5 py-3 shadow-2xl backdrop-blur">
             <span className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
               {totalDirty} alteração{totalDirty === 1 ? "" : "ões"} pendente{totalDirty === 1 ? "" : "s"}
             </span>
+            <label className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+              publicar já
+              <Switch checked={publishImmediate} onCheckedChange={setPublishImmediate} />
+            </label>
             <Button
               onClick={saveAll}
               disabled={savingAll}
               className="btn-luxe h-10 rounded-sm px-5 text-[11px] uppercase tracking-[0.2em]"
             >
-              {savingAll ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Save className="h-4 w-4" /> Salvar tudo</>}
+              {savingAll ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : publishImmediate ? (
+                <><Send className="h-4 w-4" /> Publicar tudo</>
+              ) : (
+                <><Save className="h-4 w-4" /> Salvar rascunhos</>
+              )}
             </Button>
           </div>
         </div>
