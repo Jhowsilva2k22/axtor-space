@@ -21,6 +21,8 @@ export type Database = {
           description: string | null
           highlight: boolean
           icon: string | null
+          icon_generations_count: number
+          icon_url: string | null
           id: string
           is_active: boolean
           kind: string
@@ -36,6 +38,8 @@ export type Database = {
           description?: string | null
           highlight?: boolean
           icon?: string | null
+          icon_generations_count?: number
+          icon_url?: string | null
           id?: string
           is_active?: boolean
           kind?: string
@@ -51,6 +55,8 @@ export type Database = {
           description?: string | null
           highlight?: boolean
           icon?: string | null
+          icon_generations_count?: number
+          icon_url?: string | null
           id?: string
           is_active?: boolean
           kind?: string
