@@ -337,7 +337,7 @@ All colors MUST be HSL.
     width: 180%;
     height: 180%;
     transform: translate(-50%, -50%);
-    background: radial-gradient(circle, hsl(var(--primary) / 0.35), transparent 65%);
+    background: radial-gradient(circle, hsl(var(--primary) / var(--halo-opacity)), transparent 65%);
     filter: blur(30px);
     animation: halo-pulse 4s ease-in-out infinite;
     pointer-events: none;
