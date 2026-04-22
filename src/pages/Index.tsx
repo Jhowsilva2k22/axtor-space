@@ -175,7 +175,7 @@ const HandleStep = ({ handle, setHandle, onSubmit }: any) => (
           className="h-14 border-0 bg-transparent text-base font-light placeholder:text-muted-foreground/40 focus-visible:ring-0"
           autoFocus
         />
-        <Button type="submit" size="lg" className="btn-luxe m-1.5 h-11 gap-2 rounded-sm px-6 text-sm font-semibold uppercase tracking-[0.15em]">
+        <Button type="submit" size="lg" className="btn-luxe m-1.5 h-11 shrink-0 gap-1.5 rounded-sm px-4 text-xs font-semibold uppercase tracking-[0.1em] sm:px-6 sm:text-sm sm:tracking-[0.15em]">
           Analisar <ArrowRight className="h-4 w-4" />
         </Button>
       </div>
