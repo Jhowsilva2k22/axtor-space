@@ -1,0 +1,1 @@
+UPDATE public.bio_blocks SET size = 'md' WHERE size <> 'md';
