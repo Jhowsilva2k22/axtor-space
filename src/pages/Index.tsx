@@ -4,7 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { ArrowRight, Sparkles, Lock, CheckCircle2, AlertTriangle, Loader2, Instagram, TrendingUp, Target, Zap, SearchX, Share2, Clock, Check } from "lucide-react";
-import { validateEmail, validateName, validatePhoneBR, maskPhoneBR, suggestEmailDomain } from "@/lib/validators";
+import { validateEmail, validateName, validatePhone, maskPhone, suggestEmailDomain, COUNTRIES, type CountryCode } from "@/lib/validators";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const PROXY = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/proxy-image?url=`;
 const proxied = (url?: string) => (url ? PROXY + encodeURIComponent(url) : "");
@@ -45,6 +52,7 @@ const Index = () => {
   const [handle, setHandle] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [country, setCountry] = useState<CountryCode>("BR");
   const [name, setName] = useState("");
   const [loadingMsg, setLoadingMsg] = useState(LOADING_STEPS[0]);
   const [data, setData] = useState<DiagnosisData | null>(null);
@@ -78,7 +86,7 @@ const Index = () => {
       setEmail(emailCheck.suggestion);
       return;
     }
-    const phoneCheck = validatePhoneBR(phone, false);
+    const phoneCheck = validatePhone(phone, country);
     if (!phoneCheck.ok) {
       toast.error(phoneCheck.error!);
       return;
@@ -93,11 +101,14 @@ const Index = () => {
     }, 2200);
 
     try {
+      const dial = COUNTRIES.find((c) => c.code === country)!.dial;
+      const fullPhone = `${dial} ${phone}`.trim();
       const { data: result, error } = await supabase.functions.invoke("analyze-instagram", {
         body: {
           handle,
           email: email || null,
-          phone: phone || null,
+          phone: fullPhone,
+          phone_country: country,
           full_name: name || null,
         },
       });
@@ -164,6 +175,7 @@ const Index = () => {
             handle={handle}
             email={email} setEmail={setEmail}
             phone={phone} setPhone={setPhone}
+            country={country} setCountry={setCountry}
             name={name} setName={setName}
             onSubmit={handleSubmitLead}
             onBack={() => setStep("handle")}
@@ -243,8 +255,9 @@ const HandleStep = ({ handle, setHandle, onSubmit }: any) => (
   </div>
 );
 
-const LeadStep = ({ handle, email, setEmail, phone, setPhone, name, setName, onSubmit, onBack }: any) => {
+const LeadStep = ({ handle, email, setEmail, phone, setPhone, country, setCountry, name, setName, onSubmit, onBack }: any) => {
   const emailSuggestion = email ? suggestEmailDomain(email) : null;
+  const selected = COUNTRIES.find((c) => c.code === country) ?? COUNTRIES[0];
   return (
   <div className="animate-fade-up mx-auto max-w-lg">
     <button onClick={onBack} className="mb-6 text-xs uppercase tracking-[0.3em] text-muted-foreground hover:text-primary">
@@ -294,15 +307,44 @@ const LeadStep = ({ handle, email, setEmail, phone, setPhone, name, setName, onS
       </div>
       <div>
         <label className="mb-2 block text-xs uppercase tracking-[0.2em] text-muted-foreground">WhatsApp</label>
-        <Input
-          type="tel"
-          value={phone}
-          onChange={(e) => setPhone(maskPhoneBR(e.target.value))}
-          placeholder="(11) 98765-4321"
-          autoComplete="tel-national"
-          inputMode="numeric"
-          className="h-11 rounded-sm border-gold bg-input font-light"
-        />
+        <div className="flex gap-2">
+          <Select
+            value={country}
+            onValueChange={(v: CountryCode) => {
+              setCountry(v);
+              setPhone(maskPhone(phone, v));
+            }}
+          >
+            <SelectTrigger className="h-11 w-[120px] shrink-0 rounded-sm border-gold bg-input font-light">
+              <SelectValue>
+                <span className="flex items-center gap-1.5">
+                  <span>{selected.flag}</span>
+                  <span>{selected.dial}</span>
+                </span>
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent className="max-h-72">
+              {COUNTRIES.map((c) => (
+                <SelectItem key={c.code} value={c.code}>
+                  <span className="flex items-center gap-2">
+                    <span>{c.flag}</span>
+                    <span className="font-medium">{c.dial}</span>
+                    <span className="text-muted-foreground">{c.name}</span>
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Input
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(maskPhone(e.target.value, country))}
+            placeholder={country === "BR" ? "(11) 98765-4321" : "Número"}
+            autoComplete="tel-national"
+            inputMode="numeric"
+            className="h-11 flex-1 rounded-sm border-gold bg-input font-light"
+          />
+        </div>
       </div>
 
       <Button type="submit" size="lg" className="btn-luxe h-12 w-full gap-2 rounded-sm text-sm font-semibold uppercase tracking-[0.15em]">

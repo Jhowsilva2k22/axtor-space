@@ -91,6 +91,50 @@ export function maskPhoneBR(raw: string): string {
   return d;
 }
 
+// Países (DDI). BR primeiro = padrão.
+export const COUNTRIES = [
+  { code: "BR", dial: "+55", flag: "🇧🇷", name: "Brasil", maxDigits: 11 },
+  { code: "PT", dial: "+351", flag: "🇵🇹", name: "Portugal", maxDigits: 9 },
+  { code: "US", dial: "+1", flag: "🇺🇸", name: "EUA / Canadá", maxDigits: 10 },
+  { code: "AR", dial: "+54", flag: "🇦🇷", name: "Argentina", maxDigits: 10 },
+  { code: "ES", dial: "+34", flag: "🇪🇸", name: "Espanha", maxDigits: 9 },
+  { code: "MX", dial: "+52", flag: "🇲🇽", name: "México", maxDigits: 10 },
+  { code: "CL", dial: "+56", flag: "🇨🇱", name: "Chile", maxDigits: 9 },
+  { code: "CO", dial: "+57", flag: "🇨🇴", name: "Colômbia", maxDigits: 10 },
+  { code: "UY", dial: "+598", flag: "🇺🇾", name: "Uruguai", maxDigits: 9 },
+  { code: "PY", dial: "+595", flag: "🇵🇾", name: "Paraguai", maxDigits: 9 },
+  { code: "GB", dial: "+44", flag: "🇬🇧", name: "Reino Unido", maxDigits: 10 },
+  { code: "FR", dial: "+33", flag: "🇫🇷", name: "França", maxDigits: 9 },
+  { code: "DE", dial: "+49", flag: "🇩🇪", name: "Alemanha", maxDigits: 11 },
+  { code: "IT", dial: "+39", flag: "🇮🇹", name: "Itália", maxDigits: 10 },
+  { code: "JP", dial: "+81", flag: "🇯🇵", name: "Japão", maxDigits: 10 },
+] as const;
+
+export type CountryCode = (typeof COUNTRIES)[number]["code"];
+
+export function maskPhone(raw: string, country: CountryCode): string {
+  if (country === "BR") return maskPhoneBR(raw);
+  const meta = COUNTRIES.find((c) => c.code === country)!;
+  return raw.replace(/\D/g, "").slice(0, meta.maxDigits);
+}
+
+export function validatePhone(raw: string, country: CountryCode): { ok: boolean; error?: string } {
+  if (country === "BR") return validatePhoneBR(raw, false);
+  const d = (raw || "").replace(/\D/g, "");
+  const meta = COUNTRIES.find((c) => c.code === country)!;
+  if (!d) return { ok: false, error: "Telefone obrigatório" };
+  const min = Math.max(meta.maxDigits - 1, 7);
+  if (d.length < min || d.length > meta.maxDigits) {
+    return { ok: false, error: `Telefone deve ter ${meta.maxDigits} dígitos` };
+  }
+  if (/^(\d)\1+$/.test(d)) return { ok: false, error: "Número inválido" };
+  if (new Set(d).size <= 2) return { ok: false, error: "Número inválido" };
+  if ("01234567890".includes(d) || "09876543210".includes(d)) {
+    return { ok: false, error: "Número inválido" };
+  }
+  return { ok: true };
+}
+
 export function validatePhoneBR(raw: string, optional = true): { ok: boolean; error?: string } {
   const d = (raw || "").replace(/\D/g, "");
   if (!d) return optional ? { ok: true } : { ok: false, error: "Telefone obrigatório" };
