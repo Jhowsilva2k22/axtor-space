@@ -21,6 +21,7 @@ type Block = {
   description: string | null;
   url: string;
   icon: string | null;
+  icon_url: string | null;
   badge: string | null;
   highlight: boolean;
   position: number;
@@ -136,6 +137,7 @@ const BlockCard = ({ block }: { block: Block }) => {
   const Icon = (block.icon && (LucideIcons as any)[block.icon]) || LucideIcons.Link2;
   const isInternal = block.url.startsWith("/");
   const brand = getBrandStyle(block);
+  const hasCustomIcon = !!block.icon_url;
   const onTrack = () =>
     trackBioClick({ id: block.id, kind: block.kind, label: block.label, url: block.url });
   const cls = `block-shimmer group relative flex w-full items-center gap-4 overflow-hidden rounded-sm border p-4 transition-all duration-300 hover:-translate-y-0.5 ${
@@ -147,14 +149,18 @@ const BlockCard = ({ block }: { block: Block }) => {
     <>
       <div
         className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-sm ${
-          brand ? "" : block.highlight ? "bg-background/40" : "bg-gradient-gold-soft"
+          hasCustomIcon ? "bg-background/40" : brand ? "" : block.highlight ? "bg-background/40" : "bg-gradient-gold-soft"
         }`}
-        style={brand ? { background: brand.bg } : undefined}
+        style={!hasCustomIcon && brand ? { background: brand.bg } : undefined}
       >
-        <Icon
-          className={`h-5 w-5 ${brand ? "" : "text-primary"}`}
-          style={brand ? { color: brand.color } : undefined}
-        />
+        {hasCustomIcon ? (
+          <img src={block.icon_url!} alt="" className="h-7 w-7 object-contain" />
+        ) : (
+          <Icon
+            className={`h-5 w-5 ${brand ? "" : "text-primary"}`}
+            style={brand ? { color: brand.color } : undefined}
+          />
+        )}
       </div>
       <div className="min-w-0 flex-1 text-left">
         <div className="flex items-center gap-2">

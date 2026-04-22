@@ -34,6 +34,8 @@ type Block = {
   description: string | null;
   url: string;
   icon: string | null;
+  icon_url: string | null;
+  icon_generations_count: number;
   badge: string | null;
   highlight: boolean;
   position: number;
@@ -479,7 +481,15 @@ const BlockEditor = ({
           </Select>
         </Field>
         <Field label="Ícone (lucide)">
-          <IconPicker value={block.icon} onChange={(name) => onChange({ icon: name })} />
+          <IconPicker
+            value={block.icon}
+            onChange={(name) => onChange({ icon: name })}
+            iconUrl={block.icon_url}
+            onIconUrlChange={(url) => onChange({ icon_url: url })}
+            blockId={block.id}
+            generationsUsed={block.icon_generations_count ?? 0}
+            onGenerationsUsedChange={(n) => onChange({ icon_generations_count: n })}
+          />
         </Field>
         <Field label="Label">
           <Input value={block.label} onChange={(e) => onChange({ label: e.target.value })} className="h-11 rounded-sm border-gold bg-input" />
