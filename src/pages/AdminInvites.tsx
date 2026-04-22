@@ -362,10 +362,25 @@ const AdminInvites = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     {!inv.used_at && !inv.revoked_at && (
-                      <button onClick={() => copyLink(inv)}
-                        className="inline-flex h-9 items-center gap-1.5 rounded-sm border border-gold bg-card/40 px-3 text-[11px] uppercase tracking-wider text-primary hover:bg-gradient-gold-soft">
-                        <Copy className="h-3 w-3" /> link
-                      </button>
+                      <>
+                        <button onClick={() => copyLink(inv)}
+                          title="copiar link atual"
+                          className="inline-flex h-9 items-center gap-1.5 rounded-sm border border-gold/60 bg-card/40 px-3 text-[11px] uppercase tracking-wider text-primary/80 hover:bg-gradient-gold-soft">
+                          <Copy className="h-3 w-3" /> copiar
+                        </button>
+                        <button onClick={() => rotateInvite(inv)}
+                          title="gerar novo código (invalida o atual)"
+                          className="inline-flex h-9 items-center gap-1.5 rounded-sm border border-gold bg-gradient-gold-soft px-3 text-[11px] uppercase tracking-wider text-primary hover:opacity-90">
+                          <RefreshCw className="h-3 w-3" /> novo link
+                        </button>
+                        {inv.mode === "email" && inv.target_email && (
+                          <button onClick={() => resendEmail(inv)}
+                            title="reenviar email"
+                            className="inline-flex h-9 items-center justify-center rounded-sm border border-gold/60 bg-card/40 px-3 text-primary/80 hover:bg-gradient-gold-soft">
+                            <Mail className="h-3 w-3" />
+                          </button>
+                        )}
+                      </>
                     )}
                     {!inv.used_at && !inv.revoked_at && (
                       <button onClick={() => revoke(inv.id)}
