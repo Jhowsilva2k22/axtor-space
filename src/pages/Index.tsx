@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { ArrowRight, Sparkles, Lock, CheckCircle2, AlertTriangle, Loader2, Instagram, TrendingUp, Target, Zap, SearchX, Share2, Clock, Check } from "lucide-react";
+import { validateEmail, validateName, validatePhoneBR, maskPhoneBR, suggestEmailDomain } from "@/lib/validators";
 
 const PROXY = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/proxy-image?url=`;
 const proxied = (url?: string) => (url ? PROXY + encodeURIComponent(url) : "");
@@ -62,8 +63,24 @@ const Index = () => {
 
   const handleSubmitLead = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email && !phone) {
-      toast.error("Informe email ou telefone para receber o diagnóstico");
+    const nameCheck = validateName(name);
+    if (!nameCheck.ok) {
+      toast.error(nameCheck.error!);
+      return;
+    }
+    const emailCheck = validateEmail(email);
+    if (!emailCheck.ok) {
+      toast.error(emailCheck.error!);
+      return;
+    }
+    if (emailCheck.suggestion) {
+      toast.error(`Quis dizer ${emailCheck.suggestion}?`);
+      setEmail(emailCheck.suggestion);
+      return;
+    }
+    const phoneCheck = validatePhoneBR(phone, false);
+    if (!phoneCheck.ok) {
+      toast.error(phoneCheck.error!);
       return;
     }
     setStep("loading");
@@ -226,7 +243,9 @@ const HandleStep = ({ handle, setHandle, onSubmit }: any) => (
   </div>
 );
 
-const LeadStep = ({ handle, email, setEmail, phone, setPhone, name, setName, onSubmit, onBack }: any) => (
+const LeadStep = ({ handle, email, setEmail, phone, setPhone, name, setName, onSubmit, onBack }: any) => {
+  const emailSuggestion = email ? suggestEmailDomain(email) : null;
+  return (
   <div className="animate-fade-up mx-auto max-w-lg">
     <button onClick={onBack} className="mb-6 text-xs uppercase tracking-[0.3em] text-muted-foreground hover:text-primary">
       ← Voltar
@@ -243,16 +262,47 @@ const LeadStep = ({ handle, email, setEmail, phone, setPhone, name, setName, onS
 
     <form onSubmit={onSubmit} className="mt-8 space-y-4">
       <div>
-        <label className="mb-2 block text-xs uppercase tracking-[0.2em] text-muted-foreground">Seu nome</label>
-        <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Como te chamamos?" className="h-11 rounded-sm border-gold bg-input font-light" />
+        <label className="mb-2 block text-xs uppercase tracking-[0.2em] text-muted-foreground">Nome completo</label>
+        <Input
+          value={name}
+          onChange={(e) => setName(e.target.value.replace(/[^a-zA-ZáàâãäéèêëíìîïóòôõöúùûüçÁÀÂÃÄÉÈÊËÍÌÎÏÓÒÔÕÖÚÙÛÜÇ '-]/g, "").slice(0, 80))}
+          placeholder="Nome e sobrenome"
+          autoComplete="name"
+          className="h-11 rounded-sm border-gold bg-input font-light"
+        />
       </div>
       <div>
         <label className="mb-2 block text-xs uppercase tracking-[0.2em] text-muted-foreground">Email</label>
-        <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="voce@exemplo.com" className="h-11 rounded-sm border-gold bg-input font-light" />
+        <Input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value.replace(/\s/g, "").slice(0, 120))}
+          placeholder="voce@exemplo.com"
+          autoComplete="email"
+          inputMode="email"
+          className="h-11 rounded-sm border-gold bg-input font-light"
+        />
+        {emailSuggestion && (
+          <button
+            type="button"
+            onClick={() => setEmail(emailSuggestion)}
+            className="mt-2 text-xs text-primary underline-offset-2 hover:underline"
+          >
+            Quis dizer <span className="font-medium">{emailSuggestion}</span>?
+          </button>
+        )}
       </div>
       <div>
-        <label className="mb-2 block text-xs uppercase tracking-[0.2em] text-muted-foreground">WhatsApp <span className="opacity-50">(opcional, mas recomendado)</span></label>
-        <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(11) 99999-9999" className="h-11 rounded-sm border-gold bg-input font-light" />
+        <label className="mb-2 block text-xs uppercase tracking-[0.2em] text-muted-foreground">WhatsApp</label>
+        <Input
+          type="tel"
+          value={phone}
+          onChange={(e) => setPhone(maskPhoneBR(e.target.value))}
+          placeholder="(11) 98765-4321"
+          autoComplete="tel-national"
+          inputMode="numeric"
+          className="h-11 rounded-sm border-gold bg-input font-light"
+        />
       </div>
 
       <Button type="submit" size="lg" className="btn-luxe h-12 w-full gap-2 rounded-sm text-sm font-semibold uppercase tracking-[0.15em]">
@@ -263,7 +313,8 @@ const LeadStep = ({ handle, email, setEmail, phone, setPhone, name, setName, onS
       </p>
     </form>
   </div>
-);
+  );
+};
 
 const LoadingStep = ({ message, handle }: { message: string; handle: string }) => (
   <div className="animate-fade-up flex min-h-[60vh] flex-col items-center justify-center text-center">
