@@ -258,7 +258,7 @@ const HandleStep = ({ handle, setHandle, onSubmit }: any) => (
             )
           }
           placeholder="seu_perfil"
-          className="h-14 border-0 bg-transparent text-base font-light placeholder:text-muted-foreground/40 focus-visible:ring-0"
+          className="h-14 border-0 bg-transparent text-base font-light placeholder:text-muted-foreground/40 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none"
           autoFocus
         />
         <Button type="submit" size="lg" className="btn-luxe m-1.5 h-11 shrink-0 gap-1.5 rounded-sm px-4 text-xs font-semibold uppercase tracking-[0.1em] sm:px-6 sm:text-sm sm:tracking-[0.15em]">
@@ -290,7 +290,7 @@ const HandleStep = ({ handle, setHandle, onSubmit }: any) => (
     <div className="mt-24 rounded-sm border-gold-gradient bg-card/40 p-8 text-left backdrop-blur sm:p-12">
       <span className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">Bio fraca foi um dos pontos?</span>
       <h2 className="mt-3 font-display text-3xl leading-tight sm:text-4xl">
-        Crie uma bio <span className="text-gold italic">profissional</span> em 30 segundos.
+        Crie uma bio <span className="text-gold italic">profissional</span> sem código.
       </h2>
       <p className="mt-3 max-w-xl text-sm text-muted-foreground sm:text-base">
         Link-in-bio premium com analytics, campanhas com UTM e visual que converte. Comece grátis,
