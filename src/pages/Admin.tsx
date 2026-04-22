@@ -62,6 +62,9 @@ const Admin = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [cfgDirty, setCfgDirty] = useState(false);
+  const [dirtyBlocks, setDirtyBlocks] = useState<Set<string>>(new Set());
+  const [savingAll, setSavingAll] = useState(false);
 
   const load = async () => {
     const [{ data: c }, { data: b }] = await Promise.all([
@@ -70,6 +73,8 @@ const Admin = () => {
     ]);
     setCfg(c as any);
     setBlocks((b as any) ?? []);
+    setCfgDirty(false);
+    setDirtyBlocks(new Set());
     setLoading(false);
   };
 
@@ -101,7 +106,10 @@ const Admin = () => {
       .eq("id", cfg.id);
     setSaving(false);
     if (error) toast.error(error.message);
-    else toast.success("Bio atualizada");
+    else {
+      toast.success("Bio atualizada");
+      setCfgDirty(false);
+    }
   };
 
   const addBlock = async () => {
@@ -123,6 +131,11 @@ const Admin = () => {
 
   const updateBlock = (id: string, patch: Partial<Block>) => {
     setBlocks((bs) => bs.map((b) => (b.id === id ? { ...b, ...patch } : b)));
+    setDirtyBlocks((s) => {
+      const n = new Set(s);
+      n.add(id);
+      return n;
+    });
   };
 
   const saveBlock = async (b: Block) => {
@@ -142,7 +155,14 @@ const Admin = () => {
       })
       .eq("id", b.id);
     if (error) toast.error(error.message);
-    else toast.success("Bloco salvo");
+    else {
+      toast.success("Bloco salvo");
+      setDirtyBlocks((s) => {
+        const n = new Set(s);
+        n.delete(b.id);
+        return n;
+      });
+    }
   };
 
   const deleteBlock = async (id: string) => {
@@ -150,6 +170,11 @@ const Admin = () => {
     const { error } = await supabase.from("bio_blocks").delete().eq("id", id);
     if (error) return toast.error(error.message);
     setBlocks((bs) => bs.filter((b) => b.id !== id));
+    setDirtyBlocks((s) => {
+      const n = new Set(s);
+      n.delete(id);
+      return n;
+    });
   };
 
   const move = async (idx: number, dir: -1 | 1) => {
