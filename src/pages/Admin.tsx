@@ -98,6 +98,7 @@ const Admin = () => {
   const plan = usePlanLimits(activeBlocksCount);
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
   const [cfgDirty, setCfgDirty] = useState(false);
   const [dirtyBlocks, setDirtyBlocks] = useState<Set<string>>(new Set());
   const [savingAll, setSavingAll] = useState(false);
@@ -389,6 +390,47 @@ const Admin = () => {
     if (updErr) return toast.error(updErr.message);
     setCfg({ ...cfg, avatar_url: url });
     toast.success("Foto atualizada");
+  };
+
+  const uploadCover = async (file: File) => {
+    if (!cfg) return;
+    if (file.size > 8 * 1024 * 1024) {
+      toast.error("Imagem muito grande (máx 8MB)");
+      return;
+    }
+    setUploadingCover(true);
+    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    const path = `bio/cover-${Date.now()}.${ext}`;
+    const { error: upErr } = await supabase.storage.from("bio-covers").upload(path, file, {
+      cacheControl: "3600",
+      upsert: false,
+      contentType: file.type,
+    });
+    if (upErr) {
+      setUploadingCover(false);
+      return toast.error(upErr.message);
+    }
+    const { data: pub } = supabase.storage.from("bio-covers").getPublicUrl(path);
+    const url = pub.publicUrl;
+    const { error: updErr } = await supabase
+      .from("bio_config")
+      .update({ cover_url: url })
+      .eq("id", cfg.id);
+    setUploadingCover(false);
+    if (updErr) return toast.error(updErr.message);
+    setCfg({ ...cfg, cover_url: url });
+    toast.success("Capa de fundo atualizada");
+  };
+
+  const removeCover = async () => {
+    if (!cfg) return;
+    const { error } = await supabase
+      .from("bio_config")
+      .update({ cover_url: null })
+      .eq("id", cfg.id);
+    if (error) return toast.error(error.message);
+    setCfg({ ...cfg, cover_url: null });
+    toast.success("Capa removida");
   };
 
   const updateCfg = (patch: Partial<BioConfig>) => {
