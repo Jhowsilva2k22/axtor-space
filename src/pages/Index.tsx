@@ -178,9 +178,26 @@ const Index = () => {
           <div className="h-8 w-8 rounded-sm bg-gradient-to-br from-primary to-primary-glow" />
           <span className="font-display text-xl tracking-wide">Diagnóstico Premium</span>
         </div>
-        <span className="hidden text-xs uppercase tracking-[0.3em] text-muted-foreground sm:block">
-          análise real · 30 segundos
-        </span>
+        <nav className="flex items-center gap-2 sm:gap-4">
+          <Link
+            to="/planos"
+            className="hidden text-[11px] uppercase tracking-[0.25em] text-muted-foreground transition-colors hover:text-primary sm:inline"
+          >
+            Crie sua bio
+          </Link>
+          <Link
+            to="/admin/login"
+            className="hidden text-[11px] uppercase tracking-[0.25em] text-muted-foreground transition-colors hover:text-primary sm:inline"
+          >
+            Entrar
+          </Link>
+          <Link
+            to="/signup"
+            className="rounded-sm border border-gold bg-gradient-gold-soft px-3 py-1.5 text-[11px] uppercase tracking-[0.2em] text-primary transition-all hover:shadow-gold"
+          >
+            Criar bio grátis
+          </Link>
+        </nav>
       </header>
 
       <main className="relative z-10 mx-auto max-w-4xl px-6 pb-24 pt-12 sm:pt-20 py-[40px]">
