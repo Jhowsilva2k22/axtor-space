@@ -11,6 +11,7 @@ import { Loader2, Plus, Save, Trash2, ArrowUp, ArrowDown, LogOut, ExternalLink, 
 import { Upload } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { IconPicker } from "@/components/IconPicker";
+import { BlockMetricsBadge } from "@/components/BlockMetricsBadge";
 import {
   Select,
   SelectContent,
@@ -449,7 +450,8 @@ const BlockEditor = ({
           </button>
           <span className="ml-2 text-[10px] uppercase tracking-[0.25em] text-muted-foreground">#{block.position}</span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          <BlockMetricsBadge blockId={block.id} />
           <label className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
             {block.is_active ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
             <Switch checked={block.is_active} onCheckedChange={(v) => onChange({ is_active: v })} />
