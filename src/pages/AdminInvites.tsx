@@ -99,7 +99,7 @@ const AdminInvites = () => {
         .eq("type", type)
         .is("used_at", null)
         .is("revoked_at", null);
-      const ids = ((pendings ?? []) as { id: string }[]).map((p) => p.id);
+      const ids = ((pendings ?? []) as unknown as { id: string }[]).map((p) => p.id);
       if (ids.length > 0) {
         await supabase
           .from("invite_codes" as any)
