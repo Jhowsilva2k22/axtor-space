@@ -1,1 +1,4 @@
 project_id = "bdxkcfngskagriaapepo"
+
+[functions.analyze-instagram]
+verify_jwt = false
