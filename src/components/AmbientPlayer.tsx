@@ -13,7 +13,8 @@ const AmbientPlayer = ({ src }: { src: string }) => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const fadeTimer = useRef<number | null>(null);
   const [playing, setPlaying] = useState(false);
-  const [pulse, setPulse] = useState(false); // halo dourado convidando a ativar
+  const [needsGesture, setNeedsGesture] = useState(false);
+  const [hint, setHint] = useState(false); // tooltip dourado convidando
 
   const fadeTo = (target: number, durationMs = FADE_DURATION_MS) => {
     const a = audioRef.current;
@@ -39,12 +40,17 @@ const AmbientPlayer = ({ src }: { src: string }) => {
       a.volume = 0;
       await a.play();
       setPlaying(true);
-      setPulse(false);
+      setNeedsGesture(false);
+      setHint(false);
       fadeTo(TARGET_VOLUME);
       localStorage.setItem(STORAGE_KEY, "on");
-    } catch {
-      // navegador bloqueou — mostra pulse pra convidar clique
-      setPulse(true);
+    } catch (err) {
+      // navegador bloqueou — precisa de interação
+      console.info("[AmbientPlayer] autoplay bloqueado, aguardando interação", err);
+      setNeedsGesture(true);
+      setHint(true);
+      // some o hint depois de 6s pra não ficar invasivo
+      window.setTimeout(() => setHint(false), 6000);
     }
   };
 
@@ -64,15 +70,43 @@ const AmbientPlayer = ({ src }: { src: string }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Fallback: qualquer interação na página (clique, toque, scroll, tecla)
+  // ativa o som se ainda não tocou e a preferência não é "off"
+  useEffect(() => {
+    if (!needsGesture) return;
+    const handler = () => {
+      const pref = localStorage.getItem(STORAGE_KEY);
+      if (pref === "off") return;
+      start();
+    };
+    const opts = { once: true, passive: true } as AddEventListenerOptions;
+    window.addEventListener("pointerdown", handler, opts);
+    window.addEventListener("keydown", handler, opts);
+    window.addEventListener("touchstart", handler, opts);
+    window.addEventListener("scroll", handler, opts);
+    return () => {
+      window.removeEventListener("pointerdown", handler);
+      window.removeEventListener("keydown", handler);
+      window.removeEventListener("touchstart", handler);
+      window.removeEventListener("scroll", handler);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [needsGesture]);
+
   return (
     <>
       <audio ref={audioRef} src={src} loop preload="auto" />
+      {hint && (
+        <div className="pointer-events-none fixed right-16 top-6 z-30 hidden animate-fade-up rounded-sm border border-gold bg-background/90 px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] text-primary shadow-gold backdrop-blur sm:block">
+          toque pra ativar som ✨
+        </div>
+      )}
       <button
         onClick={() => (playing ? stop() : start())}
         aria-label={playing ? "Silenciar ambiente sonoro" : "Ativar ambiente sonoro"}
         title={playing ? "Silenciar" : "Ativar som"}
         className={`group fixed right-5 top-5 z-30 flex h-10 w-10 items-center justify-center rounded-full border border-gold bg-background/70 backdrop-blur-sm transition-all hover:bg-gradient-gold-soft ${
-          pulse ? "animate-pulse shadow-gold" : ""
+          needsGesture ? "animate-pulse shadow-gold" : ""
         }`}
       >
         {playing ? (
