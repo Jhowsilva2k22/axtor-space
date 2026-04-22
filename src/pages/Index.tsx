@@ -154,7 +154,7 @@ const Index = () => {
 
 const HandleStep = ({ handle, setHandle, onSubmit }: any) => (
   <div className="animate-fade-up text-center">
-    <span className="inline-flex items-center gap-2 rounded-full border border-gold bg-card/50 px-4 py-1.5 text-xs uppercase tracking-[0.3em] text-primary backdrop-blur">
+    <span className="inline-flex items-center gap-2 rounded-full border border-gold bg-gradient-gold-soft px-5 py-2 text-xs uppercase tracking-[0.3em] text-primary backdrop-blur">
       <Sparkles className="h-3 w-3" /> análise real · não é vitrine
     </span>
     <h1 className="mt-8 font-display text-5xl leading-[1.05] sm:text-7xl">
@@ -165,7 +165,7 @@ const HandleStep = ({ handle, setHandle, onSubmit }: any) => (
     </p>
 
     <form onSubmit={onSubmit} className="mx-auto mt-12 max-w-xl">
-      <div className="group relative flex items-center overflow-hidden rounded-sm border border-gold bg-card/80 backdrop-blur transition-all focus-within:border-primary focus-within:shadow-gold">
+      <div className="group relative flex items-center overflow-hidden rounded-2xl border-gold-gradient backdrop-blur transition-all focus-within:shadow-gold-lg">
         <span className="pl-5 text-2xl font-display text-primary">@</span>
         <Input
           value={handle}
@@ -174,7 +174,7 @@ const HandleStep = ({ handle, setHandle, onSubmit }: any) => (
           className="h-16 border-0 bg-transparent text-lg placeholder:text-muted-foreground/50 focus-visible:ring-0"
           autoFocus
         />
-        <Button type="submit" size="lg" className="m-2 h-12 gap-2 bg-gradient-to-r from-primary to-primary-glow font-medium text-primary-foreground hover:opacity-90">
+        <Button type="submit" size="lg" className="btn-luxe m-2 h-12 gap-2 rounded-xl font-semibold">
           Analisar <ArrowRight className="h-4 w-4" />
         </Button>
       </div>
@@ -189,9 +189,11 @@ const HandleStep = ({ handle, setHandle, onSubmit }: any) => (
         { icon: TrendingUp, title: "Conversão", desc: "Quanto você está deixando na mesa." },
         { icon: Zap, title: "Plano de ação", desc: "5 movimentos prioritários para você." },
       ].map((it) => (
-        <div key={it.title} className="rounded-sm border border-gold bg-card/40 p-6 text-left backdrop-blur">
-          <it.icon className="h-5 w-5 text-primary" />
-          <h3 className="mt-3 font-display text-xl">{it.title}</h3>
+        <div key={it.title} className="group rounded-2xl border-gold-gradient p-6 text-left backdrop-blur transition-all hover:-translate-y-1 hover:shadow-gold">
+          <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-gold-soft">
+            <it.icon className="h-5 w-5 text-primary" />
+          </div>
+          <h3 className="mt-4 font-display text-xl">{it.title}</h3>
           <p className="mt-1 text-sm text-muted-foreground">{it.desc}</p>
         </div>
       ))}
