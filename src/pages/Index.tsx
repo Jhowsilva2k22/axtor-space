@@ -255,8 +255,9 @@ const HandleStep = ({ handle, setHandle, onSubmit }: any) => (
   </div>
 );
 
-const LeadStep = ({ handle, email, setEmail, phone, setPhone, name, setName, onSubmit, onBack }: any) => {
+const LeadStep = ({ handle, email, setEmail, phone, setPhone, country, setCountry, name, setName, onSubmit, onBack }: any) => {
   const emailSuggestion = email ? suggestEmailDomain(email) : null;
+  const selected = COUNTRIES.find((c) => c.code === country) ?? COUNTRIES[0];
   return (
   <div className="animate-fade-up mx-auto max-w-lg">
     <button onClick={onBack} className="mb-6 text-xs uppercase tracking-[0.3em] text-muted-foreground hover:text-primary">
@@ -306,15 +307,44 @@ const LeadStep = ({ handle, email, setEmail, phone, setPhone, name, setName, onS
       </div>
       <div>
         <label className="mb-2 block text-xs uppercase tracking-[0.2em] text-muted-foreground">WhatsApp</label>
-        <Input
-          type="tel"
-          value={phone}
-          onChange={(e) => setPhone(maskPhoneBR(e.target.value))}
-          placeholder="(11) 98765-4321"
-          autoComplete="tel-national"
-          inputMode="numeric"
-          className="h-11 rounded-sm border-gold bg-input font-light"
-        />
+        <div className="flex gap-2">
+          <Select
+            value={country}
+            onValueChange={(v: CountryCode) => {
+              setCountry(v);
+              setPhone(maskPhone(phone, v));
+            }}
+          >
+            <SelectTrigger className="h-11 w-[120px] shrink-0 rounded-sm border-gold bg-input font-light">
+              <SelectValue>
+                <span className="flex items-center gap-1.5">
+                  <span>{selected.flag}</span>
+                  <span>{selected.dial}</span>
+                </span>
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent className="max-h-72">
+              {COUNTRIES.map((c) => (
+                <SelectItem key={c.code} value={c.code}>
+                  <span className="flex items-center gap-2">
+                    <span>{c.flag}</span>
+                    <span className="font-medium">{c.dial}</span>
+                    <span className="text-muted-foreground">{c.name}</span>
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Input
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(maskPhone(e.target.value, country))}
+            placeholder={country === "BR" ? "(11) 98765-4321" : "Número"}
+            autoComplete="tel-national"
+            inputMode="numeric"
+            className="h-11 flex-1 rounded-sm border-gold bg-input font-light"
+          />
+        </div>
       </div>
 
       <Button type="submit" size="lg" className="btn-luxe h-12 w-full gap-2 rounded-sm text-sm font-semibold uppercase tracking-[0.15em]">
