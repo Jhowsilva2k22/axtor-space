@@ -104,7 +104,7 @@ export default function AdminImprovements() {
         .order("created_at", { ascending: false })
         .limit(10),
     ]);
-    if (r.data) setRecs(r.data as Recommendation[]);
+    if (r.data) setRecs(r.data as unknown as Recommendation[]);
     if (f.data) setFeedback(f.data as Feedback[]);
     if (rn.data) setRuns(rn.data as Run[]);
     setLoading(false);
