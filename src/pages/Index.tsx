@@ -63,8 +63,24 @@ const Index = () => {
 
   const handleSubmitLead = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email && !phone) {
-      toast.error("Informe email ou telefone para receber o diagnóstico");
+    const nameCheck = validateName(name);
+    if (!nameCheck.ok) {
+      toast.error(nameCheck.error!);
+      return;
+    }
+    const emailCheck = validateEmail(email);
+    if (!emailCheck.ok) {
+      toast.error(emailCheck.error!);
+      return;
+    }
+    if (emailCheck.suggestion) {
+      toast.error(`Quis dizer ${emailCheck.suggestion}?`);
+      setEmail(emailCheck.suggestion);
+      return;
+    }
+    const phoneCheck = validatePhoneBR(phone, false);
+    if (!phoneCheck.ok) {
+      toast.error(phoneCheck.error!);
       return;
     }
     setStep("loading");
