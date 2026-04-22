@@ -91,10 +91,21 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const [activeSlug, setActiveSlug] = useState<string>("gold-noir");
   const [previewSlug, setPreviewSlugState] = useState<string | null>(() => {
     if (typeof window === "undefined") return null;
+    // ?preview=slug na URL tem prioridade (usado em iframes do admin)
+    const url = new URLSearchParams(window.location.search);
+    const urlPreview = url.get("preview");
+    if (urlPreview) return urlPreview;
     return localStorage.getItem(PREVIEW_KEY);
   });
 
   const setPreview = (slug: string | null) => {
+    // Não persiste se vier da URL — preview de iframe é volátil
+    const fromUrl = typeof window !== "undefined" &&
+      new URLSearchParams(window.location.search).get("preview");
+    if (fromUrl) {
+      setPreviewSlugState(slug);
+      return;
+    }
     if (slug) localStorage.setItem(PREVIEW_KEY, slug);
     else localStorage.removeItem(PREVIEW_KEY);
     setPreviewSlugState(slug);
