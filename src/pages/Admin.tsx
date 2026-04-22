@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Loader2, Plus, Save, Trash2, ArrowUp, ArrowDown, LogOut, ExternalLink, Eye, EyeOff } from "lucide-react";
 import { Upload } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   Select,
   SelectContent,
@@ -194,7 +195,9 @@ const Admin = () => {
   };
 
   return (
-    <div className="min-h-screen grain">
+    <div className="relative min-h-screen overflow-hidden grain">
+      <div className="aurora-a" />
+      <div className="aurora-b" />
       <header className="sticky top-0 z-30 border-b border-gold/30 bg-background/80 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
           <div>
@@ -202,6 +205,7 @@ const Admin = () => {
             <h1 className="font-display text-2xl">Admin</h1>
           </div>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <Link to="/bio" target="_blank" className="inline-flex h-10 items-center gap-2 rounded-sm border border-gold bg-card/40 px-4 text-[11px] uppercase tracking-[0.2em] text-primary transition-all hover:bg-gradient-gold-soft">
               Ver bio <ExternalLink className="h-3.5 w-3.5" />
             </Link>

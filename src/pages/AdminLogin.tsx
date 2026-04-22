@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Lock, Loader2 } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const AdminLogin = () => {
   const { user, isAdmin, loading, signIn } = useAuth();
@@ -37,7 +38,9 @@ const AdminLogin = () => {
 
   return (
     <div className="relative flex min-h-screen items-center justify-center px-6 grain">
-      <div className="pointer-events-none absolute -top-40 left-1/2 h-[600px] w-[800px] -translate-x-1/2 rounded-full bg-primary/10 blur-[120px]" />
+      <div className="aurora-a" />
+      <div className="aurora-b" />
+      <ThemeToggle className="absolute right-5 top-5 z-20" />
       <form onSubmit={onSubmit} className="relative z-10 w-full max-w-sm rounded-sm border-gold-gradient bg-card/60 p-8 shadow-deep backdrop-blur">
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-sm border border-gold bg-gradient-gold-soft">
           <Lock className="h-5 w-5 text-primary" />
