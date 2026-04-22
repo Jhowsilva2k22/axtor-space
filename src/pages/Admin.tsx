@@ -745,7 +745,7 @@ const Admin = () => {
           </section>
 
           {/* Blocos */}
-          <section>
+          <section id="admin-blocks-section">
             <div className="mb-6 flex items-center justify-between">
               <h2 className="font-display text-2xl">Blocos da bio</h2>
               {plan.canAddBlock ? (
