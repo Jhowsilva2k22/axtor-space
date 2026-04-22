@@ -8,7 +8,7 @@
 
 | Área              | Status                       |
 | ----------------- | ---------------------------- |
-| Build (vite)      | ✅ OK (1.38MB / 315KB gzip)  |
+| Build (vite)      | ✅ OK (~315KB gzip)          |
 | TypeScript        | ✅ 0 erros                   |
 | Linter Supabase   | ✅ 0 warnings críticos       |
 | Security scan     | ✅ Limpo (avisos justificados) |
@@ -33,74 +33,65 @@
 ## 🔐 Acesso admin
 
 - **E-mail:** `contatojhow@icloud.com`
-- **Senha:** `The13071994jhow.` (com o ponto)
-- Papel `admin` atribuído via `public.user_roles`
+- **Senha:** `The13071994jhow.`
+- Papel `admin` em `public.user_roles`
 
 ---
 
 ## 🗄️ Banco de dados
 
-### Tabelas
-
-| Tabela        | RLS    | Quem lê                | Quem escreve                              |
-| ------------- | ------ | ---------------------- | ----------------------------------------- |
-| `bio_config`  | ✅     | público                | admin                                     |
-| `bio_blocks`  | ✅     | público (active=true)  | admin                                     |
-| `user_roles`  | ✅     | admin                  | admin                                     |
-| `leads`       | ✅     | admin                  | admin (UI) + service role (edge function) |
+| Tabela        | RLS    | Lê                       | Escreve                                   |
+| ------------- | ------ | ------------------------ | ----------------------------------------- |
+| `bio_config`  | ✅     | público                  | admin                                     |
+| `bio_blocks`  | ✅     | público (active=true)    | admin                                     |
+| `user_roles`  | ✅     | admin                    | admin                                     |
+| `leads`       | ✅     | admin                    | admin (UI) + service role (edge function) |
 | `diagnostics` | ✅     | admin + RPC pública por id | admin (UI) + service role               |
 
 ### Funções
+- `has_role(user_id, role)` SECURITY DEFINER
+- `update_updated_at_column()` trigger genérico
+- `get_diagnostic_public(id)` SECURITY DEFINER — leitura única para `/share/:id`
 
-- `has_role(user_id, role)` — SECURITY DEFINER, evita recursão em RLS
-- `update_updated_at_column()` — trigger genérico
-- `get_diagnostic_public(id)` — SECURITY DEFINER, libera leitura de **um** diagnóstico no `/share/:id` sem expor a tabela
-
-### Bucket de storage
-
-- `avatars` (público) — SELECT restrito ao prefixo `bio/`; INSERT/UPDATE/DELETE só admin
+### Storage
+- `avatars` (público) — SELECT só em prefixo `bio/`; writes só admin
 
 ---
 
 ## 🎨 Design system
 
-- **Tema padrão (noir):** preto profundo + dourado (`#c9a84c`) + tipografia Cormorant Garamond / Manrope
-- **Tema claro (ivory):** off-white + dourado escuro (`.theme-ivory` no `<html>`)
-- Toggle persistido em `localStorage` (`app-theme`) — disponível em `/bio`, `/admin`, `/admin/login`
-- Aurora dourada animada em todas as páginas premium (`.aurora-a`, `.aurora-b`)
-- Halo pulsante atrás do avatar (`.avatar-halo`)
-- Stagger de entrada nos blocos (`.stagger`)
-- Shimmer dourado no hover dos blocos (`.block-shimmer`)
+- **Noir & Gold** (default): preto profundo + dourado `#c9a84c`
+- **Ivory & Gold**: tema claro alternativo via classe `.theme-ivory` no `<html>`
+- Tipografia: Cormorant Garamond (display) + Manrope (body)
+- Toggle de tema persistido em `localStorage` (`app-theme`) — `/bio`, `/admin`, `/admin/login`
+- Aurora dourada animada, halo no avatar, stagger e shimmer nos blocos
 
 ---
 
-## 🧱 Bio — recursos atuais
+## 🧱 Bio — recursos
 
 ### Cabeçalho (editável)
-- Foto (upload direto até 5MB ou URL)
-- Nome de exibição
-- Headline (frase principal)
-- Sub-headline (linha pequena em caps)
-- Texto do rodapé
+Foto (upload ≤5MB ou URL), nome, headline, sub-headline, footer.
 
 ### Blocos (editáveis, ordenáveis, ativáveis)
-- 12 tipos pré-prontos (Instagram, Site, WhatsApp, Agenda, Produto, E-book, Serviço, Afiliado, Parceiro, CTA Diagnóstico, CTA Ferramenta, Link genérico)
-- Ícone (qualquer um da biblioteca Lucide — só digitar o nome)
-- Label, descrição, badge, URL (externa ou rota interna)
-- Switch **destaque** (card dourado luxuoso)
-- Switch **cor original** (renderiza com a cor real da marca: Instagram gradiente, WhatsApp verde, etc.)
-- Switch **ativo / inativo**
+- 12 tipos pré-prontos
+- Ícone Lucide configurável
+- Label, descrição, badge, URL
+- Switches: **ativo**, **destaque**, **cor original** (renderiza com a cor real da marca — Instagram gradiente, WhatsApp verde, etc.)
+
+### Painel admin — UX de gravação
+- ✅ Botão **"Salvar bloco"** individual em cada bloco
+- ✅ Botão **"Salvar cabeçalho"**
+- ✅ **Barra flutuante "Salvar tudo"** (NOVO) — aparece só quando há alterações pendentes, mostra contador e dispara todos os updates em paralelo. Evita perder edição esquecida.
 
 ---
 
 ## 🔁 Funil — tela de resultado
 
-CTA em **3 camadas** (topo → fundo de funil):
-1. **"Ver bio do Joanderson"** → `/bio` (vivencia o funil completo)
-2. **"Quero um link-in-bio assim"** → `/bio#blocks`
-3. **"Quero estratégia personalizada"** → WhatsApp direto
-
-Micro-pitch acima dos botões reforça que o diagnóstico **é em si uma demonstração do método**.
+CTA em 3 camadas:
+1. **Ver bio do Joanderson** → `/bio`
+2. **Quero um link-in-bio assim** → `/bio#blocks`
+3. **Estratégia personalizada** → WhatsApp
 
 ---
 
@@ -108,42 +99,41 @@ Micro-pitch acima dos botões reforça que o diagnóstico **é em si uma demonst
 
 | Função              | JWT  | Propósito                                         |
 | ------------------- | ---- | ------------------------------------------------- |
-| `analyze-instagram` | off  | Apify scrape + análise IA + cache 12h + 3/sem    |
-| `proxy-image`       | off  | Proxy de imagens do IG (CORS / hotlink)           |
+| `analyze-instagram` | off  | Apify scrape + IA + cache 12h + 3/sem por @       |
+| `proxy-image`       | off  | Proxy de imagens IG (CORS / hotlink)              |
 
-Persona da IA: **Estrategista de mercado**. Detecta nicho, gera bandas qualitativas (Crítico / Alerta / Estável / Forte / Excepcional) + verdict tipo "frase-bomba".
+Persona da IA: **Estrategista de mercado** — bandas qualitativas + verdict frase-bomba.
 
 ---
 
 ## 🔒 Segurança — postura
 
-- ✅ Senhas nunca trafegam em logs
-- ✅ Roles em tabela separada (`user_roles`) — sem coluna em `profiles`
-- ✅ Função `has_role` com `SECURITY DEFINER` evita recursão
-- ✅ `leads` e `diagnostics` com leitura admin-only; `/share/:id` usa RPC scoped
-- ✅ Storage avatars sem listagem ampla (só `bio/`)
-- ✅ Validação de upload (tamanho 5MB, content-type)
-- ⚠️ Avisos restantes do scanner são **falsos positivos** justificados (anon nunca escreve direto — só edge function com service role)
+- Roles em tabela separada (`user_roles`)
+- `has_role` SECURITY DEFINER (sem recursão)
+- `leads` e `diagnostics` admin-only; `/share/:id` via RPC scoped
+- Storage avatars sem listagem ampla
+- Validação de upload (5MB, content-type)
+- Avisos restantes do scanner = falsos positivos (anon nunca escreve direto)
 
 ---
 
 ## 📋 To-do antes de publicar no domínio
 
-1. ☐ Apontar domínio próprio (`joandersonsilva.com.br`) no Lovable
+1. ☐ Apontar `joandersonsilva.com.br` no Lovable
 2. ☐ Atualizar `redirectTo` de auth se necessário
-3. ☐ Conferir se o bloco "Site oficial" da bio aponta pro domínio final
-4. ☐ Rodar `analyze-instagram` num @ real após go-live pra confirmar tokens Apify
+3. ☐ Conferir bloco "Site oficial" da bio
+4. ☐ Rodar 1 análise real após go-live (validar Apify)
 
 ---
 
-## 💡 Próximos passos sugeridos (não bloqueiam o launch)
+## 💡 Próximos passos sugeridos
 
-- a) Construtor visual de blocos novos com briefing assistido por IA
-- b) Captura de cliques por bloco (analytics)
-- c) Diagnóstico pessoal (paterno) como produto pago dentro da bio
+- a) Construtor de blocos com briefing assistido por IA
+- b) Analytics de cliques por bloco
+- c) Diagnóstico paterno como produto pago dentro da bio
 - d) Follow-up multicanal magnético pós-diagnóstico
-- e) Code-splitting (chunk principal em 1.38MB)
+- e) Code-splitting (chunk principal ~1.38MB)
 
 ---
 
-_Checkpoint salvo automaticamente. Bom descanso 🌙_
+_Atualizado em 22/04/2026 após inclusão da barra "Salvar tudo" no painel._
