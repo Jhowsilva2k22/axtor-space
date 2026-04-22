@@ -14,7 +14,104 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      diagnostics: {
+        Row: {
+          ai_summary: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          insights: Json | null
+          instagram_handle: string
+          is_private: boolean
+          lead_id: string | null
+          profile_data: Json | null
+          scores: Json | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          ai_summary?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          insights?: Json | null
+          instagram_handle: string
+          is_private?: boolean
+          lead_id?: string | null
+          profile_data?: Json | null
+          scores?: Json | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          ai_summary?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          insights?: Json | null
+          instagram_handle?: string
+          is_private?: boolean
+          lead_id?: string | null
+          profile_data?: Json | null
+          scores?: Json | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diagnostics_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leads: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          instagram_handle: string
+          phone: string | null
+          profile_is_private: boolean | null
+          source: string | null
+          updated_at: string
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          instagram_handle: string
+          phone?: string | null
+          profile_is_private?: boolean | null
+          source?: string | null
+          updated_at?: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          instagram_handle?: string
+          phone?: string | null
+          profile_is_private?: boolean | null
+          source?: string | null
+          updated_at?: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
