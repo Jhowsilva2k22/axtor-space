@@ -21,8 +21,9 @@ const TRACKS = [
 ];
 
 const AmbientPlayer = () => {
-  const src = TRACKS[Math.floor(Math.random() * TRACKS.length)];
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const srcRef = useRef<string>(TRACKS[Math.floor(Math.random() * TRACKS.length)]);
+  const src = srcRef.current;
   const fadeTimer = useRef<number | null>(null);
   const [playing, setPlaying] = useState(false);
   const [needsGesture, setNeedsGesture] = useState(false);
