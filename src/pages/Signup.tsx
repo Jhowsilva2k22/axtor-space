@@ -244,6 +244,47 @@ const Signup = () => {
             <input type="checkbox" checked={accept} onChange={(e) => setAccept(e.target.checked)} className="mt-0.5" />
             <span>aceito os termos de uso e a política de privacidade</span>
           </label>
+
+          <div className="pt-2">
+            {!inviteOpen ? (
+              <button
+                type="button"
+                onClick={() => setInviteOpen(true)}
+                className="text-xs text-muted-foreground hover:text-primary underline-offset-4 hover:underline"
+              >
+                tenho um código de convite
+              </button>
+            ) : (
+              <div>
+                <label className="mb-2 block text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                  Código de convite
+                </label>
+                <Input
+                  value={inviteCode}
+                  onChange={(e) => setInviteCode(e.target.value.toUpperCase().trim())}
+                  placeholder="EX: STEFANY-2026"
+                  className="h-11 rounded-sm border-gold bg-input font-mono uppercase tracking-wider"
+                />
+                {inviteCode && inviteChecking && (
+                  <p className="mt-1.5 text-[11px] text-muted-foreground">verificando...</p>
+                )}
+                {inviteCode && !inviteChecking && inviteStatus && (
+                  inviteStatus.valid ? (
+                    <p className="mt-2 inline-flex items-center gap-1.5 rounded-sm border border-emerald-500/40 bg-emerald-500/10 px-2 py-1 text-[11px] text-emerald-500">
+                      <Gift className="h-3 w-3" />
+                      {inviteStatus.type === "partner"
+                        ? "acesso parceiro liberado — tudo desbloqueado, vitalício"
+                        : "acesso beta-tester liberado — tudo desbloqueado"}
+                    </p>
+                  ) : (
+                    <p className="mt-1.5 text-[11px] text-destructive">
+                      {INVITE_REASONS[inviteStatus.reason ?? ""] ?? "código inválido"}
+                    </p>
+                  )
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         <Button type="submit" disabled={submitting || !slugStatus?.ok || !accept} className="btn-luxe mt-6 h-12 w-full rounded-sm text-sm font-semibold uppercase tracking-[0.15em]">
