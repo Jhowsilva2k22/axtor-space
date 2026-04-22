@@ -161,7 +161,7 @@ const HandleStep = ({ handle, setHandle, onSubmit }: any) => (
       Descubra <span className="text-gold italic">exatamente</span><br />o que está travando<br />seu Instagram.
     </h1>
     <p className="mx-auto mt-6 max-w-xl text-base text-muted-foreground sm:text-lg">
-      Cole seu @ e nosso sistema puxa seus dados reais, compara com o seu nicho e devolve um diagnóstico afiado em 30 segundos.
+      Informe seu @ e nosso sistema te entregará um diagnóstico real do seu perfil, comparado com o seu nicho, em 30 segundos.
     </p>
 
     <form onSubmit={onSubmit} className="mx-auto mt-12 max-w-xl">
