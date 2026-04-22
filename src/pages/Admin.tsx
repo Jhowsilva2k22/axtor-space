@@ -457,6 +457,8 @@ const Admin = () => {
               )}
             </div>
           </section>
+
+          <CategoriesManager />
         </main>
       )}
 
