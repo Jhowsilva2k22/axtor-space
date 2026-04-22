@@ -1,14 +1,11 @@
 # Project Memory
 
 ## Core
-Estética: Noir & Gold (preto profundo + dourado #c9a84c) com tema alternativo Ivory & Gold (claro). Tipografia: Cormorant Garamond (display) + Manrope (body). Nunca usar fontes genéricas (Inter, Poppins).
-Toggle de tema persistido em localStorage `app-theme` via `useTheme` hook em `src/components/ThemeToggle.tsx`.
-Admin email: contatojhow@icloud.com. Senha: The13071994jhow. (com ponto). Papel via `public.user_roles`.
-Backend: Lovable Cloud (Supabase). Funções edge: `analyze-instagram` (Apify + IA), `proxy-image`.
-Tela final do diagnóstico tem CTA em 3 camadas: ver bio → pedir link-in-bio → estratégia personalizada (WhatsApp).
-Bio é 100% editável pelo /admin (cabeçalho + blocos). Cada bloco tem switches: ativo, destaque, cor original (renderiza marca real).
-Persona da IA: Estrategista de mercado. Detecta nicho, bandas qualitativas + verdict frase-bomba. Cache 12h, 3 análises/semana por @.
+Tema: Noir & Gold (default) + Ivory & Gold alternativo. Cores via tokens HSL em index.css.
+Tipografia: Cormorant Garamond (display) + Manrope (body). Nunca trocar sem pedido.
+Roles em tabela separada `user_roles` + `has_role` SECURITY DEFINER. Nunca usar localStorage para admin.
+Bio (`/bio`) tem AmbientPlayer com 8 faixas instrumentais aleatórias — curadoria aprovada, não trocar.
+Comunicação em PT-BR, tom direto e curto.
 
 ## Memories
-- [Design rules](mem://design/rules) — Sistema de design, tokens HSL, animações premium
-- [Checkpoint 22/04/2026](docs/CHECKPOINT-2026-04-22.md) — Snapshot completo pré-launch (rotas, RLS, recursos, to-do)
+- [Ambient Player](mem://features/ambient-player) — Música ambiente aleatória no /bio (fade-in sutil, 8 faixas piano)
