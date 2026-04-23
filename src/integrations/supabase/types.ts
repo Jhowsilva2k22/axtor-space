@@ -1100,6 +1100,47 @@ export type Database = {
         }
         Relationships: []
       }
+      landing_partners: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          note: string | null
+          priority: number
+          tenant_id: string
+          updated_at: string
+          utm_source: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          note?: string | null
+          priority?: number
+          tenant_id: string
+          updated_at?: string
+          utm_source: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          note?: string | null
+          priority?: number
+          tenant_id?: string
+          updated_at?: string
+          utm_source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "landing_partners_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads: {
         Row: {
           created_at: string
@@ -1476,6 +1517,7 @@ export type Database = {
           utm_source: string
         }[]
       }
+      resolve_landing_tenant: { Args: { _utm_source: string }; Returns: string }
       resolve_tenant_by_slug: {
         Args: { _slug: string }
         Returns: {

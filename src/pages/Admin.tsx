@@ -34,6 +34,7 @@ import { OnboardingChecklist } from "@/components/OnboardingChecklist";
 import { DeepDiagnosticCard } from "@/components/DeepDiagnosticCard";
 import { BioTemplatePicker } from "@/components/BioTemplatePicker";
 import { QRCodeDialog } from "@/components/QRCodeDialog";
+import { MyLinksCard } from "@/components/MyLinksCard";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { useCurrentTenant } from "@/hooks/useCurrentTenant";
 import { UpgradeModal } from "@/components/UpgradeModal";
@@ -845,6 +846,9 @@ const Admin = () => {
             }}
           />
           <DeepDiagnosticCard />
+          {currentTenant && (
+            <MyLinksCard slug={currentTenant.slug} tenantId={currentTenant.id} />
+          )}
           {/* Cabeçalho da bio */}
           <section id="admin-header-section" className="rounded-sm border-gold-gradient p-6">
             <h2 className="font-display text-2xl">Cabeçalho da <span className="text-gold italic">bio</span></h2>
@@ -892,12 +896,17 @@ const Admin = () => {
                 <Combobox
                   value={cfg.footer_text ?? ""}
                   onChange={(v) => updateCfg({ footer_text: v })}
-                  presets={[
-                    "joandersonsilva.com.br",
-                    "© 2026 Joanderson Silva",
-                    "Feito com presença",
-                    "Todos os direitos reservados",
-                  ]}
+                  presets={(() => {
+                    const name = (cfg.display_name || currentTenant?.display_name || "").trim();
+                    const slug = currentTenant?.slug ?? "";
+                    const year = new Date().getFullYear();
+                    return [
+                      slug ? `axtor.space/${slug}` : "",
+                      name ? `© ${year} ${name}` : "",
+                      "Feito com presença",
+                      "Todos os direitos reservados",
+                    ].filter(Boolean);
+                  })()}
                   placeholder="Texto do rodapé (opcional)"
                   customLabel="Usar texto personalizado"
                 />

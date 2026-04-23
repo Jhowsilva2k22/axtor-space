@@ -114,6 +114,13 @@ const Index = () => {
     try {
       const dial = COUNTRIES.find((c) => c.code === country)!.dial;
       const fullPhone = `${dial} ${phone}`.trim();
+      // Captura UTMs da URL pra atribuir o lead ao tenant parceiro correto
+      const params = new URLSearchParams(window.location.search);
+      const utm = {
+        source: params.get("utm_source") || params.get("ref") || null,
+        medium: params.get("utm_medium") || null,
+        campaign: params.get("utm_campaign") || null,
+      };
       const { data: result, error } = await supabase.functions.invoke("analyze-instagram", {
         body: {
           handle,
@@ -121,6 +128,7 @@ const Index = () => {
           phone: fullPhone,
           phone_country: country,
           full_name: name || null,
+          utm,
         },
       });
 
