@@ -3,10 +3,11 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Copy, ExternalLink, Link2, LayoutDashboard, Sparkles, Megaphone } from "lucide-react";
+import { Copy, ExternalLink, Link2, LayoutDashboard, Sparkles, Megaphone, Info } from "lucide-react";
 import { toast } from "sonner";
 import { QRCodeDialog } from "@/components/QRCodeDialog";
 import { useDeepDiagnostic } from "@/hooks/useDeepDiagnostic";
+import { useAuth } from "@/hooks/useAuth";
 
 type Props = {
   slug: string;
