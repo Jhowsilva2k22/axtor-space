@@ -206,6 +206,8 @@ export default function DeepDiagnosticEditor() {
           thankyou_media_type: p.thankyou_media_type,
           thankyou_media_caption: p.thankyou_media_caption,
           thankyou_whatsapp_template: p.thankyou_whatsapp_template,
+          is_active: p.is_active !== false,
+          pain_tag: p.pain_tag ?? "vendas",
         }).eq("id", p.id);
       }
       toast({ title: publish ? "Funil publicado" : "Rascunho salvo" });
