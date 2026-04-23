@@ -231,7 +231,7 @@ const Index = () => {
         {step === "private" && data && <PrivateStep data={data} onRetry={reset} />}
         {step === "not_found" && <NotFoundStep handle={handle} onRetry={reset} />}
         {step === "blocked" && data && <BlockedStep data={data} />}
-        {step === "result" && data && <ResultStep data={data} onRestart={reset} />}
+        {step === "result" && data && <ResultStep data={data} onRestart={reset} partnerCtas={partnerCtas} />}
       </main>
 
       <footer className="relative z-10 border-t border-gold/30 text-center text-xs uppercase tracking-[0.25em] text-muted-foreground py-[20px]">
@@ -577,10 +577,32 @@ const ShareButton = ({
   );
 };
 
-const ResultStep = ({ data, onRestart }: { data: DiagnosisData; onRestart: () => void }) => {
+const ResultStep = ({ data, onRestart, partnerCtas }: { data: DiagnosisData; onRestart: () => void; partnerCtas: PartnerCtas | null }) => {
   const d = data.diagnosis!;
   const p = data.profile!;
   const score = d.score_geral ?? 0;
+
+  // Resolve CTAs: parceiro (se UTM válido) > defaults (Joanderson)
+  const ORIGIN = typeof window !== "undefined" ? window.location.origin : "https://axtor.space";
+  const partnerName = partnerCtas?.display_name?.split(" ")[0] ?? null;
+  const bioHref = partnerCtas
+    ? (partnerCtas.bio_url || `${ORIGIN}/${partnerCtas.slug}`)
+    : "/bio";
+  const bioLabel = partnerName ? `Ver bio de ${partnerName}` : "Ver bio do Joanderson";
+  const igHandleRaw = partnerCtas?.instagram_handle || "eusoujoanderson1";
+  const igHandle = igHandleRaw.replace(/^@+/, "");
+  const igHref = `https://instagram.com/${igHandle}`;
+  const igOwnerLabel = partnerName ?? "o Joanderson";
+  const waNumber = partnerCtas ? (partnerCtas.whatsapp_number ?? "").replace(/\D/g, "") : "";
+  const waMessage = partnerCtas?.whatsapp_message
+    ?? "Acabei de fazer o diagnóstico e quero estratégia personalizada";
+  const waHref = partnerCtas
+    ? (waNumber ? `https://wa.me/${waNumber}?text=${encodeURIComponent(waMessage)}` : null)
+    : `https://wa.me/?text=${encodeURIComponent(waMessage)}`;
+  const secondaryCta = partnerCtas?.secondary_cta_url
+    ? { label: partnerCtas.secondary_cta_label || "Saiba mais", url: partnerCtas.secondary_cta_url }
+    : null;
+  const isPartner = !!partnerCtas;
 
   return (
     <div className="animate-fade-up space-y-12">
