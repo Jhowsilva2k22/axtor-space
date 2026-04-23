@@ -42,6 +42,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     let unmounted = false;
     let hydrated = false;
+    // Guarda o último uid resolvido. Eventos como TOKEN_REFRESHED disparam
+    // onAuthStateChange com o mesmo user — não devemos re-checar role nem
+    // re-renderizar consumidores (evita "voltar pra home" e "deslogar" ao
+    // minimizar/trocar de aba e voltar).
+    let lastUid: string | null = null;
+    let lastAdminUid: string | null = null;
 
     const applySession = (s: Session | null) => {
       if (unmounted) return;
@@ -50,15 +56,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const syncAdmin = async (uid: string | undefined) => {
+      if (!uid) {
+        if (!unmounted) setIsAdmin(false);
+        lastAdminUid = null;
+        return;
+      }
+      // Só refaz a checagem se o uid mudou. TOKEN_REFRESHED não muda usuário.
+      if (lastAdminUid === uid) return;
       const admin = await checkAdmin(uid);
       if (unmounted) return;
+      lastAdminUid = uid;
       setIsAdmin(admin);
     };
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_evt, s) => {
-      console.log("[auth] onAuthStateChange", _evt, "user:", s?.user?.email ?? null);
+    const { data: sub } = supabase.auth.onAuthStateChange((evt, s) => {
+      const uid = s?.user?.id ?? null;
+      console.log("[auth] onAuthStateChange", evt, "user:", s?.user?.email ?? null);
+
+      // TOKEN_REFRESHED / USER_UPDATED com mesmo uid: só atualiza session
+      // silenciosamente, sem re-render em cascata. Isso protege de logout
+      // fantasma quando a aba volta do background.
+      if ((evt === "TOKEN_REFRESHED" || evt === "USER_UPDATED") && uid && uid === lastUid) {
+        if (!unmounted) setSession(s);
+        return;
+      }
+
+      lastUid = uid;
       applySession(s);
-      void syncAdmin(s?.user?.id);
+      void syncAdmin(uid ?? undefined);
       if (hydrated && !unmounted) setLoading(false);
     });
 
@@ -66,6 +91,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       .getSession()
       .then(async ({ data: { session: s } }) => {
         console.log("[auth] getSession resolved, user:", s?.user?.email ?? null);
+        lastUid = s?.user?.id ?? null;
         applySession(s);
         await syncAdmin(s?.user?.id);
       })
