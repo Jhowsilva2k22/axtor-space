@@ -1,0 +1,1 @@
+UPDATE public.tenants SET plan = 'partner', updated_at = now() WHERE id = '175f97c6-6727-4f61-9e58-33646985aedb';
