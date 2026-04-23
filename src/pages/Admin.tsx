@@ -35,6 +35,7 @@ import { DeepDiagnosticCard } from "@/components/DeepDiagnosticCard";
 import { BioTemplatePicker } from "@/components/BioTemplatePicker";
 import { QRCodeDialog } from "@/components/QRCodeDialog";
 import { MyLinksCard } from "@/components/MyLinksCard";
+import { PartnerCtasEditor } from "@/components/PartnerCtasEditor";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { useCurrentTenant } from "@/hooks/useCurrentTenant";
 import { UpgradeModal } from "@/components/UpgradeModal";
@@ -859,6 +860,9 @@ const Admin = () => {
           <DeepDiagnosticCard />
           {currentTenant && (
             <MyLinksCard slug={currentTenant.slug} tenantId={currentTenant.id} />
+          )}
+          {currentTenant && (
+            <PartnerCtasEditor tenantId={currentTenant.id} slug={currentTenant.slug} />
           )}
           {/* Cabeçalho da bio */}
           <section id="admin-header-section" className="rounded-sm border-gold-gradient p-6">

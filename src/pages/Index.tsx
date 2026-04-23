@@ -22,6 +22,18 @@ const proxied = (url?: string) => (url ? PROXY + encodeURIComponent(url) : "");
 
 type Step = "handle" | "lead" | "loading" | "result" | "private" | "not_found" | "blocked";
 
+type PartnerCtas = {
+  tenant_id: string;
+  slug: string;
+  display_name: string;
+  bio_url: string | null;
+  instagram_handle: string | null;
+  whatsapp_number: string | null;
+  whatsapp_message: string | null;
+  secondary_cta_label: string | null;
+  secondary_cta_url: string | null;
+};
+
 interface DiagnosisData {
   status: string;
   handle?: string;
@@ -60,10 +72,19 @@ const Index = () => {
   const [name, setName] = useState("");
   const [loadingMsg, setLoadingMsg] = useState(LOADING_STEPS[0]);
   const [data, setData] = useState<DiagnosisData | null>(null);
+  const [partnerCtas, setPartnerCtas] = useState<PartnerCtas | null>(null);
 
   useEffect(() => {
     trackPageView("/");
     trackFunnel("diag_landing_view");
+    const params = new URLSearchParams(window.location.search);
+    const utm = params.get("utm_source") || params.get("ref");
+    if (!utm) return;
+    (async () => {
+      const { data: rows } = await (supabase as any).rpc("get_landing_partner_ctas", { _utm_source: utm });
+      const row = Array.isArray(rows) ? rows[0] : null;
+      if (row) setPartnerCtas(row as PartnerCtas);
+    })();
   }, []);
 
   const handleSubmitHandle = (e: React.FormEvent) => {
@@ -210,7 +231,7 @@ const Index = () => {
         {step === "private" && data && <PrivateStep data={data} onRetry={reset} />}
         {step === "not_found" && <NotFoundStep handle={handle} onRetry={reset} />}
         {step === "blocked" && data && <BlockedStep data={data} />}
-        {step === "result" && data && <ResultStep data={data} onRestart={reset} />}
+        {step === "result" && data && <ResultStep data={data} onRestart={reset} partnerCtas={partnerCtas} />}
       </main>
 
       <footer className="relative z-10 border-t border-gold/30 text-center text-xs uppercase tracking-[0.25em] text-muted-foreground py-[20px]">
@@ -556,10 +577,32 @@ const ShareButton = ({
   );
 };
 
-const ResultStep = ({ data, onRestart }: { data: DiagnosisData; onRestart: () => void }) => {
+const ResultStep = ({ data, onRestart, partnerCtas }: { data: DiagnosisData; onRestart: () => void; partnerCtas: PartnerCtas | null }) => {
   const d = data.diagnosis!;
   const p = data.profile!;
   const score = d.score_geral ?? 0;
+
+  // Resolve CTAs: parceiro (se UTM válido) > defaults (Joanderson)
+  const ORIGIN = typeof window !== "undefined" ? window.location.origin : "https://axtor.space";
+  const partnerName = partnerCtas?.display_name?.split(" ")[0] ?? null;
+  const bioHref = partnerCtas
+    ? (partnerCtas.bio_url || `${ORIGIN}/${partnerCtas.slug}`)
+    : "/bio";
+  const bioLabel = partnerName ? `Ver bio de ${partnerName}` : "Ver bio do Joanderson";
+  const igHandleRaw = partnerCtas?.instagram_handle || "eusoujoanderson1";
+  const igHandle = igHandleRaw.replace(/^@+/, "");
+  const igHref = `https://instagram.com/${igHandle}`;
+  const igOwnerLabel = partnerName ?? "o Joanderson";
+  const waNumber = partnerCtas ? (partnerCtas.whatsapp_number ?? "").replace(/\D/g, "") : "";
+  const waMessage = partnerCtas?.whatsapp_message
+    ?? "Acabei de fazer o diagnóstico e quero estratégia personalizada";
+  const waHref = partnerCtas
+    ? (waNumber ? `https://wa.me/${waNumber}?text=${encodeURIComponent(waMessage)}` : null)
+    : `https://wa.me/?text=${encodeURIComponent(waMessage)}`;
+  const secondaryCta = partnerCtas?.secondary_cta_url
+    ? { label: partnerCtas.secondary_cta_label || "Saiba mais", url: partnerCtas.secondary_cta_url }
+    : null;
+  const isPartner = !!partnerCtas;
 
   return (
     <div className="animate-fade-up space-y-12">
@@ -647,28 +690,51 @@ const ResultStep = ({ data, onRestart }: { data: DiagnosisData; onRestart: () =>
           </p>
 
           <div className="mx-auto mt-8 flex max-w-2xl flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
-            <Link
-              to="/bio"
-              className="btn-luxe inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-sm px-5 text-xs font-semibold uppercase tracking-[0.15em] sm:text-sm"
-            >
-              Ver bio do Joanderson <ArrowRight className="h-4 w-4" />
-            </Link>
+            {bioHref.startsWith("/") ? (
+              <Link
+                to={bioHref}
+                className="btn-luxe inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-sm px-5 text-xs font-semibold uppercase tracking-[0.15em] sm:text-sm"
+              >
+                {bioLabel} <ArrowRight className="h-4 w-4" />
+              </Link>
+            ) : (
+              <a
+                href={bioHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-luxe inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-sm px-5 text-xs font-semibold uppercase tracking-[0.15em] sm:text-sm"
+              >
+                {bioLabel} <ArrowRight className="h-4 w-4" />
+              </a>
+            )}
             <Link
               to="/bio#blocks"
               className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-sm border border-gold bg-card/40 px-5 text-xs font-semibold uppercase tracking-[0.15em] text-primary transition-all hover:bg-gradient-gold-soft sm:text-sm"
             >
               Quero um link-in-bio assim <Crown className="h-4 w-4" />
             </Link>
+            {secondaryCta && (
+              <a
+                href={secondaryCta.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-sm border border-gold bg-card/40 px-5 text-xs font-semibold uppercase tracking-[0.15em] text-primary transition-all hover:bg-gradient-gold-soft sm:text-sm"
+              >
+                {secondaryCta.label} <ArrowRight className="h-4 w-4" />
+              </a>
+            )}
           </div>
 
-          <a
-            href="https://wa.me/?text=Acabei%20de%20fazer%20o%20diagn%C3%B3stico%20e%20quero%20estrat%C3%A9gia%20personalizada"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mx-auto mt-3 inline-flex h-12 max-w-2xl items-center justify-center gap-2 rounded-sm border border-primary/60 bg-background/40 px-6 text-xs font-semibold uppercase tracking-[0.15em] text-primary transition-all hover:border-gold hover:bg-gradient-gold-soft sm:w-full sm:text-sm"
-          >
-            <MessageCircle className="h-4 w-4" /> Quero estratégia personalizada
-          </a>
+          {waHref && (
+            <a
+              href={waHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mx-auto mt-3 inline-flex h-12 max-w-2xl items-center justify-center gap-2 rounded-sm border border-primary/60 bg-background/40 px-6 text-xs font-semibold uppercase tracking-[0.15em] text-primary transition-all hover:border-gold hover:bg-gradient-gold-soft sm:w-full sm:text-sm"
+            >
+              <MessageCircle className="h-4 w-4" /> {isPartner ? `Falar com ${partnerName}` : "Quero estratégia personalizada"}
+            </a>
+          )}
 
           <p className="mt-4 text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
             do topo ao fundo de funil · você acabou de viver
@@ -678,10 +744,10 @@ const ResultStep = ({ data, onRestart }: { data: DiagnosisData; onRestart: () =>
             <Instagram className="h-6 w-6 shrink-0 text-primary" />
             <div className="flex-1 text-sm">
               <p className="font-medium text-foreground">Curtiu o diagnóstico?</p>
-              <p className="text-xs font-light text-muted-foreground">Me segue no Instagram pra mais análises e estratégias.</p>
+              <p className="text-xs font-light text-muted-foreground">Segue {igOwnerLabel} no Instagram pra mais análises e estratégias.</p>
             </div>
             <a
-              href="https://instagram.com/eusoujoanderson1"
+              href={igHref}
               target="_blank"
               rel="noopener noreferrer"
               className="rounded-sm border border-gold bg-background/50 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-primary transition-all hover:bg-gradient-gold-soft"
