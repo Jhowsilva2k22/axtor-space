@@ -38,6 +38,7 @@ import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { useCurrentTenant } from "@/hooks/useCurrentTenant";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { Lock } from "lucide-react";
+import { readPendingSignup, clearPendingSignup } from "@/lib/pendingSignup";
 import {
   Select,
   SelectContent,
@@ -110,11 +111,13 @@ const KINDS = [
 const Admin = () => {
   const { user, isAdmin, loading: authLoading, signOut } = useAuth();
   useAdminLockedTheme();
-  const { current: currentTenant, loading: tenantLoading } = useCurrentTenant();
+  const { current: currentTenant, loading: tenantLoading, tenants, refresh: refreshTenants } = useCurrentTenant();
   const [cfg, setCfg] = useState<BioConfig | null>(null);
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [finalizing, setFinalizing] = useState(false);
+  const [finalizeError, setFinalizeError] = useState<string | null>(null);
   const activeBlocksCount = blocks.filter((b) => b.is_active).length;
   const plan = usePlanLimits(activeBlocksCount);
   const [saving, setSaving] = useState(false);
@@ -134,6 +137,43 @@ const Admin = () => {
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
+
+  // Auto-finalização de cadastro: se o usuário acabou de confirmar email e voltou,
+  // não tem tenant nenhum e deixou um pendingSignup salvo, criamos o tenant aqui.
+  // Cobre o gap entre signUp() (sem sessão) e o retorno via /verify.
+  useEffect(() => {
+    if (authLoading || tenantLoading || !user) return;
+    if (currentTenant || tenants.length > 0) return;
+    if (finalizing) return;
+    const pending = readPendingSignup();
+    if (!pending) return;
+    // Só finaliza se o email do pending bater com o do usuário logado (segurança).
+    if (pending.email && user.email && pending.email !== user.email.toLowerCase()) {
+      clearPendingSignup();
+      return;
+    }
+    void (async () => {
+      setFinalizing(true);
+      setFinalizeError(null);
+      const { data, error } = await supabase.rpc("create_tenant_for_user" as any, {
+        _slug: pending.slug,
+        _display_name: pending.displayName,
+        _invite_code: pending.inviteCode || null,
+      } as any);
+      if (error) {
+        setFinalizeError(error.message);
+        setFinalizing(false);
+        return;
+      }
+      const planLabel = (data as any)?.plan;
+      clearPendingSignup();
+      if (planLabel === "partner") toast.success("bem-vinda ✨ acesso parceiro liberado");
+      else if (planLabel === "tester") toast.success("bem-vindo ✨ acesso beta-tester liberado");
+      else toast.success("sua bio está pronta");
+      await refreshTenants();
+      setFinalizing(false);
+    })();
+  }, [authLoading, tenantLoading, user, currentTenant, tenants.length, finalizing, refreshTenants]);
 
   const load = async () => {
     if (!currentTenant) {
@@ -745,12 +785,30 @@ const Admin = () => {
       </header>
 
       {!currentTenant ? (
-        <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3 px-6 text-center">
-          <p className="font-display text-2xl">Nenhum tenant selecionado</p>
-          <p className="max-w-md text-sm text-muted-foreground">
-            Entre novamente ou selecione um tenant para abrir o painel.
-          </p>
-        </div>
+        finalizing ? (
+          <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4 px-6 text-center">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="font-display text-2xl">Preparando sua <span className="text-gold italic">bio</span></p>
+            <p className="max-w-md text-sm text-muted-foreground">
+              Estamos liberando seu acesso e criando sua bio agora. Isso leva só alguns segundos.
+            </p>
+          </div>
+        ) : finalizeError ? (
+          <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4 px-6 text-center">
+            <p className="font-display text-2xl">Não conseguimos finalizar seu cadastro</p>
+            <p className="max-w-md text-sm text-muted-foreground">{finalizeError}</p>
+            <Button asChild className="btn-luxe h-11 rounded-sm px-6 text-xs uppercase tracking-[0.2em]">
+              <Link to="/signup">Recomeçar cadastro</Link>
+            </Button>
+          </div>
+        ) : (
+          <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3 px-6 text-center">
+            <p className="font-display text-2xl">Nenhum tenant selecionado</p>
+            <p className="max-w-md text-sm text-muted-foreground">
+              Entre novamente ou selecione um tenant para abrir o painel.
+            </p>
+          </div>
+        )
       ) : loading ? (
         <div className="flex min-h-[40vh] items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />

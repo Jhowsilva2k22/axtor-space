@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Loader2, Sparkles, Check, X, ExternalLink, Copy, Gift } from "lucide-react";
 import { ThemeToggle, useAdminLockedTheme } from "@/components/ThemeToggle";
+import { savePendingSignup, clearPendingSignup } from "@/lib/pendingSignup";
 
 const slugify = (s: string) =>
   s
@@ -123,6 +124,15 @@ const Signup = () => {
     if (password.length < 8) { toast.error("senha precisa ter ao menos 8 caracteres"); return; }
 
     setSubmitting(true);
+    // Salva o "tenant em construção" ANTES do signUp.
+    // Se email-confirm estiver ON, não há sessão depois — e perderíamos esses dados.
+    // O Admin lê isso depois pra finalizar o onboarding.
+    savePendingSignup({
+      slug,
+      displayName: name.trim(),
+      inviteCode: inviteCode || null,
+      email: email.trim().toLowerCase(),
+    });
     const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
       email: email.trim().toLowerCase(),
       password,
@@ -140,7 +150,7 @@ const Signup = () => {
     // Se confirmação de email estiver ON, não há sessão; orientar usuário.
     if (!signUpData.session) {
       setSubmitting(false);
-      toast.success("conta criada! confirme seu email para continuar");
+      toast.success("conta criada! confirme seu email — sua bio será liberada automaticamente quando você voltar");
       return;
     }
 
@@ -157,6 +167,8 @@ const Signup = () => {
     const result = tdata as any as Created;
     await refresh();
     setCreated(result);
+    // Tenant criado com sucesso — limpa o pending.
+    clearPendingSignup();
     const planLabel = (tdata as any)?.plan;
     if (planLabel === "partner") toast.success("bio criada — acesso parceiro liberado ✨");
     else if (planLabel === "tester") toast.success("bio criada — acesso beta-tester liberado ✨");
