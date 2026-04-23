@@ -27,4 +27,10 @@ Ambos templates de invite recebem props opcionais do convidador via `templateDat
 
 `AdminInvites.sendInviteEmail` busca esses dados do tenant + bio_config do criador antes de invocar a edge function. Templates têm fallback gracioso quando ausentes.
 
+**NUNCA passar `name` nem `note` no `templateData` dos invites** — a nota é interna (controle do admin) e não deve aparecer no email. Foi um bug: `name: inv.note` injetava a nota como saudação ("Olá {nota}") e `note` renderizava um box dourado expondo essa informação interna.
+
 Visual: bloco "convidada por" no topo + mockup ilustrado de bio (avatar circular + 2 botões dourados + ghost button) antes do CTA. Após editar qualquer um, redeploy: `supabase--deploy_edge_functions(["send-transactional-email"])`.
+
+## Logos no storage (`email-assets` bucket público)
+- `axtor-logo-light.png` — logo clara, usar em fundo escuro (templates de invite têm container preto)
+- `axtor-logo.png` — versão antiga com fundo, **não usar mais**

@@ -43,7 +43,12 @@ const PartnerInviteEmail = ({
     <Body style={main}>
       <Container style={container}>
         <Section style={header}>
-          <Img src="https://bdxkcfngskagriaapepo.supabase.co/storage/v1/object/public/email-assets/axtor-logo.png" alt="Axtor Labs" width="120" height="40" style={{ display: "block", margin: "0 0 24px", height: "auto" }} />
+          <Img
+            src="https://bdxkcfngskagriaapepo.supabase.co/storage/v1/object/public/email-assets/axtor-logo-light.png"
+            alt="Axtor"
+            width="140"
+            style={{ display: 'block', margin: '0 auto 20px', height: 'auto' }}
+          />
           <Text style={badge}>★ convite de sócia</Text>
         </Section>
 
@@ -91,12 +96,6 @@ const PartnerInviteEmail = ({
           Tudo desbloqueado: blocos ilimitados, analytics, campanhas, melhorias com IA,
           temas premium e sua bio sem nenhum selo.
         </Text>
-
-        {note ? (
-          <Section style={noteBox}>
-            <Text style={noteText}>{note}</Text>
-          </Section>
-        ) : null}
 
         {/* Mockup ilustrado da bio */}
         <Section style={mockupWrap}>
