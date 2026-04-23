@@ -128,6 +128,13 @@ export default function DeepDiagnosticEditor() {
           price_hint: p.price_hint,
           result_media_url: p.result_media_url,
           result_media_type: p.result_media_type,
+          checkout_url: p.checkout_url,
+          cta_mode: p.cta_mode ?? "whatsapp",
+          thankyou_text: p.thankyou_text,
+          thankyou_media_url: p.thankyou_media_url,
+          thankyou_media_type: p.thankyou_media_type,
+          thankyou_media_caption: p.thankyou_media_caption,
+          thankyou_whatsapp_template: p.thankyou_whatsapp_template,
         }).eq("id", p.id);
       }
       toast({ title: publish ? "Funil publicado" : "Rascunho salvo" });
