@@ -127,6 +127,7 @@ const Admin = () => {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
   const [cfgDirty, setCfgDirty] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [dirtyBlocks, setDirtyBlocks] = useState<Set<string>>(new Set());
   const [savingAll, setSavingAll] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
