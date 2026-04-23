@@ -133,6 +133,13 @@ const AdminLandingPartners = () => {
     }
   };
 
+  const saveCtas = async (id: string, patch: Partial<PartnerRow>) => {
+    const { error } = await (supabase as any).from("landing_partners").update(patch).eq("id", id);
+    if (error) return toast.error(error.message);
+    setItems((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p)));
+    toast.success("destinos salvos");
+  };
+
   return (
     <div className="min-h-screen">
       <ThemeToggle className="absolute right-5 top-5 z-20" />
