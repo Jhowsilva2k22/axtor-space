@@ -247,7 +247,6 @@ const Index = () => {
 const HandleStep = ({ handle, setHandle, onSubmit }: any) => (
   <div className="animate-fade-up text-center">
     <span className="sheen inline-flex items-center gap-2 rounded-sm border border-gold bg-gradient-gold-soft px-5 py-2 text-xs uppercase tracking-[0.3em] text-primary backdrop-blur">
-      <Sparkles className="h-3 w-3" />
       <span>análise real · não é vitrine</span>
     </span>
     <h1 className="mt-8 font-display text-5xl leading-[1.05] sm:text-7xl">
