@@ -15,6 +15,13 @@ import { motion, AnimatePresence } from "framer-motion";
 
 type Step = "list" | "briefing" | "generating" | "review";
 
+type BriefingProduct = {
+  name: string;
+  description: string;
+  price_hint: string;
+  link: string;
+};
+
 const BRIEFING_FIELDS = [
   { key: "business_name", label: "Nome do seu negócio/marca", placeholder: "Ex: Sua Marca Consultoria" },
   { key: "niche", label: "Nicho específico", placeholder: "Ex: Mentoria pra um público específico que você atende" },
