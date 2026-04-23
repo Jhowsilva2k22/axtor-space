@@ -254,15 +254,30 @@ Deno.serve(async (req) => {
       question_type: q.question_type,
       options: q.options,
     }));
-    const productsRows = args.products.map((p: any, i: number) => ({
-      funnel_id: finalFunnelId,
-      position: i,
-      name: p.name,
-      description: p.description,
-      pain_tag: p.pain_tag,
-      price_hint: p.price_hint ?? null,
-      whatsapp_template: p.whatsapp_template,
-    }));
+    // Mapa nome->link vindo do briefing pra preservar checkout do dono
+    const briefingProducts: Array<{ name?: string; link?: string }> = Array.isArray(briefing?.products)
+      ? briefing.products
+      : [];
+    const linkByName = new Map<string, string>();
+    for (const bp of briefingProducts) {
+      if (bp?.name && bp?.link) linkByName.set(bp.name.trim().toLowerCase(), bp.link);
+    }
+    const validPains = new Set(["marketing", "gestao", "vendas", "ia", "estrutura"]);
+    const productsRows = args.products.map((p: any, i: number) => {
+      const checkout = p.checkout_url || linkByName.get(String(p.name ?? "").trim().toLowerCase()) || null;
+      const painTag = validPains.has(p.pain_tag) ? p.pain_tag : "vendas";
+      return {
+        funnel_id: finalFunnelId,
+        position: i,
+        name: p.name,
+        description: p.description,
+        pain_tag: painTag,
+        price_hint: p.price_hint ?? null,
+        checkout_url: checkout,
+        cta_mode: checkout ? "checkout" : "whatsapp",
+        whatsapp_template: p.whatsapp_template ?? null,
+      };
+    });
 
     await admin.from("deep_funnel_questions").insert(questionsRows);
     await admin.from("deep_funnel_products").insert(productsRows);
