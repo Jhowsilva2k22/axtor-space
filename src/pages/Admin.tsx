@@ -17,6 +17,7 @@ import { CategoriesManager, type Category } from "@/components/CategoriesManager
 import { Combobox } from "@/components/Combobox";
 import { TenantSelector } from "@/components/TenantSelector";
 import { OnboardingChecklist } from "@/components/OnboardingChecklist";
+import { DeepDiagnosticCard } from "@/components/DeepDiagnosticCard";
 import { BioTemplatePicker } from "@/components/BioTemplatePicker";
 import { QRCodeDialog } from "@/components/QRCodeDialog";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
@@ -672,6 +673,7 @@ const Admin = () => {
               el?.scrollIntoView({ behavior: "smooth", block: "start" });
             }}
           />
+          <DeepDiagnosticCard />
           {/* Cabeçalho da bio */}
           <section id="admin-header-section" className="rounded-sm border-gold-gradient p-6">
             <h2 className="font-display text-2xl">Cabeçalho da <span className="text-gold italic">bio</span></h2>
