@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import * as LucideIcons from "lucide-react";
 import { Loader2, ArrowUpRight, Search, X } from "lucide-react";
@@ -121,6 +122,35 @@ const Bio = () => {
 
   return (
     <div className="relative min-h-screen overflow-hidden grain">
+      <Helmet>
+        <title>{`${cfg?.display_name ?? tenant?.display_name ?? "Bio"} — ${cfg?.headline ?? "Link in bio"}`}</title>
+        <meta
+          name="description"
+          content={(cfg?.headline ?? cfg?.sub_headline ?? `Conheça ${cfg?.display_name ?? tenant?.display_name ?? ""}`).slice(0, 158)}
+        />
+        <link rel="canonical" href={typeof window !== "undefined" ? window.location.href : ""} />
+        <meta property="og:type" content="profile" />
+        <meta property="og:title" content={`${cfg?.display_name ?? tenant?.display_name ?? "Bio"} — ${cfg?.headline ?? ""}`} />
+        <meta property="og:description" content={(cfg?.headline ?? "").slice(0, 158)} />
+        {cfg?.avatar_url && <meta property="og:image" content={cfg.avatar_url} />}
+        {cfg?.cover_url && <meta property="og:image" content={cfg.cover_url} />}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${cfg?.display_name ?? tenant?.display_name ?? "Bio"}`} />
+        <meta name="twitter:description" content={(cfg?.headline ?? "").slice(0, 158)} />
+        {(cfg?.cover_url || cfg?.avatar_url) && (
+          <meta name="twitter:image" content={cfg.cover_url ?? cfg.avatar_url ?? ""} />
+        )}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Person",
+            name: cfg?.display_name ?? tenant?.display_name,
+            description: cfg?.headline,
+            image: cfg?.avatar_url ?? undefined,
+            url: typeof window !== "undefined" ? window.location.href : undefined,
+          })}
+        </script>
+      </Helmet>
       {/* Aurora dourada animada */}
       <div className="aurora-a" />
       <div className="aurora-b" />
