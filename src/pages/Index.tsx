@@ -690,28 +690,51 @@ const ResultStep = ({ data, onRestart, partnerCtas }: { data: DiagnosisData; onR
           </p>
 
           <div className="mx-auto mt-8 flex max-w-2xl flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
-            <Link
-              to="/bio"
-              className="btn-luxe inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-sm px-5 text-xs font-semibold uppercase tracking-[0.15em] sm:text-sm"
-            >
-              Ver bio do Joanderson <ArrowRight className="h-4 w-4" />
-            </Link>
+            {bioHref.startsWith("/") ? (
+              <Link
+                to={bioHref}
+                className="btn-luxe inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-sm px-5 text-xs font-semibold uppercase tracking-[0.15em] sm:text-sm"
+              >
+                {bioLabel} <ArrowRight className="h-4 w-4" />
+              </Link>
+            ) : (
+              <a
+                href={bioHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-luxe inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-sm px-5 text-xs font-semibold uppercase tracking-[0.15em] sm:text-sm"
+              >
+                {bioLabel} <ArrowRight className="h-4 w-4" />
+              </a>
+            )}
             <Link
               to="/bio#blocks"
               className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-sm border border-gold bg-card/40 px-5 text-xs font-semibold uppercase tracking-[0.15em] text-primary transition-all hover:bg-gradient-gold-soft sm:text-sm"
             >
               Quero um link-in-bio assim <Crown className="h-4 w-4" />
             </Link>
+            {secondaryCta && (
+              <a
+                href={secondaryCta.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-sm border border-gold bg-card/40 px-5 text-xs font-semibold uppercase tracking-[0.15em] text-primary transition-all hover:bg-gradient-gold-soft sm:text-sm"
+              >
+                {secondaryCta.label} <ArrowRight className="h-4 w-4" />
+              </a>
+            )}
           </div>
 
-          <a
-            href="https://wa.me/?text=Acabei%20de%20fazer%20o%20diagn%C3%B3stico%20e%20quero%20estrat%C3%A9gia%20personalizada"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mx-auto mt-3 inline-flex h-12 max-w-2xl items-center justify-center gap-2 rounded-sm border border-primary/60 bg-background/40 px-6 text-xs font-semibold uppercase tracking-[0.15em] text-primary transition-all hover:border-gold hover:bg-gradient-gold-soft sm:w-full sm:text-sm"
-          >
-            <MessageCircle className="h-4 w-4" /> Quero estratégia personalizada
-          </a>
+          {waHref && (
+            <a
+              href={waHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mx-auto mt-3 inline-flex h-12 max-w-2xl items-center justify-center gap-2 rounded-sm border border-primary/60 bg-background/40 px-6 text-xs font-semibold uppercase tracking-[0.15em] text-primary transition-all hover:border-gold hover:bg-gradient-gold-soft sm:w-full sm:text-sm"
+            >
+              <MessageCircle className="h-4 w-4" /> {isPartner ? `Falar com ${partnerName}` : "Quero estratégia personalizada"}
+            </a>
+          )}
 
           <p className="mt-4 text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
             do topo ao fundo de funil · você acabou de viver
@@ -721,10 +744,10 @@ const ResultStep = ({ data, onRestart, partnerCtas }: { data: DiagnosisData; onR
             <Instagram className="h-6 w-6 shrink-0 text-primary" />
             <div className="flex-1 text-sm">
               <p className="font-medium text-foreground">Curtiu o diagnóstico?</p>
-              <p className="text-xs font-light text-muted-foreground">Me segue no Instagram pra mais análises e estratégias.</p>
+              <p className="text-xs font-light text-muted-foreground">Segue {igOwnerLabel} no Instagram pra mais análises e estratégias.</p>
             </div>
             <a
-              href="https://instagram.com/eusoujoanderson1"
+              href={igHref}
               target="_blank"
               rel="noopener noreferrer"
               className="rounded-sm border border-gold bg-background/50 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-primary transition-all hover:bg-gradient-gold-soft"
