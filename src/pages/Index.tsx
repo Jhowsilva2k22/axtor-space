@@ -60,10 +60,19 @@ const Index = () => {
   const [name, setName] = useState("");
   const [loadingMsg, setLoadingMsg] = useState(LOADING_STEPS[0]);
   const [data, setData] = useState<DiagnosisData | null>(null);
+  const [partnerCtas, setPartnerCtas] = useState<PartnerCtas | null>(null);
 
   useEffect(() => {
     trackPageView("/");
     trackFunnel("diag_landing_view");
+    const params = new URLSearchParams(window.location.search);
+    const utm = params.get("utm_source") || params.get("ref");
+    if (!utm) return;
+    (async () => {
+      const { data: rows } = await (supabase as any).rpc("get_landing_partner_ctas", { _utm_source: utm });
+      const row = Array.isArray(rows) ? rows[0] : null;
+      if (row) setPartnerCtas(row as PartnerCtas);
+    })();
   }, []);
 
   const handleSubmitHandle = (e: React.FormEvent) => {
