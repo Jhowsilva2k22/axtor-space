@@ -34,6 +34,7 @@ import { OnboardingChecklist } from "@/components/OnboardingChecklist";
 import { DeepDiagnosticCard } from "@/components/DeepDiagnosticCard";
 import { BioTemplatePicker } from "@/components/BioTemplatePicker";
 import { QRCodeDialog } from "@/components/QRCodeDialog";
+import { MyLinksCard } from "@/components/MyLinksCard";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { useCurrentTenant } from "@/hooks/useCurrentTenant";
 import { UpgradeModal } from "@/components/UpgradeModal";
