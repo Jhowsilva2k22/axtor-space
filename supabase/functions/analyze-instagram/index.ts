@@ -250,6 +250,7 @@ Deno.serve(async (req) => {
           instagram_handle: handle,
           status: "failed",
           error_message: msg,
+          ...(resolvedTenantId ? { tenant_id: resolvedTenantId } : {}),
         })
         .select()
         .single();
@@ -276,6 +277,7 @@ Deno.serve(async (req) => {
           is_private: true,
           profile_data: profile,
           status: "private_profile",
+          ...(resolvedTenantId ? { tenant_id: resolvedTenantId } : {}),
         })
         .select()
         .single();
@@ -331,6 +333,7 @@ Deno.serve(async (req) => {
         },
         ai_summary: aiResult.veredicto ?? "",
         status: "completed",
+        ...(resolvedTenantId ? { tenant_id: resolvedTenantId } : {}),
       })
       .select()
       .single();
