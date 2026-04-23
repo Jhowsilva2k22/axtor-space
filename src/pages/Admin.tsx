@@ -846,6 +846,9 @@ const Admin = () => {
             }}
           />
           <DeepDiagnosticCard />
+          {currentTenant && (
+            <MyLinksCard slug={currentTenant.slug} tenantId={currentTenant.id} />
+          )}
           {/* Cabeçalho da bio */}
           <section id="admin-header-section" className="rounded-sm border-gold-gradient p-6">
             <h2 className="font-display text-2xl">Cabeçalho da <span className="text-gold italic">bio</span></h2>
