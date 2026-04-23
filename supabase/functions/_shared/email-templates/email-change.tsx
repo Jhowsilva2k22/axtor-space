@@ -9,6 +9,7 @@ import {
   Head,
   Heading,
   Html,
+  Img,
   Link,
   Preview,
   Text,
@@ -32,7 +33,7 @@ export const EmailChangeEmail = ({
     <Preview>Confirme seu novo email — Axtor</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Text style={brand}>AXTOR</Text>
+        <Img src="https://bdxkcfngskagriaapepo.supabase.co/storage/v1/object/public/email-assets/axtor-logo.png" alt="Axtor Labs" width="120" height="40" style={{ display: "block", margin: "0 0 24px", height: "auto" }} />
         <Heading style={h1}>
           Confirme seu <span style={hAccent}>novo email</span>
         </Heading>
