@@ -29,6 +29,7 @@ import { BlockMetricsBadge } from "@/components/BlockMetricsBadge";
 import { CampaignManager } from "@/components/CampaignManager";
 import { CategoriesManager, type Category } from "@/components/CategoriesManager";
 import { compressImage } from "@/lib/imageCompress";
+import ImageCropDialog from "@/components/ImageCropDialog";
 import { Combobox } from "@/components/Combobox";
 import { TenantSelector } from "@/components/TenantSelector";
 import { OnboardingChecklist } from "@/components/OnboardingChecklist";
@@ -126,6 +127,9 @@ const Admin = () => {
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
+  // Crop dialog: arquivo escolhido aguardando ajuste antes do upload
+  const [pendingAvatarFile, setPendingAvatarFile] = useState<File | null>(null);
+  const [pendingCoverFile, setPendingCoverFile] = useState<File | null>(null);
   const [cfgDirty, setCfgDirty] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [dirtyBlocks, setDirtyBlocks] = useState<Set<string>>(new Set());
@@ -445,12 +449,15 @@ const Admin = () => {
     if (failed > 0) toast.error("Falha ao salvar nova ordem");
   };
 
-  const uploadAvatar = async (file: File) => {
+  const uploadAvatar = async (file: File | Blob) => {
     if (!cfg) return;
     setUploadingAvatar(true);
-    let upload: File = file;
+    const inputFile: File = file instanceof File
+      ? file
+      : new File([file], `avatar-${Date.now()}.jpg`, { type: file.type || "image/jpeg" });
+    let upload: File = inputFile;
     try {
-      upload = await compressImage(file, { maxDimension: 1024, maxBytes: 1_500_000 });
+      upload = await compressImage(inputFile, { maxDimension: 1024, maxBytes: 1_200_000, quality: 0.9 });
     } catch {
       // se falhar compressão, segue com original
     }
@@ -482,12 +489,17 @@ const Admin = () => {
     toast.success("Foto atualizada");
   };
 
-  const uploadCover = async (file: File) => {
+  const uploadCover = async (file: File | Blob) => {
     if (!cfg) return;
     setUploadingCover(true);
-    let upload: File = file;
+    const inputFile: File = file instanceof File
+      ? file
+      : new File([file], `cover-${Date.now()}.jpg`, { type: file.type || "image/jpeg" });
+    let upload: File = inputFile;
     try {
-      upload = await compressImage(file, { maxDimension: 1920, maxBytes: 3_000_000 });
+      // Capa entra com blur+vinheta no fundo, então 1600px e 2MB são suficientes
+      // (mantém leveza sem perda visível).
+      upload = await compressImage(inputFile, { maxDimension: 1600, maxBytes: 2_000_000, quality: 0.85 });
     } catch {
       // segue com original
     }
@@ -908,7 +920,7 @@ const Admin = () => {
                       disabled={uploadingAvatar}
                       onChange={(e) => {
                         const f = e.target.files?.[0];
-                        if (f) uploadAvatar(f);
+                        if (f) setPendingAvatarFile(f);
                         e.currentTarget.value = "";
                       }}
                     />
@@ -986,7 +998,7 @@ const Admin = () => {
                         disabled={uploadingCover}
                         onChange={(e) => {
                           const f = e.target.files?.[0];
-                          if (f) uploadCover(f);
+                          if (f) setPendingCoverFile(f);
                           e.currentTarget.value = "";
                         }}
                       />
@@ -1120,6 +1132,29 @@ const Admin = () => {
           </div>
         </div>
       )}
+
+      <ImageCropDialog
+        file={pendingAvatarFile}
+        aspect={1}
+        cropShape="round"
+        title="Ajustar foto de perfil"
+        onCancel={() => setPendingAvatarFile(null)}
+        onConfirm={async (blob) => {
+          setPendingAvatarFile(null);
+          await uploadAvatar(blob);
+        }}
+      />
+      <ImageCropDialog
+        file={pendingCoverFile}
+        aspect={16 / 9}
+        cropShape="rect"
+        title="Ajustar capa de fundo"
+        onCancel={() => setPendingCoverFile(null)}
+        onConfirm={async (blob) => {
+          setPendingCoverFile(null);
+          await uploadCover(blob);
+        }}
+      />
     </div>
   );
 };
