@@ -531,11 +531,15 @@ export type Database = {
       }
       deep_funnel_products: {
         Row: {
+          benefits: Json
           checkout_url: string | null
           created_at: string
+          cta_label: string | null
           cta_mode: string
+          cta_secondary_label: string | null
           description: string | null
           funnel_id: string
+          how_it_works: string | null
           id: string
           name: string
           pain_tag: string
@@ -550,14 +554,20 @@ export type Database = {
           thankyou_text: string | null
           thankyou_whatsapp_template: string | null
           updated_at: string
+          urgency_text: string | null
           whatsapp_template: string | null
+          who_for: string | null
         }
         Insert: {
+          benefits?: Json
           checkout_url?: string | null
           created_at?: string
+          cta_label?: string | null
           cta_mode?: string
+          cta_secondary_label?: string | null
           description?: string | null
           funnel_id: string
+          how_it_works?: string | null
           id?: string
           name: string
           pain_tag: string
@@ -572,14 +582,20 @@ export type Database = {
           thankyou_text?: string | null
           thankyou_whatsapp_template?: string | null
           updated_at?: string
+          urgency_text?: string | null
           whatsapp_template?: string | null
+          who_for?: string | null
         }
         Update: {
+          benefits?: Json
           checkout_url?: string | null
           created_at?: string
+          cta_label?: string | null
           cta_mode?: string
+          cta_secondary_label?: string | null
           description?: string | null
           funnel_id?: string
+          how_it_works?: string | null
           id?: string
           name?: string
           pain_tag?: string
@@ -594,7 +610,9 @@ export type Database = {
           thankyou_text?: string | null
           thankyou_whatsapp_template?: string | null
           updated_at?: string
+          urgency_text?: string | null
           whatsapp_template?: string | null
+          who_for?: string | null
         }
         Relationships: [
           {
