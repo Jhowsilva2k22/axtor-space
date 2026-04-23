@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { ThemeToggle, useAdminLockedTheme } from "@/components/ThemeToggle";
 import { toast } from "sonner";
-import { ArrowLeft, Copy, Loader2, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronUp, Copy, Loader2, Plus, Save, Trash2 } from "lucide-react";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -21,6 +22,12 @@ type PartnerRow = {
   priority: number;
   is_active: boolean;
   created_at: string;
+  bio_url: string | null;
+  instagram_handle: string | null;
+  whatsapp_number: string | null;
+  whatsapp_message: string | null;
+  secondary_cta_label: string | null;
+  secondary_cta_url: string | null;
   tenants?: { slug: string; display_name: string } | null;
 };
 
@@ -49,7 +56,7 @@ const AdminLandingPartners = () => {
     const [{ data: rows }, { data: ts }] = await Promise.all([
       (supabase as any)
         .from("landing_partners")
-        .select("id,tenant_id,utm_source,note,priority,is_active,created_at,tenants:tenants(slug,display_name)")
+        .select("id,tenant_id,utm_source,note,priority,is_active,created_at,bio_url,instagram_handle,whatsapp_number,whatsapp_message,secondary_cta_label,secondary_cta_url,tenants:tenants(slug,display_name)")
         .order("created_at", { ascending: false }),
       supabase.from("tenants").select("id,slug,display_name").eq("status", "active").order("display_name"),
     ]);
