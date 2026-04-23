@@ -136,7 +136,11 @@ export const CategoriesManager = ({ tenantId }: { tenantId: string }) => {
 
   const remove = async (id: string) => {
     if (!confirm("Excluir essa categoria? Os blocos associados ficarão sem categoria.")) return;
-    const { error } = await supabase.from("bio_categories").delete().eq("id", id);
+    const { error } = await supabase
+      .from("bio_categories")
+      .delete()
+      .eq("id", id)
+      .eq("tenant_id", tenantId);
     if (error) return toast.error(error.message);
     setItems((s) => s.filter((c) => c.id !== id));
   };
@@ -150,8 +154,8 @@ export const CategoriesManager = ({ tenantId }: { tenantId: string }) => {
     reordered[j] = { ...a, position: b.position };
     setItems(reordered);
     await Promise.all([
-      supabase.from("bio_categories").update({ position: b.position }).eq("id", a.id),
-      supabase.from("bio_categories").update({ position: a.position }).eq("id", b.id),
+      supabase.from("bio_categories").update({ position: b.position }).eq("id", a.id).eq("tenant_id", tenantId),
+      supabase.from("bio_categories").update({ position: a.position }).eq("id", b.id).eq("tenant_id", tenantId),
     ]);
   };
 
@@ -168,7 +172,7 @@ export const CategoriesManager = ({ tenantId }: { tenantId: string }) => {
           </Button>
         </div>
         <p className="mb-4 text-xs text-muted-foreground">
-          Categorias agrupam seus blocos na <span className="text-primary">/bio</span>. Crie aqui e depois escolha em cada bloco no campo <span className="text-primary">Categoria</span>.
+          Categorias agrupam seus blocos em seções na sua bio pública (ex: <span className="text-primary">Redes sociais</span>, <span className="text-primary">Produtos</span>, <span className="text-primary">Cursos</span>). Cada bloco pode pertencer a uma categoria — ou ficar avulso.
         </p>
 
         {loading ? (
