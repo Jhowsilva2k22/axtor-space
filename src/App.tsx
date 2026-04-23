@@ -21,6 +21,7 @@ import AdminBlockMetrics from "./pages/AdminBlockMetrics.tsx";
 import AdminTemplates from "./pages/AdminTemplates.tsx";
 import AdminImprovements from "./pages/AdminImprovements.tsx";
 import AdminInvites from "./pages/AdminInvites.tsx";
+import AdminLandingPartners from "./pages/AdminLandingPartners.tsx";
 import RedirectCampaign from "./pages/RedirectCampaign.tsx";
 import Landing from "./pages/Landing.tsx";
 import Signup from "./pages/Signup.tsx";
@@ -60,6 +61,7 @@ const App = () => (
             <Route path="/admin/templates" element={<AdminTemplates />} />
             <Route path="/admin/improvements" element={<AdminImprovements />} />
             <Route path="/admin/invites" element={<AdminInvites />} />
+            <Route path="/admin/landing-partners" element={<AdminLandingPartners />} />
             <Route path="/admin/diagnostics" element={<AdminDiagnostics />} />
             <Route path="/admin/deep-diagnostic" element={<DeepDiagnosticEditor />} />
             <Route path="/admin/deep-diagnostic/demo" element={<DeepDiagnosticDemo />} />
