@@ -28,6 +28,8 @@ export default defineConfig(({ mode }) => ({
       output: {
         manualChunks(id) {
           if (!id.includes("node_modules")) return;
+          // Let lucide-react be split per-route chunk for proper tree-shaking
+          if (id.includes("lucide-react")) return;
           if (id.includes("react-dom") || id.match(/[\\/]react[\\/]/) || id.includes("react/jsx") || id.includes("scheduler")) return "react-vendor";
           if (id.includes("react-router")) return "router";
           if (id.includes("@radix-ui")) return "radix";
