@@ -33,7 +33,6 @@ export default defineConfig(({ mode }) => ({
           if (id.includes("@radix-ui")) return "radix";
           if (id.includes("@supabase")) return "supabase";
           if (id.includes("@tanstack")) return "query";
-          if (id.includes("lucide-react")) return "icons";
           if (id.includes("recharts") || id.includes("d3-")) return "charts";
           if (id.includes("@dnd-kit")) return "dnd";
           if (id.includes("qrcode")) return "qrcode";
