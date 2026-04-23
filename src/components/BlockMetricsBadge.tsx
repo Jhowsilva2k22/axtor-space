@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { BarChart3, Loader2 } from "lucide-react";
+import { BarChart3, Loader2, ChevronRight } from "lucide-react";
 
 type Summary = {
   clicks_24h: number;
@@ -33,33 +33,30 @@ export const BlockMetricsBadge = ({ blockId }: { blockId: string }) => {
   return (
     <Link
       to={`/admin/blocks/${blockId}`}
-      className="group inline-flex items-center gap-3 rounded-sm border border-gold/40 bg-background/40 px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] text-muted-foreground transition-all hover:border-gold hover:text-primary"
+      className="group flex w-full items-center gap-3 rounded-sm border border-gold/30 bg-background/30 px-3 py-2 text-[10px] uppercase tracking-[0.18em] text-muted-foreground transition-all hover:border-gold hover:bg-background/50 hover:text-primary"
       title="Ver métricas detalhadas"
     >
-      <BarChart3 className="h-3 w-3 shrink-0 text-primary" />
+      <BarChart3 className="h-3.5 w-3.5 shrink-0 text-primary" />
       {loading || !data ? (
         <Loader2 className="h-3 w-3 animate-spin" />
       ) : (
-        <>
-          <span>
-            <span className="text-foreground">{data.clicks_24h}</span> 24h
-          </span>
-          <span className="text-gold/40">·</span>
-          <span>
-            <span className="text-foreground">{data.clicks_7d}</span> 7d
-          </span>
-          <span className="text-gold/40">·</span>
-          <span>
-            <span className="text-foreground">{data.clicks_30d}</span> 30d
-          </span>
-          <span className="text-gold/40">·</span>
-          <span>
-            ctr <span className="text-foreground">{data.ctr}%</span>
-          </span>
-        </>
+        <div className="grid flex-1 grid-cols-4 gap-2">
+          <Stat label="24h" value={data.clicks_24h} />
+          <Stat label="7d" value={data.clicks_7d} />
+          <Stat label="30d" value={data.clicks_30d} />
+          <Stat label="CTR" value={`${data.ctr}%`} />
+        </div>
       )}
+      <ChevronRight className="h-3 w-3 shrink-0 opacity-0 transition-opacity group-hover:opacity-100" />
     </Link>
   );
 };
+
+const Stat = ({ label, value }: { label: string; value: number | string }) => (
+  <div className="flex flex-col items-center leading-tight">
+    <span className="text-[12px] font-semibold text-foreground tracking-normal normal-case">{value}</span>
+    <span className="text-[9px] tracking-[0.18em]">{label}</span>
+  </div>
+);
 
 export default BlockMetricsBadge;
