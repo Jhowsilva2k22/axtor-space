@@ -216,38 +216,16 @@ const AdminLandingPartners = () => {
             <p className="mt-4 text-sm text-muted-foreground">nenhum parceiro cadastrado ainda.</p>
           ) : (
             <ul className="mt-4 space-y-3">
-              {items.map((p) => {
-                const captureUrl = `${ORIGIN}/?utm_source=${encodeURIComponent(p.utm_source)}&utm_medium=instagram`;
-                return (
-                  <li key={p.id} className="flex flex-col gap-3 rounded-sm border border-gold/30 bg-card/40 p-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-display text-base">
-                          {p.tenants?.display_name ?? "(tenant)"}{" "}
-                          <span className="text-xs text-muted-foreground">/ {p.tenants?.slug}</span>
-                        </span>
-                        <span className="rounded-sm border border-gold/40 bg-gradient-gold-soft px-2 py-0.5 text-[10px] uppercase tracking-wider text-primary">
-                          {p.utm_source}
-                        </span>
-                      </div>
-                      <div className="mt-1 break-all font-mono text-[11px] text-muted-foreground">{captureUrl}</div>
-                      {p.note && <div className="mt-1 text-[11px] text-muted-foreground">{p.note}</div>}
-                    </div>
-                    <div className="flex shrink-0 items-center gap-2">
-                      <div className="flex items-center gap-2 pr-2">
-                        <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">ativo</span>
-                        <Switch checked={p.is_active} onCheckedChange={(v) => toggleActive(p.id, v)} />
-                      </div>
-                      <Button variant="outline" size="sm" className="h-9 rounded-sm border-gold/50 text-[10px] uppercase tracking-[0.2em]" onClick={() => copyLink(p.utm_source)}>
-                        <Copy className="h-3 w-3" /> copiar
-                      </Button>
-                      <Button variant="outline" size="sm" className="h-9 rounded-sm border-destructive/40 text-[10px] uppercase tracking-[0.2em] text-destructive hover:bg-destructive/10" onClick={() => remove(p.id)}>
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </li>
-                );
-              })}
+              {items.map((p) => (
+                <PartnerRowItem
+                  key={p.id}
+                  partner={p}
+                  onToggleActive={toggleActive}
+                  onCopy={copyLink}
+                  onRemove={remove}
+                  onSaveCtas={saveCtas}
+                />
+              ))}
             </ul>
           )}
         </section>
