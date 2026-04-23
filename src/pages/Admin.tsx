@@ -263,10 +263,12 @@ const Admin = () => {
   };
 
   const addBlock = async () => {
+    if (!currentTenant) return toast.error("Nenhum tenant ativo selecionado");
     const nextPos = (blocks[blocks.length - 1]?.position ?? 0) + 1;
     const { data, error } = await supabase
       .from("bio_blocks")
       .insert({
+        tenant_id: currentTenant.id,
         kind: "link",
         label: "Novo bloco",
         url: "https://",
@@ -280,10 +282,12 @@ const Admin = () => {
   };
 
   const duplicateBlock = async (b: Block) => {
+    if (!currentTenant) return toast.error("Nenhum tenant ativo selecionado");
     const nextPos = (blocks[blocks.length - 1]?.position ?? 0) + 1;
     const { data, error } = await supabase
       .from("bio_blocks")
       .insert({
+        tenant_id: currentTenant.id,
         kind: b.kind,
         label: `${b.label} (cópia)`,
         description: b.description,
@@ -1044,7 +1048,7 @@ const Admin = () => {
               <h2 className="font-display text-2xl">Blocos da bio</h2>
               <div className="flex items-center gap-2">
                 {blocks.length === 0 && plan.canAddBlock && (
-                  <BioTemplatePicker variant="ghost" onApplied={() => void load()} />
+                  <BioTemplatePicker tenantId={currentTenant?.id ?? ""} variant="ghost" onApplied={() => void load()} />
                 )}
                 {plan.canAddBlock ? (
                   <Button onClick={addBlock} className="btn-luxe h-11 rounded-sm px-5 text-xs uppercase tracking-[0.2em]">
@@ -1099,7 +1103,7 @@ const Admin = () => {
                     Escolha um nicho e ganhe categorias + 5 blocos prontos. Você ajusta as URLs e ativa um por um.
                   </p>
                   <div className="mt-5 flex justify-center gap-2">
-                    <BioTemplatePicker onApplied={() => void load()} />
+                    <BioTemplatePicker tenantId={currentTenant?.id ?? ""} onApplied={() => void load()} />
                     <Button
                       onClick={addBlock}
                       type="button"

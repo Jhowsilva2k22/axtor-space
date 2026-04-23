@@ -7,17 +7,22 @@ import { Loader2, Sparkles, Check } from "lucide-react";
 import { BIO_TEMPLATES, type BioTemplate } from "@/lib/bioTemplates";
 
 type Props = {
+  tenantId: string;
   /** Variante visual do trigger. */
   variant?: "primary" | "ghost";
   /** Chamado após aplicar com sucesso, pra recarregar Admin. */
   onApplied?: () => void;
 };
 
-export const BioTemplatePicker = ({ variant = "primary", onApplied }: Props) => {
+export const BioTemplatePicker = ({ tenantId, variant = "primary", onApplied }: Props) => {
   const [open, setOpen] = useState(false);
   const [applying, setApplying] = useState<string | null>(null);
 
   const apply = async (tpl: BioTemplate) => {
+    if (!tenantId) {
+      toast.error("Nenhum tenant ativo selecionado");
+      return;
+    }
     if (
       !confirm(
         `Aplicar template "${tpl.name}"?\n\nIsso vai criar ${tpl.categories.length} categorias e ${tpl.blocks.length} blocos no seu painel. Os blocos virão como rascunho (não publicados) — você revisa as URLs e ativa um por um.`,
@@ -43,6 +48,7 @@ export const BioTemplatePicker = ({ variant = "primary", onApplied }: Props) => 
         const { data, error } = await supabase
           .from("bio_categories")
           .insert({
+            tenant_id: tenantId,
             name: c.name,
             slug: `${c.slug}-${Date.now().toString(36).slice(-4)}`,
             icon: c.icon ?? null,
@@ -59,6 +65,7 @@ export const BioTemplatePicker = ({ variant = "primary", onApplied }: Props) => 
       for (let i = 0; i < tpl.blocks.length; i++) {
         const b = tpl.blocks[i];
         const { error } = await supabase.from("bio_blocks").insert({
+          tenant_id: tenantId,
           kind: b.kind,
           label: b.label,
           description: b.description ?? null,
