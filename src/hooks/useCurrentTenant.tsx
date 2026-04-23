@@ -45,31 +45,41 @@ export const CurrentTenantProvider = ({ children }: { children: ReactNode }) => 
     setLoading(true);
     let rows: AdminTenant[] = [];
 
-    if (isAdmin) {
-      // Super admin enxerga todos os tenants ativos
-      const { data } = await supabase
-        .from("tenants")
-        .select("id,slug,display_name,plan,status")
-        .order("display_name", { ascending: true });
-      rows = (data as AdminTenant[] | null) ?? [];
-    } else {
-      // Tenant owner enxerga só os tenants dele
-      const { data } = await supabase
-        .from("tenants")
-        .select("id,slug,display_name,plan,status")
-        .eq("owner_user_id", user.id)
-        .order("display_name", { ascending: true });
-      rows = (data as AdminTenant[] | null) ?? [];
+    try {
+      if (isAdmin) {
+        // Super admin enxerga todos os tenants ativos
+        const { data, error } = await supabase
+          .from("tenants")
+          .select("id,slug,display_name,plan,status")
+          .order("display_name", { ascending: true });
+        if (error) console.error("[useCurrentTenant] admin tenants query failed:", error);
+        rows = (data as AdminTenant[] | null) ?? [];
+      } else {
+        // Tenant owner enxerga só os tenants dele
+        const { data, error } = await supabase
+          .from("tenants")
+          .select("id,slug,display_name,plan,status")
+          .eq("owner_user_id", user.id)
+          .order("display_name", { ascending: true });
+        if (error) console.error("[useCurrentTenant] owner tenants query failed:", error);
+        rows = (data as AdminTenant[] | null) ?? [];
+      }
+
+      setTenants(rows);
+
+      // Resolve tenant atual: sessionStorage > primeiro disponível
+      const stored = sessionStorage.getItem(SELECTED_KEY);
+      const valid = stored && rows.some((t) => t.id === stored) ? stored : rows[0]?.id ?? null;
+      setCurrentIdState(valid);
+      if (valid) sessionStorage.setItem(SELECTED_KEY, valid);
+    } catch (err) {
+      console.error("[useCurrentTenant] load failed:", err);
+      setTenants([]);
+      setCurrentIdState(null);
+    } finally {
+      // CRÍTICO: sempre liberar loading, senão Admin.tsx trava em spinner.
+      setLoading(false);
     }
-
-    setTenants(rows);
-
-    // Resolve tenant atual: sessionStorage > primeiro disponível
-    const stored = sessionStorage.getItem(SELECTED_KEY);
-    const valid = stored && rows.some((t) => t.id === stored) ? stored : rows[0]?.id ?? null;
-    setCurrentIdState(valid);
-    if (valid) sessionStorage.setItem(SELECTED_KEY, valid);
-    setLoading(false);
   }, [user, isAdmin]);
 
   useEffect(() => {
