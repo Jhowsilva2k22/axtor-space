@@ -1,5 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
 import { AlertTriangle, RotateCcw, RefreshCw } from "lucide-react";
+import { logError } from "@/lib/errorLogger";
 
 type Props = {
   children: ReactNode;
@@ -34,6 +35,12 @@ export class AppErrorBoundary extends Component<Props, State> {
     } catch {
       // ignore
     }
+    void logError({
+      severity: "boundary",
+      message: error?.message ?? "render crash",
+      stack: error?.stack,
+      componentStack: info?.componentStack ?? undefined,
+    });
   }
 
   private handleRetry = () => {

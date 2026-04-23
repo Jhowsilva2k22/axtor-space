@@ -401,6 +401,54 @@ export type Database = {
         }
         Relationships: []
       }
+      client_error_log: {
+        Row: {
+          app_version: string | null
+          component_stack: string | null
+          created_at: string
+          extra: Json | null
+          id: string
+          message: string
+          route: string | null
+          severity: string
+          stack: string | null
+          tenant_id: string | null
+          user_agent: string | null
+          user_email: string | null
+          user_id: string | null
+        }
+        Insert: {
+          app_version?: string | null
+          component_stack?: string | null
+          created_at?: string
+          extra?: Json | null
+          id?: string
+          message: string
+          route?: string | null
+          severity?: string
+          stack?: string | null
+          tenant_id?: string | null
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          app_version?: string | null
+          component_stack?: string | null
+          created_at?: string
+          extra?: Json | null
+          id?: string
+          message?: string
+          route?: string | null
+          severity?: string
+          stack?: string | null
+          tenant_id?: string | null
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       diagnostics: {
         Row: {
           ai_summary: string | null
