@@ -107,6 +107,10 @@ export default function DeepDiagnosticEditor() {
         lock_until_media_ends: !!funnel?.lock_until_media_ends,
         allow_skip_after_seconds: funnel?.allow_skip_after_seconds ?? 5,
         is_published: publish,
+        thankyou_text: funnel?.thankyou_text,
+        thankyou_media_url: funnel?.thankyou_media_url,
+        thankyou_media_type: funnel?.thankyou_media_type,
+        thankyou_media_caption: funnel?.thankyou_media_caption,
       }).eq("id", activeFunnelId);
 
       for (const q of questions) {
