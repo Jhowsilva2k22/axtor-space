@@ -56,6 +56,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const { data: sub } = supabase.auth.onAuthStateChange((_evt, s) => {
+      console.log("[auth] onAuthStateChange", _evt, "user:", s?.user?.email ?? null);
       applySession(s);
       void syncAdmin(s?.user?.id);
       if (hydrated && !unmounted) setLoading(false);
@@ -64,10 +65,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     supabase.auth
       .getSession()
       .then(async ({ data: { session: s } }) => {
+        console.log("[auth] getSession resolved, user:", s?.user?.email ?? null);
         applySession(s);
         await syncAdmin(s?.user?.id);
       })
       .catch(() => {
+        console.warn("[auth] getSession failed");
         if (unmounted) return;
         setSession(null);
         setUser(null);
@@ -75,6 +78,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       })
       .finally(() => {
         hydrated = true;
+        console.log("[auth] hydrated → loading=false");
         if (!unmounted) setLoading(false);
       });
 
