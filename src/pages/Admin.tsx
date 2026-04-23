@@ -941,7 +941,7 @@ const BlockEditor = ({
     <div
       ref={setNodeRef}
       style={style}
-      className={`rounded-sm border p-4 transition-all ${
+      className={`rounded-sm border p-3 sm:p-4 transition-all ${
         hasDraft
           ? "border-yellow-500/70 bg-yellow-500/[0.04]"
           : block.is_active
@@ -990,19 +990,19 @@ const BlockEditor = ({
           <button onClick={onMoveDown} disabled={isLast} className="rounded-sm border border-border p-1.5 text-muted-foreground hover:text-primary disabled:opacity-30">
             <ArrowDown className="h-3.5 w-3.5" />
           </button>
-          <span className="ml-2 text-[10px] uppercase tracking-[0.25em] text-muted-foreground">#{block.position}</span>
+          <span className="ml-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">#{block.position}</span>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-3">
           <BlockMetricsBadge blockId={block.id} />
-          <label className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+          <label className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
             {block.is_active ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
             <Switch checked={block.is_active} onCheckedChange={(v) => onChange({ is_active: v })} />
           </label>
-          <label className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+          <label className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
             destaque
             <Switch checked={block.highlight} onCheckedChange={(v) => onChange({ highlight: v })} />
           </label>
-          <label className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+          <label className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
             cor original
             <Switch checked={block.use_brand_color} onCheckedChange={(v) => onChange({ use_brand_color: v })} />
           </label>
