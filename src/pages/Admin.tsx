@@ -1014,7 +1014,7 @@ const BlockEditor = ({
         </div>
       </div>
 
-      <div className="mt-3 grid gap-2.5 sm:grid-cols-2">
+      <div className="mt-3 grid min-w-0 gap-2.5 sm:grid-cols-2">
         <Field label="Tipo">
           <Select
             value={block.kind}
@@ -1089,16 +1089,16 @@ const BlockEditor = ({
         </Field>
       </div>
 
-      <div className="mt-3 flex justify-between">
-        <div className="flex items-center gap-2">
-          <button onClick={onDelete} className="inline-flex h-9 items-center gap-2 rounded-sm border border-destructive/40 px-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-destructive hover:bg-destructive/10">
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <button onClick={onDelete} className="inline-flex h-9 items-center gap-2 rounded-sm border border-destructive/40 px-3 sm:px-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-destructive hover:bg-destructive/10">
             <Trash2 className="h-3.5 w-3.5" /> Excluir
           </button>
-          <button onClick={onDuplicate} className="inline-flex h-9 items-center gap-2 rounded-sm border border-gold/40 px-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground hover:border-gold hover:text-primary">
+          <button onClick={onDuplicate} className="inline-flex h-9 items-center gap-2 rounded-sm border border-gold/40 px-3 sm:px-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground hover:border-gold hover:text-primary">
             <Copy className="h-3.5 w-3.5" /> Duplicar
           </button>
         </div>
-        <Button onClick={onSave} className="btn-luxe h-9 rounded-sm px-5 text-[11px] font-semibold uppercase tracking-[0.18em]">
+        <Button onClick={onSave} className="btn-luxe h-9 rounded-sm px-3 sm:px-5 text-[11px] font-semibold uppercase tracking-[0.18em]">
           <Save className="h-3.5 w-3.5" /> Salvar bloco
         </Button>
       </div>
