@@ -91,7 +91,7 @@ Deno.serve(async (req) => {
 
     const { data: products } = await admin
       .from("deep_funnel_products")
-      .select("id, name, description, pain_tag, price_hint, whatsapp_template")
+      .select("id, name, description, pain_tag, price_hint, whatsapp_template, checkout_url, cta_mode, result_media_url, result_media_type")
       .eq("funnel_id", funnel_id);
 
     if (!products || products.length === 0) {

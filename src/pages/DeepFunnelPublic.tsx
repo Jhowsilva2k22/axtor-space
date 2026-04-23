@@ -119,6 +119,18 @@ export default function DeepFunnelPublic() {
     return `https://wa.me/${number}?text=${encodeURIComponent(msg)}`;
   }, [result, tenant, lead]);
 
+  const checkoutUrl = useMemo(() => {
+    if (!result?.product?.checkout_url) return null;
+    const url = new URL(result.product.checkout_url);
+    if (lead.email) url.searchParams.set("email", lead.email);
+    if (lead.name) url.searchParams.set("name", lead.name);
+    if (lead.phone) url.searchParams.set("phone", lead.phone);
+    if (result.diagnostic_id) url.searchParams.set("diag", result.diagnostic_id);
+    return url.toString();
+  }, [result, lead]);
+
+  const ctaMode: "whatsapp" | "checkout" | "both" = result?.product?.cta_mode ?? "whatsapp";
+
   if (loading) return <div className="flex min-h-screen items-center justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>;
   if (!funnel) return <div className="flex min-h-screen items-center justify-center"><p className="text-muted-foreground">Funil não encontrado.</p></div>;
 
@@ -267,19 +279,37 @@ export default function DeepFunnelPublic() {
               )}
             </Card>
             </motion.div>
-            {whatsappUrl && (
-              <motion.div
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.7, duration: 0.4 }}
-              >
-              <Button size="lg" className="w-full gap-2 transition-transform hover:scale-[1.01] animate-[pulse_2.5s_ease-in-out_infinite]" asChild>
-                <a href={whatsappUrl} target="_blank" rel="noreferrer">
-                  <MessageCircle className="h-4 w-4" /> Continuar pelo WhatsApp
-                </a>
-              </Button>
-              </motion.div>
-            )}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7, duration: 0.4 }}
+              className="space-y-2"
+            >
+              {(ctaMode === "checkout" || ctaMode === "both") && checkoutUrl && (
+                <Button
+                  size="lg"
+                  className="w-full gap-2 transition-transform hover:scale-[1.01] animate-[pulse_2.5s_ease-in-out_infinite]"
+                  asChild
+                >
+                  <a href={checkoutUrl} target="_blank" rel="noreferrer">
+                    Quero esse <ArrowRight className="h-4 w-4" />
+                  </a>
+                </Button>
+              )}
+              {(ctaMode === "whatsapp" || ctaMode === "both") && whatsappUrl && (
+                <Button
+                  size="lg"
+                  variant={ctaMode === "both" ? "outline" : "default"}
+                  className={`w-full gap-2 transition-transform hover:scale-[1.01] ${ctaMode === "whatsapp" ? "animate-[pulse_2.5s_ease-in-out_infinite]" : ""}`}
+                  asChild
+                >
+                  <a href={whatsappUrl} target="_blank" rel="noreferrer">
+                    <MessageCircle className="h-4 w-4" />
+                    {ctaMode === "both" ? "Tirar dúvida no WhatsApp" : "Continuar pelo WhatsApp"}
+                  </a>
+                </Button>
+              )}
+            </motion.div>
           </motion.div>
         )}
       </div>
