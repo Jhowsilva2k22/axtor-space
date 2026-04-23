@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, MessageCircle, Sparkles, ArrowRight } from "lucide-react";
 import { getSessionId, captureUtm } from "@/lib/analytics";
+import { motion, AnimatePresence } from "framer-motion";
 
 type Funnel = any;
 type Question = any;
@@ -79,7 +80,7 @@ export default function DeepFunnelPublic() {
     setAnswers({ ...answers, [q.id]: { option_indexes: idxs, label: idxs.map((i) => q.options[i]?.label) } });
 
     if (current < questions.length - 1) {
-      setTimeout(() => setCurrent(current + 1), 200);
+      setTimeout(() => setCurrent(current + 1), 280);
     } else {
       void submit(newScores, { ...answers, [q.id]: { option_indexes: idxs } });
     }
@@ -128,26 +129,29 @@ export default function DeepFunnelPublic() {
     <div className="min-h-screen bg-background">
       <div className="mx-auto flex min-h-screen max-w-2xl flex-col px-4 py-8">
         {step === "welcome" && (
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
           <Card className="space-y-6 p-8">
             <div className="inline-flex items-center gap-2 self-start rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs uppercase tracking-wider text-primary">
               <Sparkles className="h-3 w-3" /> Diagnóstico
             </div>
             <h1 className="font-display text-3xl leading-tight md:text-4xl">{funnel.name}</h1>
             {funnel.welcome_media_url && (
-              <div className="overflow-hidden rounded-md border">
+              <motion.div initial={{ scale: 0.97, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.15, duration: 0.4 }} className="overflow-hidden rounded-md border">
                 {funnel.welcome_media_type === "video" && <video src={funnel.welcome_media_url} controls className="w-full" />}
                 {funnel.welcome_media_type === "audio" && <audio src={funnel.welcome_media_url} controls className="w-full" />}
                 {funnel.welcome_media_type === "image" && <img src={funnel.welcome_media_url} alt="" className="w-full" />}
-              </div>
+              </motion.div>
             )}
             <p className="whitespace-pre-line text-muted-foreground">{funnel.welcome_text}</p>
-            <Button size="lg" className="gap-2" onClick={() => setStep("lead")}>
+            <Button size="lg" className="gap-2 transition-transform hover:scale-[1.02]" onClick={() => setStep("lead")}>
               Começar <ArrowRight className="h-4 w-4" />
             </Button>
           </Card>
+          </motion.div>
         )}
 
         {step === "lead" && (
+          <motion.div initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.35 }}>
           <Card className="space-y-5 p-6 md:p-8">
             <h2 className="font-display text-2xl">Antes de começar, me conta:</h2>
             <div className="space-y-3">
@@ -159,60 +163,85 @@ export default function DeepFunnelPublic() {
               Continuar <ArrowRight className="h-4 w-4" />
             </Button>
           </Card>
+          </motion.div>
         )}
 
         {step === "quiz" && q && (
-          <Card className="space-y-6 p-6 md:p-8">
+          <Card className="space-y-6 p-6 md:p-8 overflow-hidden">
             <div className="space-y-2">
               <Progress value={((current + 1) / questions.length) * 100} className="h-1" />
               <p className="text-xs text-muted-foreground">Pergunta {current + 1} de {questions.length}</p>
             </div>
-            <div className="space-y-2">
-              <h2 className="font-display text-2xl leading-tight">{q.question_text}</h2>
-              {q.subtitle && <p className="text-sm text-muted-foreground">{q.subtitle}</p>}
-            </div>
-            {q.media_url && (
-              <div className="space-y-1">
-                {q.media_caption && <p className="text-xs text-muted-foreground">{q.media_caption}</p>}
-                <div className="overflow-hidden rounded-md border">
-                  {q.media_type === "video" && (
-                    <video ref={mediaRef as any} src={q.media_url} controls autoPlay className="w-full" onEnded={() => setMediaEnded(true)} />
-                  )}
-                  {q.media_type === "audio" && (
-                    <audio ref={mediaRef as any} src={q.media_url} controls autoPlay className="w-full" onEnded={() => setMediaEnded(true)} />
-                  )}
-                  {q.media_type === "image" && <img src={q.media_url} alt="" className="w-full" />}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={current}
+                initial={{ opacity: 0, x: 24 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -24 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                className="space-y-5"
+              >
+                <div className="space-y-2">
+                  <h2 className="font-display text-2xl leading-tight">{q.question_text}</h2>
+                  {q.subtitle && <p className="text-sm text-muted-foreground">{q.subtitle}</p>}
                 </div>
-                {mediaLocked && skipCountdown > 0 && (
-                  <p className="text-xs text-muted-foreground">Opções liberam em {skipCountdown}s ou ao fim da mídia…</p>
+                {q.media_url && (
+                  <motion.div
+                    initial={{ scale: 0.97, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.35 }}
+                    className="space-y-1"
+                  >
+                    {q.media_caption && <p className="text-xs text-muted-foreground">{q.media_caption}</p>}
+                    <div className="overflow-hidden rounded-md border">
+                      {q.media_type === "video" && (
+                        <video ref={mediaRef as any} src={q.media_url} controls autoPlay className="w-full" onEnded={() => setMediaEnded(true)} />
+                      )}
+                      {q.media_type === "audio" && (
+                        <audio ref={mediaRef as any} src={q.media_url} controls autoPlay className="w-full" onEnded={() => setMediaEnded(true)} />
+                      )}
+                      {q.media_type === "image" && <img src={q.media_url} alt="" className="w-full" />}
+                    </div>
+                    {mediaLocked && skipCountdown > 0 && (
+                      <p className="text-xs text-muted-foreground">Opções liberam em {skipCountdown}s ou ao fim da mídia…</p>
+                    )}
+                  </motion.div>
                 )}
-              </div>
-            )}
-            <div className="space-y-2">
-              {Array.isArray(q.options) && q.options.map((o: any, oi: number) => (
-                <button
-                  key={oi}
-                  disabled={mediaLocked}
-                  onClick={() => handleAnswer(q, oi)}
-                  className="w-full rounded-md border border-border bg-card p-4 text-left text-sm transition-colors hover:border-primary hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {o.label}
-                </button>
-              ))}
-            </div>
+                <div className="space-y-2">
+                  {Array.isArray(q.options) && q.options.map((o: any, oi: number) => (
+                    <motion.button
+                      key={oi}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 + oi * 0.06, duration: 0.25 }}
+                      whileHover={{ scale: mediaLocked ? 1 : 1.01 }}
+                      whileTap={{ scale: mediaLocked ? 1 : 0.98 }}
+                      disabled={mediaLocked}
+                      onClick={() => handleAnswer(q, oi)}
+                      className="w-full rounded-md border border-border bg-card p-4 text-left text-sm transition-colors hover:border-primary hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {o.label}
+                    </motion.button>
+                  ))}
+                </div>
+              </motion.div>
+            </AnimatePresence>
           </Card>
         )}
 
         {step === "loading" && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
           <Card className="flex flex-col items-center justify-center gap-4 p-16 text-center">
             <Loader2 className="h-10 w-10 animate-spin text-primary" />
             <h2 className="font-display text-2xl">Analisando suas respostas...</h2>
             <p className="text-sm text-muted-foreground">A IA está cruzando seu perfil com o melhor caminho.</p>
           </Card>
+          </motion.div>
         )}
 
         {step === "result" && (
-          <div className="space-y-5">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} className="space-y-5">
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.5, delay: 0.1 }}>
             <Card className="space-y-4 border-primary/40 bg-gradient-to-br from-background to-primary/5 p-8">
               {funnel.result_intro && <p className="text-sm text-muted-foreground">{funnel.result_intro}</p>}
               <div className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs uppercase tracking-wider text-primary">
@@ -225,26 +254,33 @@ export default function DeepFunnelPublic() {
                 </>
               )}
               {result?.veredict && (
-                <div className="rounded-md border border-border/60 bg-card/50 p-4">
+                <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4, duration: 0.5 }} className="rounded-md border border-border/60 bg-card/50 p-4">
                   <p className="whitespace-pre-line text-sm leading-relaxed">{result.veredict}</p>
-                </div>
+                </motion.div>
               )}
               {result?.product?.result_media_url && (
-                <div className="overflow-hidden rounded-md border">
+                <motion.div initial={{ scale: 0.97, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.55, duration: 0.4 }} className="overflow-hidden rounded-md border">
                   {result.product.result_media_type === "video" && <video src={result.product.result_media_url} controls className="w-full" />}
                   {result.product.result_media_type === "audio" && <audio src={result.product.result_media_url} controls className="w-full" />}
                   {result.product.result_media_type === "image" && <img src={result.product.result_media_url} alt="" className="w-full" />}
-                </div>
+                </motion.div>
               )}
             </Card>
+            </motion.div>
             {whatsappUrl && (
-              <Button size="lg" className="w-full gap-2" asChild>
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.7, duration: 0.4 }}
+              >
+              <Button size="lg" className="w-full gap-2 transition-transform hover:scale-[1.01] animate-[pulse_2.5s_ease-in-out_infinite]" asChild>
                 <a href={whatsappUrl} target="_blank" rel="noreferrer">
                   <MessageCircle className="h-4 w-4" /> Continuar pelo WhatsApp
                 </a>
               </Button>
+              </motion.div>
             )}
-          </div>
+          </motion.div>
         )}
       </div>
     </div>
