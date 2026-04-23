@@ -19,6 +19,10 @@ export const BioTemplatePicker = ({ tenantId, variant = "primary", onApplied }: 
   const [applying, setApplying] = useState<string | null>(null);
 
   const apply = async (tpl: BioTemplate) => {
+    if (!tenantId) {
+      toast.error("Nenhum tenant ativo selecionado");
+      return;
+    }
     if (
       !confirm(
         `Aplicar template "${tpl.name}"?\n\nIsso vai criar ${tpl.categories.length} categorias e ${tpl.blocks.length} blocos no seu painel. Os blocos virão como rascunho (não publicados) — você revisa as URLs e ativa um por um.`,

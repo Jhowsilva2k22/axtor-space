@@ -1048,7 +1048,7 @@ const Admin = () => {
               <h2 className="font-display text-2xl">Blocos da bio</h2>
               <div className="flex items-center gap-2">
                 {blocks.length === 0 && plan.canAddBlock && (
-                  <BioTemplatePicker variant="ghost" onApplied={() => void load()} />
+                  <BioTemplatePicker tenantId={currentTenant?.id ?? ""} variant="ghost" onApplied={() => void load()} />
                 )}
                 {plan.canAddBlock ? (
                   <Button onClick={addBlock} className="btn-luxe h-11 rounded-sm px-5 text-xs uppercase tracking-[0.2em]">
@@ -1103,7 +1103,7 @@ const Admin = () => {
                     Escolha um nicho e ganhe categorias + 5 blocos prontos. Você ajusta as URLs e ativa um por um.
                   </p>
                   <div className="mt-5 flex justify-center gap-2">
-                    <BioTemplatePicker onApplied={() => void load()} />
+                    <BioTemplatePicker tenantId={currentTenant?.id ?? ""} onApplied={() => void load()} />
                     <Button
                       onClick={addBlock}
                       type="button"
