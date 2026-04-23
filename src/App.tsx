@@ -8,25 +8,27 @@ import { TenantProvider } from "@/hooks/useTenant";
 import { CurrentTenantProvider } from "@/hooks/useCurrentTenant";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AppErrorBoundary } from "@/components/AppErrorBoundary";
-import Index from "./pages/Index.tsx";
-import NotFound from "./pages/NotFound.tsx";
-import SharePage from "./pages/Share.tsx";
-import Bio from "./pages/Bio.tsx";
-import AdminLogin from "./pages/AdminLogin.tsx";
-import Admin from "./pages/Admin.tsx";
-import ForgotPassword from "./pages/ForgotPassword.tsx";
-import ResetPassword from "./pages/ResetPassword.tsx";
-import AdminAnalytics from "./pages/AdminAnalytics.tsx";
-import AdminBlockMetrics from "./pages/AdminBlockMetrics.tsx";
-import AdminTemplates from "./pages/AdminTemplates.tsx";
-import AdminImprovements from "./pages/AdminImprovements.tsx";
-import AdminInvites from "./pages/AdminInvites.tsx";
-import RedirectCampaign from "./pages/RedirectCampaign.tsx";
-import Landing from "./pages/Landing.tsx";
-import Signup from "./pages/Signup.tsx";
-import Unsubscribe from "./pages/Unsubscribe.tsx";
-import ResetSession from "./pages/ResetSession.tsx";
-import AdminDiagnostics from "./pages/AdminDiagnostics.tsx";
+import { lazy, Suspense } from "react";
+import Index from "./pages/Index.tsx"; // eager: landing/first paint
+
+const NotFound = lazy(() => import("./pages/NotFound.tsx"));
+const SharePage = lazy(() => import("./pages/Share.tsx"));
+const Bio = lazy(() => import("./pages/Bio.tsx"));
+const AdminLogin = lazy(() => import("./pages/AdminLogin.tsx"));
+const Admin = lazy(() => import("./pages/Admin.tsx"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword.tsx"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword.tsx"));
+const AdminAnalytics = lazy(() => import("./pages/AdminAnalytics.tsx"));
+const AdminBlockMetrics = lazy(() => import("./pages/AdminBlockMetrics.tsx"));
+const AdminTemplates = lazy(() => import("./pages/AdminTemplates.tsx"));
+const AdminImprovements = lazy(() => import("./pages/AdminImprovements.tsx"));
+const AdminInvites = lazy(() => import("./pages/AdminInvites.tsx"));
+const RedirectCampaign = lazy(() => import("./pages/RedirectCampaign.tsx"));
+const Landing = lazy(() => import("./pages/Landing.tsx"));
+const Signup = lazy(() => import("./pages/Signup.tsx"));
+const Unsubscribe = lazy(() => import("./pages/Unsubscribe.tsx"));
+const ResetSession = lazy(() => import("./pages/ResetSession.tsx"));
+const AdminDiagnostics = lazy(() => import("./pages/AdminDiagnostics.tsx"));
 
 const queryClient = new QueryClient();
 
@@ -41,7 +43,8 @@ const App = () => (
             <CurrentTenantProvider>
               <AppErrorBoundary>
                 <ThemeProvider>
-                  <Routes>
+                  <Suspense fallback={null}>
+                    <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/planos" element={<Landing />} />
             <Route path="/signup" element={<Signup />} />
@@ -64,7 +67,8 @@ const App = () => (
             <Route path="/:slug" element={<Bio />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
-                  </Routes>
+                    </Routes>
+                  </Suspense>
                 </ThemeProvider>
               </AppErrorBoundary>
             </CurrentTenantProvider>
