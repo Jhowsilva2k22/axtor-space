@@ -263,10 +263,12 @@ const Admin = () => {
   };
 
   const addBlock = async () => {
+    if (!currentTenant) return toast.error("Nenhum tenant ativo selecionado");
     const nextPos = (blocks[blocks.length - 1]?.position ?? 0) + 1;
     const { data, error } = await supabase
       .from("bio_blocks")
       .insert({
+        tenant_id: currentTenant.id,
         kind: "link",
         label: "Novo bloco",
         url: "https://",
@@ -280,10 +282,12 @@ const Admin = () => {
   };
 
   const duplicateBlock = async (b: Block) => {
+    if (!currentTenant) return toast.error("Nenhum tenant ativo selecionado");
     const nextPos = (blocks[blocks.length - 1]?.position ?? 0) + 1;
     const { data, error } = await supabase
       .from("bio_blocks")
       .insert({
+        tenant_id: currentTenant.id,
         kind: b.kind,
         label: `${b.label} (cópia)`,
         description: b.description,
