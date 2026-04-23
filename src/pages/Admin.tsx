@@ -907,7 +907,7 @@ const Admin = () => {
 
 const Field = ({ label, children, full }: { label: string; children: React.ReactNode; full?: boolean }) => (
   <div className={full ? "md:col-span-2" : ""}>
-    <label className="mb-2 block text-[10px] uppercase tracking-[0.25em] text-muted-foreground">{label}</label>
+    <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">{label}</label>
     {children}
   </div>
 );
