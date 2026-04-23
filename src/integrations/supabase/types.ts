@@ -449,6 +449,258 @@ export type Database = {
         }
         Relationships: []
       }
+      deep_diagnostics: {
+        Row: {
+          ai_veredict: string | null
+          answers: Json
+          created_at: string
+          funnel_id: string
+          id: string
+          instagram_handle: string | null
+          lead_email: string | null
+          lead_id: string | null
+          lead_name: string | null
+          lead_phone: string | null
+          pain_detected: string | null
+          pain_scores: Json
+          parent_diagnostic_id: string | null
+          recommended_product_id: string | null
+          session_id: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          ai_veredict?: string | null
+          answers?: Json
+          created_at?: string
+          funnel_id: string
+          id?: string
+          instagram_handle?: string | null
+          lead_email?: string | null
+          lead_id?: string | null
+          lead_name?: string | null
+          lead_phone?: string | null
+          pain_detected?: string | null
+          pain_scores?: Json
+          parent_diagnostic_id?: string | null
+          recommended_product_id?: string | null
+          session_id?: string | null
+          status?: string
+          tenant_id: string
+          updated_at?: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          ai_veredict?: string | null
+          answers?: Json
+          created_at?: string
+          funnel_id?: string
+          id?: string
+          instagram_handle?: string | null
+          lead_email?: string | null
+          lead_id?: string | null
+          lead_name?: string | null
+          lead_phone?: string | null
+          pain_detected?: string | null
+          pain_scores?: Json
+          parent_diagnostic_id?: string | null
+          recommended_product_id?: string | null
+          session_id?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deep_diagnostics_funnel_id_fkey"
+            columns: ["funnel_id"]
+            isOneToOne: false
+            referencedRelation: "deep_funnels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deep_funnel_products: {
+        Row: {
+          created_at: string
+          description: string | null
+          funnel_id: string
+          id: string
+          name: string
+          pain_tag: string
+          position: number
+          price_hint: string | null
+          result_media_caption: string | null
+          result_media_type: string | null
+          result_media_url: string | null
+          updated_at: string
+          whatsapp_template: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          funnel_id: string
+          id?: string
+          name: string
+          pain_tag: string
+          position?: number
+          price_hint?: string | null
+          result_media_caption?: string | null
+          result_media_type?: string | null
+          result_media_url?: string | null
+          updated_at?: string
+          whatsapp_template?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          funnel_id?: string
+          id?: string
+          name?: string
+          pain_tag?: string
+          position?: number
+          price_hint?: string | null
+          result_media_caption?: string | null
+          result_media_type?: string | null
+          result_media_url?: string | null
+          updated_at?: string
+          whatsapp_template?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deep_funnel_products_funnel_id_fkey"
+            columns: ["funnel_id"]
+            isOneToOne: false
+            referencedRelation: "deep_funnels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deep_funnel_questions: {
+        Row: {
+          allow_skip_after_seconds: number | null
+          created_at: string
+          funnel_id: string
+          id: string
+          lock_until_media_ends: boolean
+          media_caption: string | null
+          media_type: string | null
+          media_url: string | null
+          options: Json
+          position: number
+          question_text: string
+          question_type: string
+          subtitle: string | null
+          updated_at: string
+        }
+        Insert: {
+          allow_skip_after_seconds?: number | null
+          created_at?: string
+          funnel_id: string
+          id?: string
+          lock_until_media_ends?: boolean
+          media_caption?: string | null
+          media_type?: string | null
+          media_url?: string | null
+          options?: Json
+          position?: number
+          question_text: string
+          question_type?: string
+          subtitle?: string | null
+          updated_at?: string
+        }
+        Update: {
+          allow_skip_after_seconds?: number | null
+          created_at?: string
+          funnel_id?: string
+          id?: string
+          lock_until_media_ends?: boolean
+          media_caption?: string | null
+          media_type?: string | null
+          media_url?: string | null
+          options?: Json
+          position?: number
+          question_text?: string
+          question_type?: string
+          subtitle?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deep_funnel_questions_funnel_id_fkey"
+            columns: ["funnel_id"]
+            isOneToOne: false
+            referencedRelation: "deep_funnels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deep_funnels: {
+        Row: {
+          allow_skip_after_seconds: number
+          briefing: Json
+          created_at: string
+          id: string
+          is_published: boolean
+          lock_until_media_ends: boolean
+          name: string
+          published_at: string | null
+          result_intro: string | null
+          slug: string
+          tenant_id: string
+          updated_at: string
+          welcome_media_caption: string | null
+          welcome_media_type: string | null
+          welcome_media_url: string | null
+          welcome_text: string | null
+        }
+        Insert: {
+          allow_skip_after_seconds?: number
+          briefing?: Json
+          created_at?: string
+          id?: string
+          is_published?: boolean
+          lock_until_media_ends?: boolean
+          name: string
+          published_at?: string | null
+          result_intro?: string | null
+          slug: string
+          tenant_id: string
+          updated_at?: string
+          welcome_media_caption?: string | null
+          welcome_media_type?: string | null
+          welcome_media_url?: string | null
+          welcome_text?: string | null
+        }
+        Update: {
+          allow_skip_after_seconds?: number
+          briefing?: Json
+          created_at?: string
+          id?: string
+          is_published?: boolean
+          lock_until_media_ends?: boolean
+          name?: string
+          published_at?: string | null
+          result_intro?: string | null
+          slug?: string
+          tenant_id?: string
+          updated_at?: string
+          welcome_media_caption?: string | null
+          welcome_media_type?: string | null
+          welcome_media_url?: string | null
+          welcome_text?: string | null
+        }
+        Relationships: []
+      }
       diagnostics: {
         Row: {
           ai_summary: string | null
@@ -948,6 +1200,51 @@ export type Database = {
         }
         Relationships: []
       }
+      tenant_addons: {
+        Row: {
+          activated_at: string
+          addon_slug: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          purchase_type: string
+          status: string
+          stripe_checkout_session_id: string | null
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          activated_at?: string
+          addon_slug: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          purchase_type?: string
+          status?: string
+          stripe_checkout_session_id?: string | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          activated_at?: string
+          addon_slug?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          purchase_type?: string
+          status?: string
+          stripe_checkout_session_id?: string | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       tenants: {
         Row: {
           created_at: string
@@ -959,6 +1256,7 @@ export type Database = {
           slug: string
           status: string
           updated_at: string
+          whatsapp_number: string | null
         }
         Insert: {
           created_at?: string
@@ -970,6 +1268,7 @@ export type Database = {
           slug: string
           status?: string
           updated_at?: string
+          whatsapp_number?: string | null
         }
         Update: {
           created_at?: string
@@ -981,6 +1280,7 @@ export type Database = {
           slug?: string
           status?: string
           updated_at?: string
+          whatsapp_number?: string | null
         }
         Relationships: []
       }
@@ -1101,6 +1401,10 @@ export type Database = {
       get_tenant_analytics: {
         Args: { _days?: number; _tenant_id: string }
         Returns: Json
+      }
+      has_addon: {
+        Args: { _addon_slug: string; _tenant_id: string }
+        Returns: boolean
       }
       has_role: {
         Args: {
