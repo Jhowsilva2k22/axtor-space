@@ -24,6 +24,7 @@ import RedirectCampaign from "./pages/RedirectCampaign.tsx";
 import Landing from "./pages/Landing.tsx";
 import Signup from "./pages/Signup.tsx";
 import Unsubscribe from "./pages/Unsubscribe.tsx";
+import ResetSession from "./pages/ResetSession.tsx";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +54,7 @@ const App = () => (
             <Route path="/admin/improvements" element={<AdminImprovements />} />
             <Route path="/admin/invites" element={<AdminInvites />} />
             <Route path="/unsubscribe" element={<Unsubscribe />} />
+            <Route path="/reset" element={<ResetSession />} />
             <Route path="/r/:slug" element={<RedirectCampaign />} />
             {/* Path-based público: axtor.space/:slug → bio do tenant */}
             <Route path="/:slug" element={<Bio />} />
