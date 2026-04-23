@@ -346,6 +346,42 @@ export default function DeepDiagnosticEditor() {
                     onChange={(e) => setFunnel({ ...funnel, allow_skip_after_seconds: parseInt(e.target.value) || 0 })}
                   />
                 </div>
+
+                <div className="rounded-md border border-primary/30 bg-primary/5 p-3 space-y-3">
+                  <p className="text-xs font-medium uppercase tracking-wider text-primary">Tela de obrigado (fallback global)</p>
+                  <p className="text-xs text-muted-foreground">Usado quando um produto não tem tela de obrigado própria.</p>
+                  <div>
+                    <Label>Texto</Label>
+                    <Textarea
+                      placeholder="Ex: Compra confirmada! Em alguns minutos você recebe o acesso por e-mail."
+                      value={funnel.thankyou_text ?? ""}
+                      onChange={(e) => setFunnel({ ...funnel, thankyou_text: e.target.value })}
+                      rows={3}
+                    />
+                  </div>
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <div>
+                      <Label>Mídia (URL)</Label>
+                      <Input
+                        value={funnel.thankyou_media_url ?? ""}
+                        onChange={(e) => setFunnel({ ...funnel, thankyou_media_url: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <Label>Tipo</Label>
+                      <select
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                        value={funnel.thankyou_media_type ?? ""}
+                        onChange={(e) => setFunnel({ ...funnel, thankyou_media_type: e.target.value })}
+                      >
+                        <option value="">Sem mídia</option>
+                        <option value="image">Imagem</option>
+                        <option value="video">Vídeo</option>
+                        <option value="audio">Áudio</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
               </div>
             </Card>
 
