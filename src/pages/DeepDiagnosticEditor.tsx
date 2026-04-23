@@ -16,21 +16,21 @@ import { motion, AnimatePresence } from "framer-motion";
 type Step = "list" | "briefing" | "generating" | "review";
 
 const BRIEFING_FIELDS = [
-  { key: "business_name", label: "Nome do seu negócio/marca", placeholder: "Ex: Stefany Mello Consultoria" },
-  { key: "niche", label: "Nicho específico", placeholder: "Ex: Coach financeiro pra mães empreendedoras" },
-  { key: "ideal_client", label: "Quem é seu cliente ideal? (perfil, idade, momento)", placeholder: "Ex: Mulheres 30-45, donas de pequeno negócio, faturando até 30k/mês" },
-  { key: "main_pain", label: "Qual a maior dor que você resolve?", placeholder: "Ex: Caos financeiro pessoal sufocando o negócio" },
-  { key: "transformation", label: "Que transformação você entrega?", placeholder: "Ex: De 0 organização para sistema financeiro automatizado em 60 dias" },
+  { key: "business_name", label: "Nome do seu negócio/marca", placeholder: "Ex: Sua Marca Consultoria" },
+  { key: "niche", label: "Nicho específico", placeholder: "Ex: Mentoria pra um público específico que você atende" },
+  { key: "ideal_client", label: "Quem é seu cliente ideal? (perfil, idade, momento)", placeholder: "Ex: Faixa etária, profissão, momento de vida e faturamento médio" },
+  { key: "main_pain", label: "Qual a maior dor que você resolve?", placeholder: "Ex: A principal frustração que seu cliente sente hoje" },
+  { key: "transformation", label: "Que transformação você entrega?", placeholder: "Ex: De [estado atual] para [estado desejado] em [prazo]" },
   { key: "tone_of_voice", label: "Tom de voz (3-5 adjetivos)", placeholder: "Ex: Direto, acolhedor, sem floreio, prático" },
   { key: "objections", label: "Top 3 objeções que você mais escuta", placeholder: "Ex: Não tenho tempo / Já tentei e não deu certo / É caro" },
-  { key: "best_offer", label: "Sua oferta principal hoje (preço médio)", placeholder: "Ex: Mentoria 3 meses, R$ 3.500" },
+  { key: "best_offer", label: "Sua oferta principal hoje (preço médio)", placeholder: "Ex: Nome do produto/serviço + duração + faixa de preço" },
   { key: "channels", label: "Por onde vendem hoje?", placeholder: "Ex: Instagram + WhatsApp + indicação" },
-  { key: "competitors", label: "2-3 concorrentes que você admira", placeholder: "Ex: @fulano, @beltrano" },
-  { key: "differentials", label: "O que te torna diferente?", placeholder: "Ex: Único método com IA + planilha pessoal" },
-  { key: "results", label: "Maior resultado que entregou", placeholder: "Ex: Cliente saiu de R$ 5k para R$ 80k em 6 meses" },
-  { key: "format", label: "Formato preferido de entrega", placeholder: "Ex: 1:1 + grupo + acesso ao app" },
-  { key: "ai_use", label: "Você já usa IA no seu negócio? Como?", placeholder: "Ex: Uso ChatGPT pra roteiro de reels" },
-  { key: "goal_3_months", label: "Sua meta nos próximos 3 meses", placeholder: "Ex: Bater R$ 100k/mês" },
+  { key: "competitors", label: "2-3 concorrentes que você admira", placeholder: "Ex: @perfil1, @perfil2" },
+  { key: "differentials", label: "O que te torna diferente?", placeholder: "Ex: Método, ferramenta ou abordagem que só você tem" },
+  { key: "results", label: "Maior resultado que entregou", placeholder: "Ex: Resultado concreto e mensurável de um cliente real" },
+  { key: "format", label: "Formato preferido de entrega", placeholder: "Ex: 1:1, grupo, app, presencial — combine como preferir" },
+  { key: "ai_use", label: "Você já usa IA no seu negócio? Como?", placeholder: "Ex: Pra roteiros, atendimento, planejamento — ou ainda não uso" },
+  { key: "goal_3_months", label: "Sua meta nos próximos 3 meses", placeholder: "Ex: Faturamento, número de clientes ou marco que quer bater" },
 ];
 
 export default function DeepDiagnosticEditor() {
