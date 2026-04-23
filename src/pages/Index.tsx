@@ -707,12 +707,6 @@ const ResultStep = ({ data, onRestart, partnerCtas }: { data: DiagnosisData; onR
                 {bioLabel} <ArrowRight className="h-4 w-4" />
               </a>
             )}
-            <Link
-              to="/bio#blocks"
-              className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-sm border border-gold bg-card/40 px-5 text-xs font-semibold uppercase tracking-[0.15em] text-primary transition-all hover:bg-gradient-gold-soft sm:text-sm"
-            >
-              Quero um link-in-bio assim <Crown className="h-4 w-4" />
-            </Link>
             {secondaryCta && (
               <a
                 href={secondaryCta.url}
