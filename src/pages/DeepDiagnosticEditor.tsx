@@ -461,7 +461,7 @@ export default function DeepDiagnosticEditor() {
                 <Sparkles className="h-4 w-4" /> Publicar funil
               </Button>
             </div>
-          </div>
+          </motion.div>
         )}
       </div>
     </div>
