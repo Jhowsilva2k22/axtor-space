@@ -1009,7 +1009,7 @@ const BlockEditor = ({
         </div>
       </div>
 
-      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+      <div className="mt-3 grid gap-2.5 sm:grid-cols-2">
         <Field label="Tipo">
           <Select
             value={block.kind}
@@ -1018,7 +1018,7 @@ const BlockEditor = ({
               onChange({ kind: v, icon: block.icon || k?.icon || "Link2" });
             }}
           >
-            <SelectTrigger className="h-10 rounded-sm border-gold bg-input"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-9 rounded-sm border-gold bg-input"><SelectValue /></SelectTrigger>
             <SelectContent>
               {KINDS.map((k) => <SelectItem key={k.v} value={k.v}>{k.l}</SelectItem>)}
             </SelectContent>
@@ -1036,7 +1036,7 @@ const BlockEditor = ({
           />
         </Field>
         <Field label="Label">
-          <Input value={block.label} onChange={(e) => onChange({ label: e.target.value })} className="h-10 rounded-sm border-gold bg-input" />
+          <Input value={block.label} onChange={(e) => onChange({ label: e.target.value })} className="h-9 rounded-sm border-gold bg-input" />
         </Field>
         <Field label="Badge (opcional)">
           <Combobox
@@ -1048,8 +1048,8 @@ const BlockEditor = ({
           />
           {block.badge && (
             <div className="mt-2 inline-flex items-center gap-2 rounded-sm border border-gold/40 bg-card/40 px-2 py-1">
-              <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">prévia:</span>
-              <span className="rounded-sm border border-gold bg-background/40 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.2em] text-primary">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">prévia:</span>
+              <span className="rounded-sm border border-gold bg-background/40 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">
                 {block.badge}
               </span>
             </div>
@@ -1060,7 +1060,7 @@ const BlockEditor = ({
             value={block.category_id ?? "__none__"}
             onValueChange={(v) => onChange({ category_id: v === "__none__" ? null : v })}
           >
-            <SelectTrigger className="h-10 rounded-sm border-gold bg-input"><SelectValue placeholder="Sem categoria" /></SelectTrigger>
+            <SelectTrigger className="h-9 rounded-sm border-gold bg-input"><SelectValue placeholder="Sem categoria" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="__none__">Sem categoria</SelectItem>
               {categories.filter((c) => c.is_active).map((c) => (
@@ -1068,7 +1068,7 @@ const BlockEditor = ({
               ))}
             </SelectContent>
           </Select>
-          <p className="mt-1 text-[10px] text-muted-foreground">
+          <p className="mt-1 text-[11px] text-muted-foreground">
             Não está aqui?{" "}
             <a href="#categorias" className="text-primary underline-offset-2 hover:underline">
               Gerencie a lista no card Categorias
@@ -1077,23 +1077,23 @@ const BlockEditor = ({
           </p>
         </Field>
         <Field label="URL" full>
-          <Input value={block.url} onChange={(e) => onChange({ url: e.target.value })} placeholder="https:// ou /rota interna" className="h-10 rounded-sm border-gold bg-input" />
+          <Input value={block.url} onChange={(e) => onChange({ url: e.target.value })} placeholder="https:// ou /rota interna" className="h-9 rounded-sm border-gold bg-input" />
         </Field>
         <Field label="Descrição (opcional)" full>
-          <Input value={block.description ?? ""} onChange={(e) => onChange({ description: e.target.value })} className="h-10 rounded-sm border-gold bg-input" />
+          <Input value={block.description ?? ""} onChange={(e) => onChange({ description: e.target.value })} className="h-9 rounded-sm border-gold bg-input" />
         </Field>
       </div>
 
-      <div className="mt-4 flex justify-between">
+      <div className="mt-3 flex justify-between">
         <div className="flex items-center gap-2">
-          <button onClick={onDelete} className="inline-flex h-10 items-center gap-2 rounded-sm border border-destructive/40 px-4 text-[10px] uppercase tracking-[0.2em] text-destructive hover:bg-destructive/10">
+          <button onClick={onDelete} className="inline-flex h-9 items-center gap-2 rounded-sm border border-destructive/40 px-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-destructive hover:bg-destructive/10">
             <Trash2 className="h-3.5 w-3.5" /> Excluir
           </button>
-          <button onClick={onDuplicate} className="inline-flex h-10 items-center gap-2 rounded-sm border border-gold/40 px-4 text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:border-gold hover:text-primary">
+          <button onClick={onDuplicate} className="inline-flex h-9 items-center gap-2 rounded-sm border border-gold/40 px-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground hover:border-gold hover:text-primary">
             <Copy className="h-3.5 w-3.5" /> Duplicar
           </button>
         </div>
-        <Button onClick={onSave} className="btn-luxe h-10 rounded-sm px-5 text-[10px] uppercase tracking-[0.2em]">
+        <Button onClick={onSave} className="btn-luxe h-9 rounded-sm px-5 text-[11px] font-semibold uppercase tracking-[0.18em]">
           <Save className="h-3.5 w-3.5" /> Salvar bloco
         </Button>
       </div>
