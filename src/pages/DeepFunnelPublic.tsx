@@ -110,26 +110,35 @@ export default function DeepFunnelPublic() {
     }
   };
 
-  const whatsappUrl = useMemo(() => {
-    if (!result?.product || !tenant?.whatsapp_number) return null;
-    const tpl: string = result.product.whatsapp_template ?? "Olá!";
+  // Helpers per-produto (suportam result.products array, com fallback pro result.product antigo)
+  const productList: any[] = useMemo(() => {
+    if (Array.isArray(result?.products) && result.products.length > 0) return result.products;
+    if (result?.product) return [result.product];
+    return [];
+  }, [result]);
+
+  const buildWhatsappUrl = (product: any) => {
+    if (!product || !tenant?.whatsapp_number) return null;
+    const tpl: string = product.whatsapp_template ?? "Olá!";
     const msg = tpl.replace(/\{\{nome\}\}/gi, lead.name || "");
     const number = (tenant.whatsapp_number ?? "").replace(/\D/g, "");
     if (!number) return null;
     return `https://wa.me/${number}?text=${encodeURIComponent(msg)}`;
-  }, [result, tenant, lead]);
+  };
 
-  const checkoutUrl = useMemo(() => {
-    if (!result?.product?.checkout_url) return null;
-    const url = new URL(result.product.checkout_url);
-    if (lead.email) url.searchParams.set("email", lead.email);
-    if (lead.name) url.searchParams.set("name", lead.name);
-    if (lead.phone) url.searchParams.set("phone", lead.phone);
-    if (result.diagnostic_id) url.searchParams.set("diag", result.diagnostic_id);
-    return url.toString();
-  }, [result, lead]);
-
-  const ctaMode: "whatsapp" | "checkout" | "both" = result?.product?.cta_mode ?? "whatsapp";
+  const buildCheckoutUrl = (product: any) => {
+    if (!product?.checkout_url) return null;
+    try {
+      const url = new URL(product.checkout_url);
+      if (lead.email) url.searchParams.set("email", lead.email);
+      if (lead.name) url.searchParams.set("name", lead.name);
+      if (lead.phone) url.searchParams.set("phone", lead.phone);
+      if (result?.diagnostic_id) url.searchParams.set("diag", result.diagnostic_id);
+      return url.toString();
+    } catch {
+      return product.checkout_url;
+    }
+  };
 
   if (loading) return <div className="flex min-h-screen items-center justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>;
   if (!funnel) return <div className="flex min-h-screen items-center justify-center"><p className="text-muted-foreground">Funil não encontrado.</p></div>;
