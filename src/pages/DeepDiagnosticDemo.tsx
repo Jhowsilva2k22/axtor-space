@@ -6,6 +6,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Sparkles, CheckCircle2, MessageCircle, Lock } from "lucide-react";
 import { trackFunnel } from "@/lib/analytics";
 import { useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 type DemoQuestion = {
   text: string;
@@ -116,9 +117,9 @@ export default function DeepDiagnosticDemo() {
     const next = { ...answers, [current]: pain };
     setAnswers(next);
     if (current < DEMO_QUESTIONS.length - 1) {
-      setTimeout(() => setCurrent(current + 1), 200);
+      setTimeout(() => setCurrent(current + 1), 280);
     } else {
-      setStep("result");
+      setTimeout(() => setStep("result"), 280);
     }
   };
 
@@ -137,6 +138,7 @@ export default function DeepDiagnosticDemo() {
         </div>
 
         {step === "intro" && (
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
           <Card className="space-y-6 p-8">
             <div className="space-y-3">
               <h1 className="font-display text-3xl tracking-tight md:text-4xl">
@@ -152,17 +154,24 @@ export default function DeepDiagnosticDemo() {
                 { t: "8 perguntas", d: "menos de 2 minutos" },
                 { t: "IA detecta dor", d: "5 categorias" },
                 { t: "Match de produto", d: "WhatsApp pronto" },
-              ].map((b) => (
-                <div key={b.t} className="rounded-md border border-border/60 p-3">
+              ].map((b, i) => (
+                <motion.div
+                  key={b.t}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.15 + i * 0.08, duration: 0.35 }}
+                  className="rounded-md border border-border/60 p-3"
+                >
                   <p className="text-sm font-medium">{b.t}</p>
                   <p className="text-xs text-muted-foreground">{b.d}</p>
-                </div>
+                </motion.div>
               ))}
             </div>
-            <Button size="lg" className="w-full gap-2" onClick={() => setStep("quiz")}>
+            <Button size="lg" className="w-full gap-2 transition-transform hover:scale-[1.01]" onClick={() => setStep("quiz")}>
               Começar a demo <ArrowRight className="h-4 w-4" />
             </Button>
           </Card>
+          </motion.div>
         )}
 
         {step === "quiz" && (
