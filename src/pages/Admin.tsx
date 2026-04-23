@@ -941,7 +941,7 @@ const BlockEditor = ({
     <div
       ref={setNodeRef}
       style={style}
-      className={`rounded-sm border p-5 transition-all ${
+      className={`rounded-sm border p-4 transition-all ${
         hasDraft
           ? "border-yellow-500/70 bg-yellow-500/[0.04]"
           : block.is_active
@@ -1009,7 +1009,7 @@ const BlockEditor = ({
         </div>
       </div>
 
-      <div className="mt-4 grid gap-3 md:grid-cols-2">
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
         <Field label="Tipo">
           <Select
             value={block.kind}
@@ -1018,7 +1018,7 @@ const BlockEditor = ({
               onChange({ kind: v, icon: block.icon || k?.icon || "Link2" });
             }}
           >
-            <SelectTrigger className="h-11 rounded-sm border-gold bg-input"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-10 rounded-sm border-gold bg-input"><SelectValue /></SelectTrigger>
             <SelectContent>
               {KINDS.map((k) => <SelectItem key={k.v} value={k.v}>{k.l}</SelectItem>)}
             </SelectContent>
@@ -1036,7 +1036,7 @@ const BlockEditor = ({
           />
         </Field>
         <Field label="Label">
-          <Input value={block.label} onChange={(e) => onChange({ label: e.target.value })} className="h-11 rounded-sm border-gold bg-input" />
+          <Input value={block.label} onChange={(e) => onChange({ label: e.target.value })} className="h-10 rounded-sm border-gold bg-input" />
         </Field>
         <Field label="Badge (opcional)">
           <Combobox
@@ -1060,7 +1060,7 @@ const BlockEditor = ({
             value={block.category_id ?? "__none__"}
             onValueChange={(v) => onChange({ category_id: v === "__none__" ? null : v })}
           >
-            <SelectTrigger className="h-11 rounded-sm border-gold bg-input"><SelectValue placeholder="Sem categoria" /></SelectTrigger>
+            <SelectTrigger className="h-10 rounded-sm border-gold bg-input"><SelectValue placeholder="Sem categoria" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="__none__">Sem categoria</SelectItem>
               {categories.filter((c) => c.is_active).map((c) => (
@@ -1077,14 +1077,14 @@ const BlockEditor = ({
           </p>
         </Field>
         <Field label="URL" full>
-          <Input value={block.url} onChange={(e) => onChange({ url: e.target.value })} placeholder="https:// ou /rota interna" className="h-11 rounded-sm border-gold bg-input" />
+          <Input value={block.url} onChange={(e) => onChange({ url: e.target.value })} placeholder="https:// ou /rota interna" className="h-10 rounded-sm border-gold bg-input" />
         </Field>
         <Field label="Descrição (opcional)" full>
-          <Input value={block.description ?? ""} onChange={(e) => onChange({ description: e.target.value })} className="h-11 rounded-sm border-gold bg-input" />
+          <Input value={block.description ?? ""} onChange={(e) => onChange({ description: e.target.value })} className="h-10 rounded-sm border-gold bg-input" />
         </Field>
       </div>
 
-      <div className="mt-5 flex justify-between">
+      <div className="mt-4 flex justify-between">
         <div className="flex items-center gap-2">
           <button onClick={onDelete} className="inline-flex h-10 items-center gap-2 rounded-sm border border-destructive/40 px-4 text-[10px] uppercase tracking-[0.2em] text-destructive hover:bg-destructive/10">
             <Trash2 className="h-3.5 w-3.5" /> Excluir
