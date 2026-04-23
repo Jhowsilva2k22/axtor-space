@@ -45,6 +45,9 @@ export default function DeepDiagnosticEditor() {
   const { hasAddon, funnels, loading, refresh, tenantId } = useDeepDiagnostic();
   const [step, setStep] = useState<Step>("list");
   const [briefing, setBriefing] = useState<Record<string, string>>({});
+  const [briefingProducts, setBriefingProducts] = useState<BriefingProduct[]>([
+    { name: "", description: "", price_hint: "", link: "" },
+  ]);
   const [generating, setGenerating] = useState(false);
   const [activeFunnelId, setActiveFunnelId] = useState<string | null>(null);
   const [questions, setQuestions] = useState<any[]>([]);
