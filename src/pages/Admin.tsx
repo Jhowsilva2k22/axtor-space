@@ -29,6 +29,7 @@ import { BlockMetricsBadge } from "@/components/BlockMetricsBadge";
 import { CampaignManager } from "@/components/CampaignManager";
 import { CategoriesManager, type Category } from "@/components/CategoriesManager";
 import { compressImage } from "@/lib/imageCompress";
+import ImageCropDialog from "@/components/ImageCropDialog";
 import { Combobox } from "@/components/Combobox";
 import { TenantSelector } from "@/components/TenantSelector";
 import { OnboardingChecklist } from "@/components/OnboardingChecklist";
