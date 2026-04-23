@@ -1,63 +1,70 @@
 
 
-## Email definitivo no Axtor — sem precisar de NS no Hostinger
+## Próximo passo no Cloudflare — adicionar os 3 registros do Lovable
 
-### Diagnóstico rápido
+Você tá na tela "Confirmar registros escaneados". O Cloudflare já importou tudo do Hostinger (site, MX, SPF, DMARC, hostingermail) — perfeito, **não mexe em nada disso**, só clica em **"Continuar para a ativação"**.
 
-Hostinger **suporta** registros NS em subdomínio (painel: hPanel → Domínios → DNS / Nameservers → "Adicionar registro" → tipo NS). Mas se a interface deles não tá deixando você criar, ou se você prefere não mexer com NS, existe um caminho alternativo que usa só registros que o Hostinger garantidamente aceita: **A, CNAME, TXT, MX**.
+Depois disso o Cloudflare vai te mostrar os **2 nameservers** dele (algo tipo `xxxx.ns.cloudflare.com` + `yyyy.ns.cloudflare.com`). É aí que você pausa e vai no Hostinger trocar.
 
-### Solução: usar `mail.axtor.space` com setup automático do Lovable
+### Sequência completa daqui pra frente
 
-O Lovable Emails tem um modo de provisionamento que detecta se o NS não pode ser delegado e cai automaticamente pra **registros DNS individuais** (SPF, DKIM, DMARC, MX, CNAME) — todos tipos que o Hostinger aceita 100%. Você adiciona ~5 linhas no painel DNS do Hostinger e pronto.
+**1. Agora (Cloudflare)**
+- Clica **"Continuar para a ativação"** (botão azul embaixo)
+- Copia os 2 nameservers que aparecerem na próxima tela
 
-### Como vai funcionar
+**2. Hostinger — trocar nameservers**
+- hPanel → Domínios → `axtor.space` → seção **"Nameservers"** (ou "Alterar nameservers")
+- Marca **"Usar nameservers personalizados"**
+- Cola os 2 do Cloudflare
+- Salvar
+
+**3. Voltar no Cloudflare**
+- Clicar **"Concluído, verificar nameservers"**
+- Esperar status virar **"Ativo"** (5min a 24h, geralmente <2h)
+
+**4. Cloudflare — adicionar os 3 registros do Lovable**
+
+Quando estiver ativo, vai em **DNS → Registros → Adicionar registro** e cria os 3 que o diálogo do Lovable mostrou:
+
+| Tipo | Nome | Conteúdo | Proxy |
+|------|------|----------|-------|
+| TXT  | `_lova...` (nome exato do diálogo) | `lovable_email_verify=...` (valor exato) | DNS only (nuvem cinza) |
+| NS   | `notify` | `ns3.lovable.cloud` | (NS não tem proxy) |
+| NS   | `notify` | `ns4.lovable.cloud` | (NS não tem proxy) |
+
+**Importante:** o registro TXT precisa ficar **DNS only** (nuvem cinza, não laranja). Os NS o Cloudflare configura automático sem proxy.
+
+**5. Verificar no Lovable**
+- Abre o diálogo de email no Lovable → clica **"Verificar"**
+- Status vira **active** em ~5min (DNS no Cloudflare propaga rápido)
+
+**6. Me avisar**
+- Quando ficar verde no Lovable, eu finalizo:
+  - Provisiono infra de envio (queue, cron, suppression, unsubscribe tokens)
+  - Redeployo `auth-email-hook` e `send-transactional-email` apontando pro `notify.axtor.space`
+  - Teste ponta a ponta: signup → recovery → invite tester → invite partner
+
+### O que NÃO mexer no Cloudflare agora
+- Nenhum dos registros que aparecem na sua tela (são do Hostinger, vão continuar funcionando)
+- Não precisa desativar proxy de nada que já tá lá
+- Site `axtor.space` continua no Hostinger sem mudança
+
+### Resumo visual
 
 ```
-axtor.space          → Hostinger (site, fica como tá)
-notify.axtor.space   → Lovable (envio de emails do app)
-                       via registros A/CNAME/TXT/MX, sem NS
+AGORA → Continuar para ativação (Cloudflare)
+  ↓
+Hostinger → trocar nameservers pros do Cloudflare
+  ↓
+Esperar Cloudflare ficar "Ativo" (até 24h)
+  ↓
+Cloudflare → adicionar 3 registros (TXT + 2 NS pro notify)
+  ↓
+Lovable → clicar Verificar → vira "active"
+  ↓
+Me avisar → eu finalizo tudo
+
 ```
 
-Sender final: `Axtor <noreply@notify.axtor.space>`
-
-### Passos (após sua aprovação)
-
-1. **Eu abro o diálogo de configuração de email** — você escolhe `axtor.space`, subdomínio `notify`
-2. **Lovable detecta o cenário e te dá a lista de registros DNS específicos** (não NS) — algo como:
-   - `notify.axtor.space` MX → mxa.lovable.cloud (prio 10)
-   - `notify.axtor.space` TXT → "v=spf1 include:..."
-   - `lovable._domainkey.notify.axtor.space` TXT → "v=DKIM1; k=rsa; p=..."
-   - `_dmarc.notify.axtor.space` TXT → "v=DMARC1; p=none;..."
-   - `notify.axtor.space` CNAME → tracking.lovable.cloud (opcional)
-3. **Você adiciona esses registros no Hostinger** (todos são tipos que o painel aceita: MX/TXT/CNAME)
-4. **Lovable verifica DNS automaticamente** (~1h, máximo 72h)
-5. **Eu provisiono toda a infra de envio** (queue pgmq, cron, suppression list, unsubscribe tokens) — automático
-6. **Eu redeployo** `auth-email-hook` e `send-transactional-email` apontando pro `notify.axtor.space`
-7. **Teste ponta a ponta**: signup → recovery → invite tester → invite partner
-
-### O que continua igual
-- Templates PT-BR gold-noir já existentes (não toco neles)
-- Site `axtor.space` no Hostinger (não muda nada)
-- Custom domain do app (`axtor.space` → Lovable) continua igual
-
-### O que muda
-- Você adiciona ~5 registros DNS no painel do Hostinger (tipos MX/TXT/CNAME, todos suportados)
-- Sender de email passa pra `notify.axtor.space`
-
-### Por que isso vai funcionar mesmo
-
-- Hostinger **sempre** aceita MX/TXT/CNAME (são os tipos básicos do DNS)
-- Não precisamos delegar zona inteira (que era o caso do NS)
-- Lovable cuida de SPF/DKIM/DMARC corretos pra deliverability
-- Reputação do `axtor.space` (raiz) fica isolada do tráfego transacional
-
-### Plano B (caso o setup automático ainda peça NS)
-
-Se mesmo nesse modo o Lovable insistir em NS, o caminho oficial passa a ser:
-- Trocar pro **subdomínio `mail.` ou `send.`** (às vezes resolve)
-- Ou usar um **provedor DNS externo gratuito** (Cloudflare grátis) só pro subdomínio `notify` — nesse caso você adiciona 2 NS no Hostinger apontando pro Cloudflare, e o Cloudflare aceita os NS do Lovable. Mais passos, mas funciona 100%.
-
-### Decisão necessária
-
-Confirma que quer que eu **abra o diálogo de configuração de email** com setup automático (sem NS, só registros DNS comuns)? Se sim, na próxima resposta apresento o botão e a lista exata de registros pra você colar no Hostinger.
+Bora — clica em **"Continuar para a ativação"** e me manda print da próxima tela com os 2 nameservers do Cloudflare.
 
