@@ -105,7 +105,7 @@ Deno.serve(async (req) => {
 
     const { data: products } = await admin
       .from("deep_funnel_products")
-      .select("id, name, description, pain_tag, price_hint, whatsapp_template, checkout_url, cta_mode, result_media_url, result_media_type")
+      .select("id, name, description, pain_tag, price_hint, whatsapp_template, checkout_url, cta_mode, result_media_url, result_media_type, who_for, how_it_works, benefits, urgency_text, cta_label, cta_secondary_label")
       .eq("funnel_id", funnel_id);
 
     if (!products || products.length === 0) {
@@ -116,6 +116,22 @@ Deno.serve(async (req) => {
     }
 
     const dominantPain = pickDominantPain(pain_scores);
+
+    // Helper: força que o nome no veredicto seja o lead_name real (ou remove vocativo se vazio)
+    const enforceLeadName = (text: string): string => {
+      if (!text) return text;
+      const cleanName = (lead_name ?? "").toString().trim();
+      const firstName = cleanName.split(/\s+/)[0] ?? "";
+      // Se temos nome real, troca qualquer vocativo "Nome," no início pelo nome correto
+      if (firstName) {
+        return text.replace(/^([A-Za-zÀ-ÿ]{2,30})\s*,/, (_m, p1) => {
+          if (p1.toLowerCase() === firstName.toLowerCase()) return `${firstName},`;
+          return `${firstName},`;
+        });
+      }
+      // Sem nome → remove vocativo inicial "Nome," ou "Nome:" (se IA inventar)
+      return text.replace(/^[A-Za-zÀ-ÿ]{2,30}\s*[,:]\s*/, "");
+    };
 
     const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
