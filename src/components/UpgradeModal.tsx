@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from "@/components/ui/button";
 import { Sparkles, Check, Mail } from "lucide-react";
 
-const UPGRADE_EMAIL = "contato@axtor.space";
+const UPGRADE_EMAIL = "contatojhow@icloud.com";
 const UPGRADE_WHATSAPP = "5500000000000"; // placeholder — trocar quando o usuário informar
 
 const FEATURES: Record<string, { title: string; desc: string }> = {
