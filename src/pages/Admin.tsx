@@ -565,12 +565,14 @@ const Admin = () => {
       <div className="aurora-a" />
       <div className="aurora-b" />
       <header className="sticky top-0 z-30 border-b border-gold/30 bg-background/80 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-          <div>
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 md:px-6">
+          <div className="min-w-0">
             <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">painel</p>
             <h1 className="font-display text-2xl">Admin</h1>
           </div>
-          <div className="flex items-center gap-2">
+
+          {/* Desktop nav (lg+) */}
+          <div className="hidden lg:flex items-center gap-2 flex-wrap justify-end">
             {totalDrafts > 0 && (
               <span className="inline-flex h-9 items-center gap-1.5 rounded-sm border border-amber-500/60 bg-amber-500/10 px-3 text-[10px] uppercase tracking-[0.2em] text-amber-500">
                 <FileEdit className="h-3 w-3" />
@@ -634,6 +636,103 @@ const Admin = () => {
             <button onClick={signOut} className="inline-flex h-10 items-center gap-2 rounded-sm border border-border bg-card/40 px-4 text-[11px] uppercase tracking-[0.2em] text-muted-foreground hover:text-primary">
               Sair <LogOut className="h-3.5 w-3.5" />
             </button>
+          </div>
+
+          {/* Mobile / tablet: badge de rascunhos + theme + hamburger */}
+          <div className="flex lg:hidden items-center gap-2">
+            {totalDrafts > 0 && (
+              <span className="inline-flex h-9 items-center gap-1.5 rounded-sm border border-amber-500/60 bg-amber-500/10 px-2 text-[10px] uppercase tracking-[0.2em] text-amber-500">
+                <FileEdit className="h-3 w-3" />
+                {totalDrafts}
+              </span>
+            )}
+            <ThemeToggle />
+            <Sheet>
+              <SheetTrigger asChild>
+                <button
+                  type="button"
+                  aria-label="Abrir menu"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-sm border border-gold bg-card/40 text-primary transition-all hover:bg-gradient-gold-soft"
+                >
+                  <Menu className="h-4 w-4" />
+                </button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[88vw] max-w-sm border-l border-gold/30 bg-background/95 backdrop-blur">
+                <SheetHeader>
+                  <SheetTitle className="font-display text-xl">Menu</SheetTitle>
+                </SheetHeader>
+                <div className="mt-6 flex flex-col gap-3">
+                  <div className="pb-2">
+                    <TenantSelector />
+                  </div>
+
+                  {plan.canUseThemes ? (
+                    <Link to="/admin/templates" className="inline-flex h-11 items-center justify-between gap-2 rounded-sm border border-gold bg-card/40 px-4 text-[11px] uppercase tracking-[0.2em] text-primary transition-all hover:bg-gradient-gold-soft">
+                      <span>Templates</span> <Palette className="h-3.5 w-3.5" />
+                    </Link>
+                  ) : (
+                    <UpgradeModal feature="themes">
+                      <button type="button" className="inline-flex h-11 items-center justify-between gap-2 rounded-sm border border-gold/30 bg-card/20 px-4 text-[11px] uppercase tracking-[0.2em] text-muted-foreground/60 transition-all hover:border-gold hover:text-primary">
+                        <span>Templates</span> <Lock className="h-3 w-3" />
+                      </button>
+                    </UpgradeModal>
+                  )}
+
+                  {plan.canUseAnalytics ? (
+                    <Link to="/admin/analytics" className="inline-flex h-11 items-center justify-between gap-2 rounded-sm border border-gold bg-card/40 px-4 text-[11px] uppercase tracking-[0.2em] text-primary transition-all hover:bg-gradient-gold-soft">
+                      <span>Analytics</span> <BarChart3 className="h-3.5 w-3.5" />
+                    </Link>
+                  ) : (
+                    <UpgradeModal feature="analytics">
+                      <button type="button" className="inline-flex h-11 items-center justify-between gap-2 rounded-sm border border-gold/30 bg-card/20 px-4 text-[11px] uppercase tracking-[0.2em] text-muted-foreground/60 transition-all hover:border-gold hover:text-primary">
+                        <span>Analytics</span> <Lock className="h-3 w-3" />
+                      </button>
+                    </UpgradeModal>
+                  )}
+
+                  {plan.canUseImprovements ? (
+                    <Link to="/admin/improvements" className="inline-flex h-11 items-center justify-between gap-2 rounded-sm border border-gold bg-card/40 px-4 text-[11px] uppercase tracking-[0.2em] text-primary transition-all hover:bg-gradient-gold-soft">
+                      <span>Sugestões IA</span> <Sparkles className="h-3.5 w-3.5" />
+                    </Link>
+                  ) : (
+                    <UpgradeModal feature="improvements">
+                      <button type="button" className="inline-flex h-11 items-center justify-between gap-2 rounded-sm border border-gold/30 bg-card/20 px-4 text-[11px] uppercase tracking-[0.2em] text-muted-foreground/60 transition-all hover:border-gold hover:text-primary">
+                        <span>Sugestões IA</span> <Lock className="h-3 w-3" />
+                      </button>
+                    </UpgradeModal>
+                  )}
+
+                  {isAdmin && (
+                    <Link to="/admin/invites" className="inline-flex h-11 items-center justify-between gap-2 rounded-sm border border-gold bg-card/40 px-4 text-[11px] uppercase tracking-[0.2em] text-primary transition-all hover:bg-gradient-gold-soft">
+                      <span>Convites</span> <Gift className="h-3.5 w-3.5" />
+                    </Link>
+                  )}
+
+                  {isAdmin && (
+                    <Link to="/admin/diagnostics" className="inline-flex h-11 items-center justify-between gap-2 rounded-sm border border-border bg-card/40 px-4 text-[11px] uppercase tracking-[0.2em] text-muted-foreground transition-all hover:border-gold hover:text-primary">
+                      <span>Diagnóstico</span> <Stethoscope className="h-3.5 w-3.5" />
+                    </Link>
+                  )}
+
+                  {currentTenant && (
+                    <div className="flex justify-start">
+                      <QRCodeDialog
+                        url={`${window.location.origin}/${currentTenant.slug}`}
+                        slug={currentTenant.slug}
+                      />
+                    </div>
+                  )}
+
+                  <Link to="/bio" target="_blank" className="inline-flex h-11 items-center justify-between gap-2 rounded-sm border border-gold bg-card/40 px-4 text-[11px] uppercase tracking-[0.2em] text-primary transition-all hover:bg-gradient-gold-soft">
+                    <span>Ver bio</span> <ExternalLink className="h-3.5 w-3.5" />
+                  </Link>
+
+                  <button onClick={signOut} className="mt-2 inline-flex h-11 items-center justify-between gap-2 rounded-sm border border-border bg-card/40 px-4 text-[11px] uppercase tracking-[0.2em] text-muted-foreground hover:text-primary">
+                    <span>Sair</span> <LogOut className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </header>
