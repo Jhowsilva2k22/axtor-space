@@ -1046,7 +1046,7 @@ const Admin = () => {
             </div>
           </section>
 
-          <CategoriesManager />
+          {currentTenant && <CategoriesManager tenantId={currentTenant.id} />}
         </main>
       )}
 
