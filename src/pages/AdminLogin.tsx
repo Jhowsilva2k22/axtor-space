@@ -1,10 +1,11 @@
 import { useState, FormEvent } from "react";
 import { Navigate, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Lock, Loader2 } from "lucide-react";
+import { Lock, Loader2, RotateCcw } from "lucide-react";
 import { ThemeToggle, useAdminLockedTheme } from "@/components/ThemeToggle";
 
 const AdminLogin = () => {
@@ -14,6 +15,32 @@ const AdminLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [resetting, setResetting] = useState(false);
+
+  const resetSession = async () => {
+    setResetting(true);
+    try {
+      try {
+        await supabase.auth.signOut();
+      } catch {
+        // ignora — vamos limpar tudo manualmente
+      }
+      try {
+        Object.keys(localStorage)
+          .filter((k) => k.startsWith("sb-") || k.startsWith("supabase.") || k.startsWith("admin-tenant-id") || k.startsWith("tenant-cache-v1:"))
+          .forEach((k) => localStorage.removeItem(k));
+        Object.keys(sessionStorage)
+          .filter((k) => k.startsWith("sb-") || k.startsWith("supabase.") || k.startsWith("admin-tenant-id") || k.startsWith("tenant-cache-v1:"))
+          .forEach((k) => sessionStorage.removeItem(k));
+      } catch {
+        // noop
+      }
+      toast.success("Sessão limpa — recarregando");
+      setTimeout(() => window.location.reload(), 400);
+    } finally {
+      setResetting(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -72,6 +99,21 @@ const AdminLogin = () => {
         <p className="mt-4 text-center text-xs text-muted-foreground">
           ainda não tem conta? <Link to="/signup" className="text-primary hover:underline">criar grátis</Link>
         </p>
+
+        <div className="mt-6 border-t border-border/40 pt-4">
+          <button
+            type="button"
+            onClick={resetSession}
+            disabled={resetting}
+            className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-sm border border-border/40 bg-background/30 px-3 text-[10px] uppercase tracking-[0.25em] text-muted-foreground transition-colors hover:border-gold/40 hover:text-primary"
+          >
+            {resetting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="h-3.5 w-3.5" />}
+            reiniciar sessão
+          </button>
+          <p className="mt-2 text-center text-[9px] uppercase tracking-[0.2em] text-muted-foreground/60">
+            limpa cookies locais se travar
+          </p>
+        </div>
       </form>
     </div>
   );
