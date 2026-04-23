@@ -22,6 +22,18 @@ const proxied = (url?: string) => (url ? PROXY + encodeURIComponent(url) : "");
 
 type Step = "handle" | "lead" | "loading" | "result" | "private" | "not_found" | "blocked";
 
+type PartnerCtas = {
+  tenant_id: string;
+  slug: string;
+  display_name: string;
+  bio_url: string | null;
+  instagram_handle: string | null;
+  whatsapp_number: string | null;
+  whatsapp_message: string | null;
+  secondary_cta_label: string | null;
+  secondary_cta_url: string | null;
+};
+
 interface DiagnosisData {
   status: string;
   handle?: string;
