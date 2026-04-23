@@ -122,6 +122,7 @@ export const template = {
     inviterName: 'Joanderson Silva',
     inviterSlug: 'joanderson',
     inviterHeadline: 'Ajudo pais a se reaproximarem dos filhos com presença real.',
+    inviterAvatarUrl: 'https://bdxkcfngskagriaapepo.supabase.co/storage/v1/object/public/avatars/bio/avatar-1776840390451.jpg',
   },
 } satisfies TemplateEntry
 
