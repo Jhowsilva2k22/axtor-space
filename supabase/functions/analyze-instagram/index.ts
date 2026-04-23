@@ -227,6 +227,7 @@ Deno.serve(async (req) => {
         utm_source: utm.source ?? null,
         utm_medium: utm.medium ?? null,
         utm_campaign: utm.campaign ?? null,
+        ...(resolvedTenantId ? { tenant_id: resolvedTenantId } : {}),
       })
       .select()
       .single();
