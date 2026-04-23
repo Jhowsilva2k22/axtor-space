@@ -1029,6 +1029,27 @@ const Field = ({ label, children, full }: { label: string; children: React.React
   </div>
 );
 
+const ToggleChip = ({
+  icon, label, checked, onChange,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) => (
+  <label
+    className={`flex h-10 cursor-pointer items-center justify-between gap-2 rounded-sm border px-3 transition-colors ${
+      checked ? "border-gold/60 bg-card/60 text-primary" : "border-border bg-card/20 text-muted-foreground hover:border-gold/30"
+    }`}
+  >
+    <span className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em]">
+      {icon}
+      {label}
+    </span>
+    <Switch checked={checked} onCheckedChange={onChange} />
+  </label>
+);
+
 const BlockEditor = ({
   block, hasDraft, isPublishing, categories, onChange, onSave, onPublish, onDiscardDraft, onDelete, onDuplicate, onMoveUp, onMoveDown, isFirst, isLast,
 }: {
@@ -1238,16 +1259,8 @@ const BlockEditor = ({
         </Field>
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <button onClick={onDelete} className="inline-flex h-9 items-center gap-2 rounded-sm border border-destructive/40 px-3 sm:px-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-destructive hover:bg-destructive/10">
-            <Trash2 className="h-3.5 w-3.5" /> Excluir
-          </button>
-          <button onClick={onDuplicate} className="inline-flex h-9 items-center gap-2 rounded-sm border border-gold/40 px-3 sm:px-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground hover:border-gold hover:text-primary">
-            <Copy className="h-3.5 w-3.5" /> Duplicar
-          </button>
-        </div>
-        <Button onClick={onSave} className="btn-luxe h-9 rounded-sm px-3 sm:px-5 text-[11px] font-semibold uppercase tracking-[0.18em]">
+      <div className="mt-4 flex justify-end">
+        <Button onClick={onSave} className="btn-luxe h-10 w-full sm:w-auto rounded-sm px-5 text-[11px] font-semibold uppercase tracking-[0.18em]">
           <Save className="h-3.5 w-3.5" /> Salvar bloco
         </Button>
       </div>
