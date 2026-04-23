@@ -84,8 +84,19 @@ export default function DeepDiagnosticEditor() {
     setStep("generating");
     setGenerating(true);
     try {
+      const cleanProducts = briefingProducts
+        .map((p) => ({
+          name: p.name.trim(),
+          description: p.description.trim(),
+          price_hint: p.price_hint.trim(),
+          link: p.link.trim(),
+        }))
+        .filter((p) => p.name.length > 0);
       const { data, error } = await supabase.functions.invoke("generate-deep-funnel", {
-        body: { tenant_id: tenantId, briefing },
+        body: {
+          tenant_id: tenantId,
+          briefing: { ...briefing, products: cleanProducts },
+        },
       });
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
