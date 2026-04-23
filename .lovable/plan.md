@@ -1,95 +1,41 @@
 
 
-# Diagnóstico Profundo — v5 (Final)
+## Plano: corrigir vazamento de categorias entre tenants + onboarding melhor
 
-Mesma arquitetura da v4, com **uma única mudança de gating**: parceiros (`partner`) e beta-testers (`tester`) já saem da criação da conta com o módulo desbloqueado. Free e futuros planos pagos comuns precisam comprar o upsell.
+### Problema 1 (crítico — bug de isolamento)
+`CategoriesManager.tsx` lê `bio_categories` sem filtrar por tenant. Como você é admin, vê categorias de outros tenants misturadas no painel da Stefany. Já o Select do bloco lê corretamente do `currentTenant`, então não bate com a lista exibida → confusão total.
 
-## Regra de acesso (única mudança vs v4)
+### Problema 2 (UX)
+Tenant novo nasce sem nenhuma categoria. O Select do bloco fica só com "Sem categoria" e o usuário não entende o que fazer.
 
-| Plano do tenant | Diagnóstico Profundo |
-|---|---|
-| `partner` | ✅ liberado automático no signup (vitalício) |
-| `tester` | ✅ liberado automático no signup (vitalício) |
-| `free` | 🔒 vê demo + CTA de compra |
-| `pro` (futuro pago) | 🔒 vê demo + CTA de compra |
+### O que vou fazer
 
-Implementação: a função `has_addon(_tenant_id, 'deep_diagnostic')` retorna `true` automaticamente quando `tenants.plan IN ('partner','tester')`, sem precisar de linha em `tenant_addons`. Para os outros, lê de `tenant_addons`.
+**1. Isolar `CategoriesManager` por tenant (corrigir bug)**
+- Receber `tenantId` via prop (vindo de `Admin.tsx`, que já tem `currentTenant.id`)
+- Filtrar `select`, `insert`, `update`, `delete` e `move` por `tenant_id`
+- Passar `tenant_id` explícito nos `insert` (não confiar no DEFAULT da coluna, que aponta pro seu tenant antigo `175f97c6-...`)
+- Atualizar `Admin.tsx` para passar `<CategoriesManager tenantId={currentTenant.id} />`
 
-```sql
--- Pseudo-lógica da função
-SELECT
-  CASE
-    WHEN t.plan IN ('partner','tester') THEN true
-    ELSE EXISTS (
-      SELECT 1 FROM tenant_addons
-      WHERE tenant_id = _tenant_id
-        AND addon_slug = _addon_slug
-        AND status = 'active'
-    )
-  END
-FROM tenants t WHERE t.id = _tenant_id
-```
+**2. Categoria padrão automática para novo tenant**
+- Migration: alterar a função `create_tenant_for_user` para inserir 1 categoria inicial chamada **"Meus links"** (slug `meus-links`, ícone `Link2`, position 0, ativa) junto com o `bio_config` — assim o primeiro bloco já encontra uma opção pra escolher
+- Tenants já existentes que estão sem categoria (Stefany, etc.) recebem essa categoria via `INSERT ... WHERE NOT EXISTS`
 
-Resultado: Stefany cria conta com invite partner → entra no `/admin` → aba **Diagnóstico Profundo** já destravada → vai direto pro briefing. Sem checkout, sem demo de venda no caminho dela.
+**3. Microcópia mais clara no card Categorias**
+- Trocar texto explicativo para deixar claro o propósito: "Categorias agrupam seus blocos em seções na sua bio pública (ex: Redes sociais, Produtos, Cursos). Cada bloco pode pertencer a uma categoria — ou ficar avulso."
+- Manter o resto do componente igual
 
-## Resto do plano (inalterado da v4)
+### Arquivos afetados
+- `src/components/CategoriesManager.tsx` — aceitar prop `tenantId`, filtrar todas queries, microcópia
+- `src/pages/Admin.tsx` — passar `tenantId` ao componente
+- Nova migration SQL — atualizar `create_tenant_for_user` + backfill de categoria "Meus links" pra tenants sem nenhuma
 
-**Banco** — migration cria:
-- `tenant_addons` (id, tenant_id, addon_slug, status, purchase_type, stripe_subscription_id, stripe_customer_id, activated_at, expires_at)
-- `deep_funnels` (briefing, mídia de boas-vindas, lock_until_media_ends, allow_skip_after_seconds, is_published)
-- `deep_funnel_questions` (texto, tipo, opções com pain_weights, mídia opcional, lock_until_media_ends)
-- `deep_funnel_products` (5 produtos, pain_tag, whatsapp_template, mídia de resultado)
-- `deep_diagnostics` (execuções: respostas, scores, dor detectada, produto, veredicto IA)
-- Coluna `whatsapp_number` em `tenants`
-- Função `has_addon()` com bypass partner/tester
-- Trigger em `deep_funnels` bloqueia publicar sem `has_addon`
-- Bucket `deep-diagnostic-media` (público, prefixo `tenant_id/funnel_id/`)
+### O que NÃO vou mexer
+- RLS (já está correta — `is_tenant_owner` protege; o vazamento é só visual no admin global)
+- Estrutura da tabela `bio_categories`
+- Lógica do Select do bloco (já está certa)
 
-**Edge Functions:**
-- `generate-deep-funnel` (gemini-2.5-pro, 1x por funil) — recebe briefing, gera 12 perguntas + opções com pain_weights + match dor→produto. Valida `has_addon` antes.
-- `analyze-deep` (gemini-3-flash-preview, 1x por lead) — recebe respostas + pain_scores calculados client-side + perfil IG opcional → escolhe produto + escreve veredicto persuasivo
-- `create-deep-checkout` (Stripe) — só pra free/pago comum
-- `stripe-webhook` — ativa/cancela em `tenant_addons`
-
-**IA — só 2 chamadas, custo controlado:** durante o quiz é zero IA (pesos somados no client). Custo de ~R$ 20 por 10k leads.
-
-**Frontend:**
-- `/admin` ganha card "Diagnóstico Profundo" — pra partner/tester leva direto pro editor; pra free/pago comum leva pra demo
-- `/admin/deep-diagnostic/demo` — funil demo de 8 perguntas com placeholders de mídia, fechando em página tipo VSL com 2 preços + WhatsApp
-- `/admin/deep-diagnostic` — editor: briefing (10-15 campos) → loading IA → revisar/editar perguntas (drag-drop, opções, pesos, anexar mídia, toggle "destravar só após mídia") → editar produtos → publicar
-- `/admin/deep-diagnostic/success` — pós-checkout
-- `/d/funnel/:slug` (público) — quiz progressivo, lock até mídia terminar (com botão "pular em Xs" opcional), tela final com produto + mídia + WhatsApp
-- Bloco novo `kind: 'deep_funnel'` em `bio_blocks` — card destacado na bio
-
-**Mídia (regra confirmada):**
-- Só o **dono** anexa mídia (foto/vídeo/áudio) em boas-vindas, qualquer pergunta e tela final
-- Lead **não** faz upload — só responde por clique
-- Quando `lock_until_media_ends=true`, opções ficam disabled até `onEnded` do player (countdown "pular em Xs" se permitido)
-
-**Pagamento (Stripe seamless via Lovable Payments):** continua só pra free/pago comum. Modelos: one-time desbloqueia 1 funil ativo permanente, ou subscription mensal com funis ilimitados.
-
-**Analytics:** eventos novos em `funnel_events` — `deep_funnel_started`, `_question_answered`, `_media_completed`, `_completed`, `_whatsapp_clicked`, `_product_viewed`, `demo_started`, `demo_finished`, `demo_checkout_clicked`. Painel `/admin/deep-diagnostic/analytics` mostra taxa de conclusão, abandono por pergunta, dor mais comum, produto mais recomendado.
-
-## Pré-requisitos antes de eu começar
-
-1. Plano Pro do projeto Lovable (necessário pra Lovable Payments)
-2. Confirmar modelo de cobrança pros free: one-time, subscription, ou os dois? (default: os dois)
-3. Faixa de preço inicial (rascunho — você ajusta depois)
-
-## Ordem de execução quando aprovado
-
-1. Migration: `tenant_addons` + `has_addon()` com bypass partner/tester + trigger gating + tabelas do funil + coluna `whatsapp_number`
-2. Bucket `deep-diagnostic-media`
-3. Edge functions (generate, analyze, checkout, webhook)
-4. Habilitar Lovable Payments (Stripe) — passo separado, peço confirmação na hora
-5. Cadastrar produtos Stripe (one-time + subscription)
-6. Frontend: card descoberta + demo + editor + público + bloco bio
-7. Teste end-to-end: criar conta partner (deve já abrir editor), criar conta free (deve abrir demo)
-
-## Fora do escopo desta v1
-
-- Editar resposta automática da IA (só template base do veredicto)
-- Cobrar pelo diagnóstico do lead final (sempre grátis)
-- Multi-idioma, A/B test, webhooks CRM
-- Trial gratuito pra free (vai direto pra checkout)
+### Resultado esperado
+- No `/admin` da Stefany: card "Categorias" mostra **só as categorias dela** (começando com "Meus links"). Select do bloco oferece "Meus links" como opção. Tudo bate.
+- Você (admin) ao trocar de tenant via `TenantSelector` vê só as categorias do tenant ativo.
+- Novos tenants nascem com 1 categoria pronta — primeira experiência sem estado vazio.
 
