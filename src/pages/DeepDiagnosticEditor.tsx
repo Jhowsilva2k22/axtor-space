@@ -462,6 +462,76 @@ export default function DeepDiagnosticEditor() {
                     <Label>URL de mídia de resultado (opcional)</Label>
                     <Input value={p.result_media_url ?? ""} onChange={(e) => updateProduct(idx, { result_media_url: e.target.value })} />
                   </div>
+
+                  <div className="rounded-md border border-primary/30 bg-primary/5 p-3 space-y-3">
+                    <p className="text-xs font-medium uppercase tracking-wider text-primary">Checkout & Pós-venda</p>
+                    <div>
+                      <Label>Modo do botão no resultado</Label>
+                      <select
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                        value={p.cta_mode ?? "whatsapp"}
+                        onChange={(e) => updateProduct(idx, { cta_mode: e.target.value })}
+                      >
+                        <option value="whatsapp">Só WhatsApp (atendimento manual)</option>
+                        <option value="checkout">Só checkout (Kiwify/Greenn)</option>
+                        <option value="both">Os dois (Comprar + Tirar dúvida)</option>
+                      </select>
+                    </div>
+                    {(p.cta_mode === "checkout" || p.cta_mode === "both") && (
+                      <div>
+                        <Label>URL do checkout (Kiwify, Greenn, etc.)</Label>
+                        <Input
+                          placeholder="https://pay.kiwify.com.br/..."
+                          value={p.checkout_url ?? ""}
+                          onChange={(e) => updateProduct(idx, { checkout_url: e.target.value })}
+                        />
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Configure a <strong>URL de obrigado</strong> na Kiwify/Greenn como:{" "}
+                          <code className="rounded bg-muted px-1">https://axtor.space/obrigado/{funnel?.slug}?p={p.id}</code>
+                        </p>
+                      </div>
+                    )}
+                    <div>
+                      <Label>Texto da tela de obrigado (opcional)</Label>
+                      <Textarea
+                        placeholder="Sobrescreve o fallback do funil. Use {{nome}} pra personalizar."
+                        value={p.thankyou_text ?? ""}
+                        onChange={(e) => updateProduct(idx, { thankyou_text: e.target.value })}
+                        rows={3}
+                      />
+                    </div>
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <div>
+                        <Label>Mídia de obrigado (URL)</Label>
+                        <Input
+                          value={p.thankyou_media_url ?? ""}
+                          onChange={(e) => updateProduct(idx, { thankyou_media_url: e.target.value })}
+                        />
+                      </div>
+                      <div>
+                        <Label>Tipo</Label>
+                        <select
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                          value={p.thankyou_media_type ?? ""}
+                          onChange={(e) => updateProduct(idx, { thankyou_media_type: e.target.value })}
+                        >
+                          <option value="">Sem mídia</option>
+                          <option value="image">Imagem</option>
+                          <option value="video">Vídeo</option>
+                          <option value="audio">Áudio</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div>
+                      <Label>Mensagem WhatsApp pós-compra (opcional)</Label>
+                      <Textarea
+                        placeholder="Ex: Oi! Acabei de comprar X, qual o próximo passo?"
+                        value={p.thankyou_whatsapp_template ?? ""}
+                        onChange={(e) => updateProduct(idx, { thankyou_whatsapp_template: e.target.value })}
+                        rows={2}
+                      />
+                    </div>
+                  </div>
                 </div>
               ))}
             </Card>
