@@ -1,122 +1,95 @@
 
 
-## Documentação técnica completa + teste end-to-end
+# Diagnóstico Profundo — v5 (Final)
 
-Vou criar a planta técnica completa do sistema (manual técnico, fluxos, lógica, utilidades) e rodar o teste end-to-end de email pra confirmar que tudo tá funcionando antes de seguir.
+Mesma arquitetura da v4, com **uma única mudança de gating**: parceiros (`partner`) e beta-testers (`tester`) já saem da criação da conta com o módulo desbloqueado. Free e futuros planos pagos comuns precisam comprar o upsell.
 
-### 1. Verificação de status do email (pré-teste)
+## Regra de acesso (única mudança vs v4)
 
-Antes de testar, confirmar que `notify.axtor.space` saiu de `awaiting_dns` pra `active`:
-- Chamar `email_domain--check_email_domain_status` e registrar o resultado no doc.
-- Se `active`: rodar os 3 testes ponta a ponta abaixo.
-- Se ainda `awaiting_dns`: documentar tudo mesmo assim e deixar o teste de envio pendente até o DNS verificar.
+| Plano do tenant | Diagnóstico Profundo |
+|---|---|
+| `partner` | ✅ liberado automático no signup (vitalício) |
+| `tester` | ✅ liberado automático no signup (vitalício) |
+| `free` | 🔒 vê demo + CTA de compra |
+| `pro` (futuro pago) | 🔒 vê demo + CTA de compra |
 
-### 2. Testes end-to-end de email (3 fluxos)
+Implementação: a função `has_addon(_tenant_id, 'deep_diagnostic')` retorna `true` automaticamente quando `tenants.plan IN ('partner','tester')`, sem precisar de linha em `tenant_addons`. Para os outros, lê de `tenant_addons`.
 
-| # | Fluxo | Como testar | Esperado |
-|---|-------|-------------|----------|
-| 1 | **Signup** | Criar conta nova em `/signup` com email real | Email "Confirmar email" gold-noir PT-BR cai na caixa |
-| 2 | **Recovery** | `/forgot-password` → digitar email da conta admin | Email "Redefinir senha" cai, link abre `/reset-password` |
-| 3 | **Invite** | `/admin/invites` → criar invite tester | Email "Convite Axtor" cai com código |
+```sql
+-- Pseudo-lógica da função
+SELECT
+  CASE
+    WHEN t.plan IN ('partner','tester') THEN true
+    ELSE EXISTS (
+      SELECT 1 FROM tenant_addons
+      WHERE tenant_id = _tenant_id
+        AND addon_slug = _addon_slug
+        AND status = 'active'
+    )
+  END
+FROM tenants t WHERE t.id = _tenant_id
+```
 
-Pra cada um: olhar `email_send_log` (status `sent`), olhar logs do `auth-email-hook` e `process-email-queue`, validar se chegou e se o link funciona.
+Resultado: Stefany cria conta com invite partner → entra no `/admin` → aba **Diagnóstico Profundo** já destravada → vai direto pro briefing. Sem checkout, sem demo de venda no caminho dela.
 
-### 3. Documento `docs/MANUAL-TECNICO-2026-04-23.md`
+## Resto do plano (inalterado da v4)
 
-Estrutura:
+**Banco** — migration cria:
+- `tenant_addons` (id, tenant_id, addon_slug, status, purchase_type, stripe_subscription_id, stripe_customer_id, activated_at, expires_at)
+- `deep_funnels` (briefing, mídia de boas-vindas, lock_until_media_ends, allow_skip_after_seconds, is_published)
+- `deep_funnel_questions` (texto, tipo, opções com pain_weights, mídia opcional, lock_until_media_ends)
+- `deep_funnel_products` (5 produtos, pain_tag, whatsapp_template, mídia de resultado)
+- `deep_diagnostics` (execuções: respostas, scores, dor detectada, produto, veredicto IA)
+- Coluna `whatsapp_number` em `tenants`
+- Função `has_addon()` com bypass partner/tester
+- Trigger em `deep_funnels` bloqueia publicar sem `has_addon`
+- Bucket `deep-diagnostic-media` (público, prefixo `tenant_id/funnel_id/`)
 
-**Parte 1 — Visão geral**
-- O que o sistema faz (link-in-bio multi-tenant + diagnóstico IG + admin)
-- Stack: React 18 + Vite + Tailwind + Supabase (Lovable Cloud) + Edge Functions Deno
-- Domínios: `axtor.space` (app) + `notify.axtor.space` (email sender, NS delegado pro Cloudflare→Lovable)
+**Edge Functions:**
+- `generate-deep-funnel` (gemini-2.5-pro, 1x por funil) — recebe briefing, gera 12 perguntas + opções com pain_weights + match dor→produto. Valida `has_addon` antes.
+- `analyze-deep` (gemini-3-flash-preview, 1x por lead) — recebe respostas + pain_scores calculados client-side + perfil IG opcional → escolhe produto + escreve veredicto persuasivo
+- `create-deep-checkout` (Stripe) — só pra free/pago comum
+- `stripe-webhook` — ativa/cancela em `tenant_addons`
 
-**Parte 2 — Arquitetura (planta)**
-- Diagrama ASCII do fluxo: Browser → React → Supabase Auth/DB/Storage → Edge Functions → APIs externas (Apify, Lovable AI, Email)
-- Roteamento (`App.tsx`): tabela rota → componente → acesso (público/admin)
-- Camadas: pages, components, hooks, lib, integrations
+**IA — só 2 chamadas, custo controlado:** durante o quiz é zero IA (pesos somados no client). Custo de ~R$ 20 por 10k leads.
 
-**Parte 3 — Banco de dados (linha por linha)**
-- Toda tabela do schema atual: nome, colunas-chave, RLS, quem lê/escreve, propósito
-- Funções SECURITY DEFINER (`has_role`, `get_diagnostic_public`, `enqueue_email`, etc)
-- Triggers e validações
-- Storage buckets: `avatars`, `email-assets` (se existir)
+**Frontend:**
+- `/admin` ganha card "Diagnóstico Profundo" — pra partner/tester leva direto pro editor; pra free/pago comum leva pra demo
+- `/admin/deep-diagnostic/demo` — funil demo de 8 perguntas com placeholders de mídia, fechando em página tipo VSL com 2 preços + WhatsApp
+- `/admin/deep-diagnostic` — editor: briefing (10-15 campos) → loading IA → revisar/editar perguntas (drag-drop, opções, pesos, anexar mídia, toggle "destravar só após mídia") → editar produtos → publicar
+- `/admin/deep-diagnostic/success` — pós-checkout
+- `/d/funnel/:slug` (público) — quiz progressivo, lock até mídia terminar (com botão "pular em Xs" opcional), tela final com produto + mídia + WhatsApp
+- Bloco novo `kind: 'deep_funnel'` em `bio_blocks` — card destacado na bio
 
-**Parte 4 — Autenticação e sessão**
-- Fluxo `useAuth.tsx`: getSession → onAuthStateChange → sessionResolved
-- Regra absoluta: hard refresh nunca desloga (memo `mem://preferences/auth-session`)
-- Roles em `user_roles` separado (anti privilege-escalation)
-- Recovery: `/forgot-password` → email → `/reset-password`
+**Mídia (regra confirmada):**
+- Só o **dono** anexa mídia (foto/vídeo/áudio) em boas-vindas, qualquer pergunta e tela final
+- Lead **não** faz upload — só responde por clique
+- Quando `lock_until_media_ends=true`, opções ficam disabled até `onEnded` do player (countdown "pular em Xs" se permitido)
 
-**Parte 5 — Multi-tenant**
-- Como `useCurrentTenant` resolve tenant ativo
-- Convites idempotentes (`AdminInvites` revoga pendentes mesmo email)
-- Plan limits (`usePlanLimits`)
+**Pagamento (Stripe seamless via Lovable Payments):** continua só pra free/pago comum. Modelos: one-time desbloqueia 1 funil ativo permanente, ou subscription mensal com funis ilimitados.
 
-**Parte 6 — Bio (link-in-bio)**
-- `Bio.tsx`: render público
-- `Admin.tsx`: CRUD cabeçalho + blocos + categorias
-- Templates prontos (`bioTemplates.ts` — coach, artist, ecommerce, infoproduct)
-- QR Code, ambient player, métricas por bloco
-- Themes: noir-gold default + ivory-gold (toggle persistido)
+**Analytics:** eventos novos em `funnel_events` — `deep_funnel_started`, `_question_answered`, `_media_completed`, `_completed`, `_whatsapp_clicked`, `_product_viewed`, `demo_started`, `demo_finished`, `demo_checkout_clicked`. Painel `/admin/deep-diagnostic/analytics` mostra taxa de conclusão, abandono por pergunta, dor mais comum, produto mais recomendado.
 
-**Parte 7 — Diagnóstico Instagram**
-- Funil: Landing → form → `analyze-instagram` edge function
-- Apify scrape + Lovable AI (Gemini/GPT) + cache 12h + rate limit 3/sem
-- Resultado em `/share/:id` via RPC pública `get_diagnostic_public`
-- Persona IA: estrategista de mercado
+## Pré-requisitos antes de eu começar
 
-**Parte 8 — Sistema de Email (a peça nova)**
-- **Infra**: pgmq queues (`auth_emails` + `transactional_emails`) + cron 5s + DLQ + suppression list
-- **Templates auth (6)** em PT-BR gold-noir: signup, recovery, invite, magic-link, email-change, reauthentication
-- **Templates transacionais (3)**: partner-invite, tester-invite, welcome-tenant
-- **Edge functions**: `auth-email-hook` (enqueue), `send-transactional-email`, `process-email-queue` (drainer), `handle-email-suppression`, `handle-email-unsubscribe`, `preview-transactional-email`
-- **DNS**: Hostinger nameservers → Cloudflare → axtor.space; subdomain `notify` delegado via NS para `ns3/ns4.lovable.cloud`
-- **Sender**: `notify.axtor.space`, From: `link-essence-suite <noreply@notify.axtor.space>`
-- **Throughput**: ~120 emails/min (configurável via `email_send_state`)
+1. Plano Pro do projeto Lovable (necessário pra Lovable Payments)
+2. Confirmar modelo de cobrança pros free: one-time, subscription, ou os dois? (default: os dois)
+3. Faixa de preço inicial (rascunho — você ajusta depois)
 
-**Parte 9 — Edge Functions (uma por uma)**
-Pra cada função: propósito, trigger, input/output, auth (jwt on/off), dependências externas, secrets necessários.
+## Ordem de execução quando aprovado
 
-**Parte 10 — Páginas admin**
-- `/admin` (CRUD bio + onboarding)
-- `/admin/analytics` (RPC `get_tenant_analytics`)
-- `/admin/invites` (idempotência)
-- `/admin/templates` (gestão presets)
-- `/admin/diagnostics` (leads + diagnósticos)
-- `/admin/improvements`, `/admin/block-metrics`
+1. Migration: `tenant_addons` + `has_addon()` com bypass partner/tester + trigger gating + tabelas do funil + coluna `whatsapp_number`
+2. Bucket `deep-diagnostic-media`
+3. Edge functions (generate, analyze, checkout, webhook)
+4. Habilitar Lovable Payments (Stripe) — passo separado, peço confirmação na hora
+5. Cadastrar produtos Stripe (one-time + subscription)
+6. Frontend: card descoberta + demo + editor + público + bloco bio
+7. Teste end-to-end: criar conta partner (deve já abrir editor), criar conta free (deve abrir demo)
 
-**Parte 11 — Segurança**
-- RLS em todas as tabelas sensíveis
-- Roles em tabela separada
-- Storage com prefixo restrito
-- Validação de upload (5MB, content-type)
-- Webhook signature verification (`@lovable.dev/webhooks-js`)
-- Suppression list bloqueia bounces/complaints
+## Fora do escopo desta v1
 
-**Parte 12 — Memórias e regras do projeto**
-Listar tudo de `mem://`: core rules, design rules, auth rules, features memorizadas.
-
-**Parte 13 — Resultado do teste end-to-end**
-Print/log de cada um dos 3 fluxos (signup/recovery/invite) com status do `email_send_log`.
-
-**Parte 14 — Próximos passos sugeridos**
-- Domínio publicado no Lovable apontando pra `axtor.space` (já tá ativo? confirmar)
-- Code-splitting (chunk principal grande)
-- Cron de resumos semanais por tenant
-- SEO dinâmico por tenant
-- Diagnóstico paterno como produto pago
-
-### 4. Atualização de memória
-
-- Atualizar `mem://index.md` adicionando referência ao manual.
-- Criar `mem://features/email-infra` consolidando: queue, sender domain, NS delegação Cloudflare, templates PT-BR.
-
-### 5. Entregáveis
-
-- `docs/MANUAL-TECNICO-2026-04-23.md` (manual técnico completo)
-- `docs/CHECKPOINT-2026-04-23.md` (checkpoint do dia: o que mudou na sessão de email + DNS)
-- Memo `mem://features/email-infra`
-- Resultado do teste end-to-end no manual
-
-Após aprovação, executo tudo numa única passada: check status → testar 3 fluxos → escrever os 2 docs → atualizar memo → te dar o resumo do que tá pronto e o que falta antes do próximo passo (que sugiro ser: code-splitting + verificar domínio `axtor.space` apontado no Lovable).
+- Editar resposta automática da IA (só template base do veredicto)
+- Cobrar pelo diagnóstico do lead final (sempre grátis)
+- Multi-idioma, A/B test, webhooks CRM
+- Trial gratuito pra free (vai direto pra checkout)
 
