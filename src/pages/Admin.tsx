@@ -1016,7 +1016,7 @@ const BlockEditor = ({
         </div>
       </div>
 
-      <div className="mt-3 grid min-w-0 gap-2.5 sm:grid-cols-2">
+      <div className="mt-3 grid min-w-0 gap-2.5 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
         <Field label="Tipo">
           <Select
             value={block.kind}
