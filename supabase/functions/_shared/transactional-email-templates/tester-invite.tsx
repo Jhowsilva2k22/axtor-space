@@ -43,7 +43,12 @@ const TesterInviteEmail = ({
     <Body style={main}>
       <Container style={container}>
         <Section style={header}>
-          <Img src="https://bdxkcfngskagriaapepo.supabase.co/storage/v1/object/public/email-assets/axtor-logo.png" alt="Axtor Labs" width="120" height="40" style={{ display: "block", margin: "0 0 24px", height: "auto" }} />
+          <Img
+            src="https://bdxkcfngskagriaapepo.supabase.co/storage/v1/object/public/email-assets/axtor-logo-light.png"
+            alt="Axtor"
+            width="140"
+            style={{ display: 'block', margin: '0 auto 20px', height: 'auto' }}
+          />
           <Text style={badge}>✦ convite beta-tester</Text>
         </Section>
 
@@ -81,12 +86,6 @@ const TesterInviteEmail = ({
           Tudo desbloqueado: blocos ilimitados, analytics, campanhas, melhorias com IA
           e temas premium. Sua opinião vai moldar o que a axtor vira.
         </Text>
-
-        {note ? (
-          <Section style={noteBox}>
-            <Text style={noteText}>{note}</Text>
-          </Section>
-        ) : null}
 
         <Section style={mockupWrap}>
           <Text style={mockupLabel}>assim sua bio vai ficar</Text>
