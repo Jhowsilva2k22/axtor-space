@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Sparkles, Loader2, ExternalLink, Trash2, Plus } from "lucide-react";
+import { ArrowLeft, Sparkles, Loader2, ExternalLink, Trash2, Plus, ChevronDown, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useDeepDiagnostic } from "@/hooks/useDeepDiagnostic";
 import { toast } from "@/hooks/use-toast";
