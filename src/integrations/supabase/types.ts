@@ -1102,34 +1102,52 @@ export type Database = {
       }
       landing_partners: {
         Row: {
+          bio_url: string | null
           created_at: string
           id: string
+          instagram_handle: string | null
           is_active: boolean
           note: string | null
           priority: number
+          secondary_cta_label: string | null
+          secondary_cta_url: string | null
           tenant_id: string
           updated_at: string
           utm_source: string
+          whatsapp_message: string | null
+          whatsapp_number: string | null
         }
         Insert: {
+          bio_url?: string | null
           created_at?: string
           id?: string
+          instagram_handle?: string | null
           is_active?: boolean
           note?: string | null
           priority?: number
+          secondary_cta_label?: string | null
+          secondary_cta_url?: string | null
           tenant_id: string
           updated_at?: string
           utm_source: string
+          whatsapp_message?: string | null
+          whatsapp_number?: string | null
         }
         Update: {
+          bio_url?: string | null
           created_at?: string
           id?: string
+          instagram_handle?: string | null
           is_active?: boolean
           note?: string | null
           priority?: number
+          secondary_cta_label?: string | null
+          secondary_cta_url?: string | null
           tenant_id?: string
           updated_at?: string
           utm_source?: string
+          whatsapp_message?: string | null
+          whatsapp_number?: string | null
         }
         Relationships: [
           {
@@ -1470,6 +1488,20 @@ export type Database = {
           profile_data: Json
           scores: Json
           status: string
+        }[]
+      }
+      get_landing_partner_ctas: {
+        Args: { _utm_source: string }
+        Returns: {
+          bio_url: string
+          display_name: string
+          instagram_handle: string
+          secondary_cta_label: string
+          secondary_cta_url: string
+          slug: string
+          tenant_id: string
+          whatsapp_message: string
+          whatsapp_number: string
         }[]
       }
       get_tenant_analytics: {
