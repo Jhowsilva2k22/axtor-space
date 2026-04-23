@@ -785,12 +785,30 @@ const Admin = () => {
       </header>
 
       {!currentTenant ? (
-        <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3 px-6 text-center">
-          <p className="font-display text-2xl">Nenhum tenant selecionado</p>
-          <p className="max-w-md text-sm text-muted-foreground">
-            Entre novamente ou selecione um tenant para abrir o painel.
-          </p>
-        </div>
+        finalizing ? (
+          <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4 px-6 text-center">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="font-display text-2xl">Preparando sua <span className="text-gold italic">bio</span></p>
+            <p className="max-w-md text-sm text-muted-foreground">
+              Estamos liberando seu acesso e criando sua bio agora. Isso leva só alguns segundos.
+            </p>
+          </div>
+        ) : finalizeError ? (
+          <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4 px-6 text-center">
+            <p className="font-display text-2xl">Não conseguimos finalizar seu cadastro</p>
+            <p className="max-w-md text-sm text-muted-foreground">{finalizeError}</p>
+            <Button asChild className="btn-luxe h-11 rounded-sm px-6 text-xs uppercase tracking-[0.2em]">
+              <Link to="/signup">Recomeçar cadastro</Link>
+            </Button>
+          </div>
+        ) : (
+          <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3 px-6 text-center">
+            <p className="font-display text-2xl">Nenhum tenant selecionado</p>
+            <p className="max-w-md text-sm text-muted-foreground">
+              Entre novamente ou selecione um tenant para abrir o painel.
+            </p>
+          </div>
+        )
       ) : loading ? (
         <div className="flex min-h-[40vh] items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
