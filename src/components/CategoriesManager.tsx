@@ -94,12 +94,10 @@ export const CategoriesManager = ({ tenantId }: { tenantId: string }) => {
   };
 
   const addPreset = async (preset: { name: string; slug: string; icon: string }) => {
-    let slug = preset.slug;
-    let n = 1;
-    while (items.some((i) => i.slug === slug)) {
-      n += 1;
-      slug = `${preset.slug}-${n}`;
-    }
+    // Slug sempre único por timestamp curto — permite adicionar a mesma categoria
+    // quantas vezes o dono quiser (ex: 2 categorias de "Contato" pra públicos diferentes).
+    const exists = items.some((i) => i.slug === preset.slug || i.slug.startsWith(`${preset.slug}-`));
+    const slug = exists ? `${preset.slug}-${Date.now().toString(36).slice(-4)}` : preset.slug;
     const nextPos = (items[items.length - 1]?.position ?? 0) + 1;
     const { data, error } = await supabase
       .from("bio_categories")
@@ -261,21 +259,23 @@ export const CategoriesManager = ({ tenantId }: { tenantId: string }) => {
           </div>
           <div className="flex flex-wrap gap-2">
             {PRESETS.map((p) => {
-              const exists = items.some((i) => i.slug === p.slug || i.name.toLowerCase() === p.name.toLowerCase());
+              const count = items.filter(
+                (i) => i.slug === p.slug || i.slug.startsWith(`${p.slug}-`)
+              ).length;
               const btn = (
                 <button
                   key={p.slug}
-                  onClick={() => !exists && addPreset(p)}
-                  disabled={exists}
-                  className={`inline-flex h-8 items-center gap-1.5 rounded-sm border px-3 text-[10px] uppercase tracking-[0.2em] transition-all ${
-                    exists
-                      ? "cursor-not-allowed border-gold/30 bg-gradient-gold-soft/40 text-primary/70"
-                      : "border-gold/40 bg-card/40 text-primary hover:border-gold hover:bg-gradient-gold-soft"
-                  }`}
+                  onClick={() => addPreset(p)}
+                  className="inline-flex h-8 items-center gap-1.5 rounded-sm border border-gold/40 bg-card/40 px-3 text-[10px] uppercase tracking-[0.2em] text-primary transition-all hover:border-gold hover:bg-gradient-gold-soft"
                 >
-                  {exists ? <Check className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
+                  <Plus className="h-3 w-3" />
                   <PresetIcon name={p.icon} />
                   {p.name}
+                  {count > 0 && (
+                    <span className="ml-1 rounded-sm bg-gold/20 px-1.5 text-[9px] text-primary">
+                      {count}
+                    </span>
+                  )}
                 </button>
               );
               return (
@@ -284,7 +284,7 @@ export const CategoriesManager = ({ tenantId }: { tenantId: string }) => {
                     <span>{btn}</span>
                   </TooltipTrigger>
                   <TooltipContent side="top" className="text-xs">
-                    {exists ? "Já está na sua lista" : `Adicionar "${p.name}"`}
+                    {count > 0 ? `Adicionar outra "${p.name}" (você já tem ${count})` : `Adicionar "${p.name}"`}
                   </TooltipContent>
                 </Tooltip>
               );
