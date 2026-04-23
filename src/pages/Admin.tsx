@@ -716,7 +716,7 @@ const Admin = () => {
               </span>
             )}
             <ThemeToggle />
-            <Sheet>
+            <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
               <SheetTrigger asChild>
                 <button
                   type="button"
@@ -730,7 +730,11 @@ const Admin = () => {
                 <SheetHeader>
                   <SheetTitle className="font-display text-xl">Menu</SheetTitle>
                 </SheetHeader>
-                <div className="mt-6 flex flex-col gap-3">
+                <div className="mt-6 flex flex-col gap-3" onClick={(e) => {
+                  // fecha o sheet ao clicar em qualquer Link/button de navegação
+                  const target = e.target as HTMLElement;
+                  if (target.closest("a, button")) setMenuOpen(false);
+                }}>
                   <div className="pb-2">
                     <TenantSelector />
                   </div>
