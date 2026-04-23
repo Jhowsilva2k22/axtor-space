@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, MessageCircle, Sparkles, ArrowRight } from "lucide-react";
+import { Loader2, MessageCircle, Sparkles, ArrowRight, Check, Clock, Users, Cog, Star } from "lucide-react";
 import { getSessionId, captureUtm } from "@/lib/analytics";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -110,26 +110,35 @@ export default function DeepFunnelPublic() {
     }
   };
 
-  const whatsappUrl = useMemo(() => {
-    if (!result?.product || !tenant?.whatsapp_number) return null;
-    const tpl: string = result.product.whatsapp_template ?? "Olá!";
+  // Helpers per-produto (suportam result.products array, com fallback pro result.product antigo)
+  const productList: any[] = useMemo(() => {
+    if (Array.isArray(result?.products) && result.products.length > 0) return result.products;
+    if (result?.product) return [result.product];
+    return [];
+  }, [result]);
+
+  const buildWhatsappUrl = (product: any) => {
+    if (!product || !tenant?.whatsapp_number) return null;
+    const tpl: string = product.whatsapp_template ?? "Olá!";
     const msg = tpl.replace(/\{\{nome\}\}/gi, lead.name || "");
     const number = (tenant.whatsapp_number ?? "").replace(/\D/g, "");
     if (!number) return null;
     return `https://wa.me/${number}?text=${encodeURIComponent(msg)}`;
-  }, [result, tenant, lead]);
+  };
 
-  const checkoutUrl = useMemo(() => {
-    if (!result?.product?.checkout_url) return null;
-    const url = new URL(result.product.checkout_url);
-    if (lead.email) url.searchParams.set("email", lead.email);
-    if (lead.name) url.searchParams.set("name", lead.name);
-    if (lead.phone) url.searchParams.set("phone", lead.phone);
-    if (result.diagnostic_id) url.searchParams.set("diag", result.diagnostic_id);
-    return url.toString();
-  }, [result, lead]);
-
-  const ctaMode: "whatsapp" | "checkout" | "both" = result?.product?.cta_mode ?? "whatsapp";
+  const buildCheckoutUrl = (product: any) => {
+    if (!product?.checkout_url) return null;
+    try {
+      const url = new URL(product.checkout_url);
+      if (lead.email) url.searchParams.set("email", lead.email);
+      if (lead.name) url.searchParams.set("name", lead.name);
+      if (lead.phone) url.searchParams.set("phone", lead.phone);
+      if (result?.diagnostic_id) url.searchParams.set("diag", result.diagnostic_id);
+      return url.toString();
+    } catch {
+      return product.checkout_url;
+    }
+  };
 
   if (loading) return <div className="flex min-h-screen items-center justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>;
   if (!funnel) return <div className="flex min-h-screen items-center justify-center"><p className="text-muted-foreground">Funil não encontrado.</p></div>;
@@ -253,63 +262,142 @@ export default function DeepFunnelPublic() {
 
         {step === "result" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} className="space-y-5">
+            {/* Bloco do veredicto + dor dominante */}
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.5, delay: 0.1 }}>
-            <Card className="space-y-4 border-primary/40 bg-gradient-to-br from-background to-primary/5 p-8">
-              {funnel.result_intro && <p className="text-sm text-muted-foreground">{funnel.result_intro}</p>}
-              <div className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs uppercase tracking-wider text-primary">
-                Dor dominante: {result?.pain_detected ?? "—"}
-              </div>
-              {result?.product && (
-                <>
-                  <h2 className="font-display text-3xl leading-tight">{result.product.name}</h2>
-                  <p className="text-muted-foreground">{result.product.description}</p>
-                </>
-              )}
-              {result?.veredict && (
-                <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4, duration: 0.5 }} className="rounded-md border border-border/60 bg-card/50 p-4">
-                  <p className="whitespace-pre-line text-sm leading-relaxed">{result.veredict}</p>
-                </motion.div>
-              )}
-              {result?.product?.result_media_url && (
-                <motion.div initial={{ scale: 0.97, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.55, duration: 0.4 }} className="overflow-hidden rounded-md border">
-                  {result.product.result_media_type === "video" && <video src={result.product.result_media_url} controls className="w-full" />}
-                  {result.product.result_media_type === "audio" && <audio src={result.product.result_media_url} controls className="w-full" />}
-                  {result.product.result_media_type === "image" && <img src={result.product.result_media_url} alt="" className="w-full" />}
-                </motion.div>
-              )}
-            </Card>
+              <Card className="space-y-4 border-primary/40 bg-gradient-to-br from-background to-primary/5 p-6 md:p-8">
+                {funnel.result_intro && <p className="text-sm text-muted-foreground">{funnel.result_intro}</p>}
+                <div className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs uppercase tracking-wider text-primary">
+                  Dor dominante: {result?.pain_detected ?? "—"}
+                </div>
+                {result?.veredict && (
+                  <p className="whitespace-pre-line text-sm leading-relaxed text-foreground/90">{result.veredict}</p>
+                )}
+              </Card>
             </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.7, duration: 0.4 }}
-              className="space-y-2"
-            >
-              {(ctaMode === "checkout" || ctaMode === "both") && checkoutUrl && (
-                <Button
-                  size="lg"
-                  className="w-full gap-2 transition-transform hover:scale-[1.01] animate-[pulse_2.5s_ease-in-out_infinite]"
-                  asChild
+
+            {/* Cards de produto: principal + alternativas */}
+            {productList.map((product, idx) => {
+              const isPrimary = idx === 0;
+              const ctaMode: "whatsapp" | "checkout" | "both" = product.cta_mode ?? "whatsapp";
+              const wppUrl = buildWhatsappUrl(product);
+              const chkUrl = buildCheckoutUrl(product);
+              const ctaLabel = product.cta_label ?? "Quero esse";
+              const secondaryLabel = product.cta_secondary_label ?? (ctaMode === "both" ? "Tirar dúvida no WhatsApp" : "Falar no WhatsApp");
+              const benefits: string[] = Array.isArray(product.benefits) ? product.benefits : [];
+              return (
+                <motion.div
+                  key={product.id ?? idx}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 + idx * 0.15, duration: 0.45 }}
                 >
-                  <a href={checkoutUrl} target="_blank" rel="noreferrer">
-                    Quero esse <ArrowRight className="h-4 w-4" />
-                  </a>
-                </Button>
-              )}
-              {(ctaMode === "whatsapp" || ctaMode === "both") && whatsappUrl && (
-                <Button
-                  size="lg"
-                  variant={ctaMode === "both" ? "outline" : "default"}
-                  className={`w-full gap-2 transition-transform hover:scale-[1.01] ${ctaMode === "whatsapp" ? "animate-[pulse_2.5s_ease-in-out_infinite]" : ""}`}
-                  asChild
-                >
-                  <a href={whatsappUrl} target="_blank" rel="noreferrer">
-                    <MessageCircle className="h-4 w-4" />
-                    {ctaMode === "both" ? "Tirar dúvida no WhatsApp" : "Continuar pelo WhatsApp"}
-                  </a>
-                </Button>
-              )}
-            </motion.div>
+                  <Card
+                    className={
+                      isPrimary
+                        ? "space-y-5 border-primary/50 bg-gradient-to-br from-background via-background to-primary/10 p-6 md:p-8"
+                        : "space-y-5 border-border/60 bg-card/40 p-6 md:p-8"
+                    }
+                  >
+                    <div
+                      className={
+                        isPrimary
+                          ? "inline-flex items-center gap-1.5 rounded-full border border-primary/50 bg-primary/15 px-3 py-1 text-[10px] font-medium uppercase tracking-wider text-primary"
+                          : "inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/40 px-3 py-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground"
+                      }
+                    >
+                      {isPrimary ? <><Star className="h-3 w-3 fill-current" /> Recomendado pra você</> : <>Você também pode gostar</>}
+                    </div>
+
+                    <div className="space-y-2">
+                      <h2 className={isPrimary ? "font-display text-3xl leading-tight md:text-4xl" : "font-display text-2xl leading-tight"}>
+                        {product.name}
+                      </h2>
+                      {product.description && (
+                        <p className="text-muted-foreground">{product.description}</p>
+                      )}
+                    </div>
+
+                    {product.result_media_url && isPrimary && (
+                      <div className="overflow-hidden rounded-md border">
+                        {product.result_media_type === "video" && <video src={product.result_media_url} controls className="w-full" />}
+                        {product.result_media_type === "audio" && <audio src={product.result_media_url} controls className="w-full" />}
+                        {product.result_media_type === "image" && <img src={product.result_media_url} alt="" className="w-full" />}
+                      </div>
+                    )}
+
+                    {product.who_for && (
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-primary/80">
+                          <Users className="h-3 w-3" /> Pra quem é
+                        </div>
+                        <p className="text-sm leading-relaxed text-foreground/85">{product.who_for}</p>
+                      </div>
+                    )}
+
+                    {product.how_it_works && (
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-primary/80">
+                          <Cog className="h-3 w-3" /> Como funciona
+                        </div>
+                        <p className="text-sm leading-relaxed text-foreground/85">{product.how_it_works}</p>
+                      </div>
+                    )}
+
+                    {benefits.length > 0 && (
+                      <ul className="space-y-1.5">
+                        {benefits.map((b, bi) => (
+                          <li key={bi} className="flex items-start gap-2 text-sm">
+                            <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
+                            <span className="text-foreground/85">{b}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+
+                    {product.price_hint && (
+                      <div className="text-sm">
+                        <span className="text-muted-foreground">Investimento: </span>
+                        <span className="font-medium text-foreground">{product.price_hint}</span>
+                      </div>
+                    )}
+
+                    {product.urgency_text && (
+                      <div className="flex items-start gap-2 rounded-md border border-primary/30 bg-primary/5 p-3 text-xs text-foreground/85">
+                        <Clock className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-primary" />
+                        <span>{product.urgency_text}</span>
+                      </div>
+                    )}
+
+                    <div className="space-y-2 pt-1">
+                      {(ctaMode === "checkout" || ctaMode === "both") && chkUrl && (
+                        <Button
+                          size="lg"
+                          className={`w-full gap-2 transition-transform hover:scale-[1.01] ${isPrimary ? "animate-[pulse_2.5s_ease-in-out_infinite]" : ""}`}
+                          asChild
+                        >
+                          <a href={chkUrl} target="_blank" rel="noreferrer">
+                            {ctaLabel} <ArrowRight className="h-4 w-4" />
+                          </a>
+                        </Button>
+                      )}
+                      {(ctaMode === "whatsapp" || ctaMode === "both") && wppUrl && (
+                        <Button
+                          size="lg"
+                          variant={ctaMode === "both" ? "outline" : "default"}
+                          className={`w-full gap-2 transition-transform hover:scale-[1.01] ${isPrimary && ctaMode === "whatsapp" ? "animate-[pulse_2.5s_ease-in-out_infinite]" : ""}`}
+                          asChild
+                        >
+                          <a href={wppUrl} target="_blank" rel="noreferrer">
+                            <MessageCircle className="h-4 w-4" />
+                            {ctaMode === "whatsapp" ? ctaLabel : secondaryLabel}
+                          </a>
+                        </Button>
+                      )}
+                    </div>
+                  </Card>
+                </motion.div>
+              );
+            })}
           </motion.div>
         )}
       </div>

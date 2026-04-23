@@ -21,7 +21,15 @@ Para 'single' e 'multi': 4-5 opções. Para 'scale': use 5 opções de 1 a 5 com
 REGRA DE PRODUTOS:
 - Se o briefing trouxer "products" (lista de produtos reais do dono), use EXATAMENTE esses produtos: mantenha nome, descrição e preço fornecidos. Distribua-os entre as 5 dores (marketing, gestao, vendas, ia, estrutura). Se houver menos de 5, repita os mais versáteis pra cobrir todas as dores. Se houver mais de 5, escolha os 5 melhores.
 - Se NÃO houver produtos no briefing, invente 5 produtos sugeridos (1 por dor) com nome, descrição persuasiva e preço estimado coerente com o nicho.
-- Em todos os casos, gere um template de WhatsApp pronto pra cada produto, usando {{nome}} como placeholder do nome do lead.`;
+- Em todos os casos, gere um template de WhatsApp pronto pra cada produto, usando {{nome}} como placeholder do nome do lead.
+
+PARA CADA PRODUTO, preencha OBRIGATORIAMENTE os campos de copy estruturada:
+- who_for: 1 frase descrevendo PRA QUEM É (perfil específico, momento, dor)
+- how_it_works: 1-2 frases descrevendo COMO FUNCIONA (formato, duração, dinâmica)
+- benefits: array de 3-5 bullets curtos e concretos (transformações/entregas, sem floreio)
+- urgency_text: 1 frase de URGÊNCIA OU ESCASSEZ honesta (ex: "Próxima turma fecha sexta — 12 vagas", "Bônus de implementação até domingo", "Só 5 vagas por mês"). Se não fizer sentido, deixe vazio.
+- cta_label: texto do BOTÃO PRINCIPAL adequado ao tipo de oferta. Use frases ativas em 1ª pessoa, ex: "Quero entrar na próxima turma", "Quero agendar minha consultoria", "Quero comprar agora", "Quero garantir minha vaga", "Quero começar agora".
+- cta_secondary_label: texto do botão WhatsApp secundário, ex: "Falar com o time", "Tirar dúvida no WhatsApp", "Quero conversar antes".`;
 
 const TOOLS = [
   {
@@ -75,6 +83,12 @@ const TOOLS = [
                 price_hint: { type: "string" },
                 checkout_url: { type: "string" },
                 whatsapp_template: { type: "string", description: "Mensagem pronta com {{nome}} placeholder" },
+                who_for: { type: "string", description: "Pra quem é o produto (1 frase)" },
+                how_it_works: { type: "string", description: "Como funciona (1-2 frases)" },
+                benefits: { type: "array", items: { type: "string" }, description: "3-5 bullets curtos" },
+                urgency_text: { type: "string", description: "Frase de urgência/escassez (opcional)" },
+                cta_label: { type: "string", description: "Texto do botão principal" },
+                cta_secondary_label: { type: "string", description: "Texto do botão WhatsApp" },
               },
             },
           },
@@ -276,6 +290,12 @@ Deno.serve(async (req) => {
         checkout_url: checkout,
         cta_mode: checkout ? "checkout" : "whatsapp",
         whatsapp_template: p.whatsapp_template ?? null,
+        who_for: p.who_for ?? null,
+        how_it_works: p.how_it_works ?? null,
+        benefits: Array.isArray(p.benefits) ? p.benefits : [],
+        urgency_text: p.urgency_text ?? null,
+        cta_label: p.cta_label ?? null,
+        cta_secondary_label: p.cta_secondary_label ?? null,
       };
     });
 

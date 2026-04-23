@@ -10,18 +10,32 @@ const SYSTEM_PROMPT = `Você é consultor sênior de negócios digitais. A parti
 e catálogo de produtos do dono, escreva um VEREDICTO PERSUASIVO em PT-BR (180-260 palavras), em primeira pessoa do diagnosticador,
 que: (1) valida a dor sem ser óbvio, (2) conecta a dor à oportunidade real, (3) recomenda o produto que melhor resolve com justificativa direta,
 (4) termina com chamada pra continuar a conversa pelo WhatsApp. Tom: claro, premium, sem clichês, sem emojis em excesso.
-Você DEVE escolher exatamente UM produto da lista (use o id retornado).`;
+
+REGRA CRÍTICA SOBRE NOME:
+- Use EXATAMENTE o "lead_name" fornecido no payload, sem alterar, sem traduzir, sem inventar.
+- Se "lead_name" estiver vazio, nulo ou ausente, NÃO invente nome — comece o veredicto sem vocativo (ex: "Olha, seu diagnóstico…" ou "Os dados mostram…"). NUNCA chute um nome.
+- Use o nome no máximo 1 vez no texto, no início. Não repita.
+
+REGRA DE PRODUTOS:
+- Você DEVE escolher 1 produto principal (recommended_product_id) — o que MELHOR resolve a dor dominante.
+- Você DEVE também escolher até 2 produtos alternativos (alternative_product_ids) — produtos diferentes do principal que ainda fazem sentido pra esse perfil (complementares ou caminhos alternativos). Se só houver 1 produto disponível, retorne array vazio.
+- O veredicto deve focar no produto principal, mas pode mencionar brevemente que existem alternativas.`;
 
 const TOOLS = [
   {
     type: "function",
     function: {
       name: "deliver_veredict",
-      description: "Retorna o produto escolhido + veredicto.",
+      description: "Retorna o produto principal escolhido, alternativas e veredicto.",
       parameters: {
         type: "object",
         properties: {
           recommended_product_id: { type: "string" },
+          alternative_product_ids: {
+            type: "array",
+            items: { type: "string" },
+            description: "IDs de até 2 produtos alternativos relevantes pro perfil. Pode ser vazio.",
+          },
           veredict: { type: "string", description: "Texto persuasivo em PT-BR, 180-260 palavras" },
         },
         required: ["recommended_product_id", "veredict"],
@@ -91,7 +105,7 @@ Deno.serve(async (req) => {
 
     const { data: products } = await admin
       .from("deep_funnel_products")
-      .select("id, name, description, pain_tag, price_hint, whatsapp_template, checkout_url, cta_mode, result_media_url, result_media_type")
+      .select("id, name, description, pain_tag, price_hint, whatsapp_template, checkout_url, cta_mode, result_media_url, result_media_type, who_for, how_it_works, benefits, urgency_text, cta_label, cta_secondary_label")
       .eq("funnel_id", funnel_id);
 
     if (!products || products.length === 0) {
@@ -102,6 +116,22 @@ Deno.serve(async (req) => {
     }
 
     const dominantPain = pickDominantPain(pain_scores);
+
+    // Helper: força que o nome no veredicto seja o lead_name real (ou remove vocativo se vazio)
+    const enforceLeadName = (text: string): string => {
+      if (!text) return text;
+      const cleanName = (lead_name ?? "").toString().trim();
+      const firstName = cleanName.split(/\s+/)[0] ?? "";
+      // Se temos nome real, troca qualquer vocativo "Nome," no início pelo nome correto
+      if (firstName) {
+        return text.replace(/^([A-Za-zÀ-ÿ]{2,30})\s*,/, (_m, p1) => {
+          if (p1.toLowerCase() === firstName.toLowerCase()) return `${firstName},`;
+          return `${firstName},`;
+        });
+      }
+      // Sem nome → remove vocativo inicial "Nome," ou "Nome:" (se IA inventar)
+      return text.replace(/^[A-Za-zÀ-ÿ]{2,30}\s*[,:]\s*/, "");
+    };
 
     const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -134,7 +164,11 @@ Deno.serve(async (req) => {
       const errCode = aiResp.status === 429 ? "rate_limited" : aiResp.status === 402 ? "ai_credits" : "ai_error";
       // fallback: pega 1º produto da dor dominante
       const fallback = products.find((p) => p.pain_tag === dominantPain) ?? products[0];
-      const veredict = `Identificamos sua dor principal em ${dominantPain}. Recomendamos: ${fallback.name}. Continue pelo WhatsApp para entender como aplicar isso ao seu caso.`;
+      const cleanName = (lead_name ?? "").toString().trim().split(/\s+/)[0] ?? "";
+      const greeting = cleanName ? `${cleanName}, identificamos` : "Identificamos";
+      const veredict = `${greeting} sua dor principal em ${dominantPain}. Recomendamos: ${fallback.name}. Continue pelo WhatsApp para entender como aplicar isso ao seu caso.`;
+      // Alternativas no fallback: até 2 outros produtos
+      const alternatives = products.filter((p) => p.id !== fallback.id).slice(0, 2);
       const { data: saved } = await admin
         .from("deep_diagnostics")
         .upsert({
@@ -163,6 +197,7 @@ Deno.serve(async (req) => {
           diagnostic_id: saved?.id,
           pain_detected: dominantPain,
           product: fallback,
+          products: [fallback, ...alternatives],
           veredict,
           ai_fallback: true,
         }),
@@ -174,11 +209,26 @@ Deno.serve(async (req) => {
     const toolCall = aiJson.choices?.[0]?.message?.tool_calls?.[0];
     let recommended = products.find((p) => p.pain_tag === dominantPain) ?? products[0];
     let veredict = `Sua dor principal está em ${dominantPain}. Veja a recomendação abaixo.`;
+    let alternativeIds: string[] = [];
     if (toolCall) {
       const args = JSON.parse(toolCall.function.arguments);
       const found = products.find((p) => p.id === args.recommended_product_id);
       if (found) recommended = found;
       if (args.veredict) veredict = args.veredict;
+      if (Array.isArray(args.alternative_product_ids)) {
+        alternativeIds = args.alternative_product_ids
+          .filter((id: string) => typeof id === "string" && id !== recommended.id)
+          .slice(0, 2);
+      }
+    }
+    // Aplica trava de nome real
+    veredict = enforceLeadName(veredict);
+    // Resolve alternativas (com fallback caso IA não retorne)
+    let alternatives = alternativeIds
+      .map((id) => products.find((p) => p.id === id))
+      .filter((p): p is NonNullable<typeof p> => !!p);
+    if (alternatives.length === 0) {
+      alternatives = products.filter((p) => p.id !== recommended.id).slice(0, 2);
     }
 
     const { data: saved } = await admin
@@ -210,6 +260,7 @@ Deno.serve(async (req) => {
         diagnostic_id: saved?.id,
         pain_detected: dominantPain,
         product: recommended,
+        products: [recommended, ...alternatives],
         veredict,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
