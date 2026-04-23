@@ -1090,48 +1090,80 @@ const BlockEditor = ({
           </div>
         </div>
       )}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            {...attributes}
-            {...listeners}
-            className="hidden cursor-grab touch-none rounded-sm border border-border p-1.5 text-muted-foreground hover:text-primary active:cursor-grabbing md:inline-flex"
-            title="Arraste para reordenar"
-          >
-            <GripVertical className="h-3.5 w-3.5" />
-          </button>
-          <button onClick={onMoveUp} disabled={isFirst} className="rounded-sm border border-border p-1.5 text-muted-foreground hover:text-primary disabled:opacity-30">
-            <ArrowUp className="h-3.5 w-3.5" />
-          </button>
-          <button onClick={onMoveDown} disabled={isLast} className="rounded-sm border border-border p-1.5 text-muted-foreground hover:text-primary disabled:opacity-30">
-            <ArrowDown className="h-3.5 w-3.5" />
-          </button>
-          <span className="ml-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">#{block.position}</span>
-          <div className="ml-auto sm:hidden">
-            <BlockMetricsBadge blockId={block.id} />
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center justify-start gap-x-3 gap-y-2 sm:justify-end">
-          <div className="hidden sm:block">
-            <BlockMetricsBadge blockId={block.id} />
-          </div>
-          <label className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            {block.is_active ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
-            <Switch checked={block.is_active} onCheckedChange={(v) => onChange({ is_active: v })} />
-          </label>
-          <label className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            destaque
-            <Switch checked={block.highlight} onCheckedChange={(v) => onChange({ highlight: v })} />
-          </label>
-          <label className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            cor original
-            <Switch checked={block.use_brand_color} onCheckedChange={(v) => onChange({ use_brand_color: v })} />
-          </label>
+      {/* Linha 1: reordenação + posição + menu de ações */}
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          {...attributes}
+          {...listeners}
+          className="hidden cursor-grab touch-none rounded-sm border border-border p-1.5 text-muted-foreground hover:text-primary active:cursor-grabbing md:inline-flex"
+          title="Arraste para reordenar"
+        >
+          <GripVertical className="h-3.5 w-3.5" />
+        </button>
+        <button onClick={onMoveUp} disabled={isFirst} className="rounded-sm border border-border p-1.5 text-muted-foreground hover:text-primary disabled:opacity-30" title="Subir">
+          <ArrowUp className="h-3.5 w-3.5" />
+        </button>
+        <button onClick={onMoveDown} disabled={isLast} className="rounded-sm border border-border p-1.5 text-muted-foreground hover:text-primary disabled:opacity-30" title="Descer">
+          <ArrowDown className="h-3.5 w-3.5" />
+        </button>
+        <span className="ml-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">#{block.position}</span>
+
+        <div className="ml-auto flex items-center gap-2">
+          <span className={`hidden sm:inline-flex h-7 items-center rounded-sm border px-2 text-[10px] uppercase tracking-[0.2em] ${block.is_active ? "border-gold/40 text-primary" : "border-border text-muted-foreground"}`}>
+            {block.is_active ? "ativo" : "oculto"}
+          </span>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                aria-label="Mais ações"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-sm border border-border text-muted-foreground hover:border-gold hover:text-primary"
+              >
+                <MoreVertical className="h-4 w-4" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44">
+              <DropdownMenuItem onClick={onDuplicate} className="gap-2 text-xs uppercase tracking-[0.18em]">
+                <Copy className="h-3.5 w-3.5" /> Duplicar
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={onDelete} className="gap-2 text-xs uppercase tracking-[0.18em] text-destructive focus:text-destructive">
+                <Trash2 className="h-3.5 w-3.5" /> Excluir
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
-      <div className="mt-3 grid min-w-0 gap-2.5 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+      {/* Linha 2: métricas em barra cheia (clica → analytics do bloco) */}
+      <div className="mt-3">
+        <BlockMetricsBadge blockId={block.id} />
+      </div>
+
+      {/* Linha 3: chips de toggles (Ativo / Destaque / Cor original) */}
+      <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+        <ToggleChip
+          icon={block.is_active ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+          label={block.is_active ? "Ativo" : "Oculto"}
+          checked={block.is_active}
+          onChange={(v) => onChange({ is_active: v })}
+        />
+        <ToggleChip
+          icon={<Sparkles className="h-3.5 w-3.5" />}
+          label="Destaque"
+          checked={block.highlight}
+          onChange={(v) => onChange({ highlight: v })}
+        />
+        <ToggleChip
+          icon={<Droplet className="h-3.5 w-3.5" />}
+          label="Cor original"
+          checked={block.use_brand_color}
+          onChange={(v) => onChange({ use_brand_color: v })}
+        />
+      </div>
+
+      <div className="mt-4 grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
         <Field label="Tipo">
           <Select
             value={block.kind}
