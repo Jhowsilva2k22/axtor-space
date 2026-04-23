@@ -941,7 +941,7 @@ const BlockEditor = ({
     <div
       ref={setNodeRef}
       style={style}
-      className={`rounded-sm border p-3 sm:p-4 transition-all ${
+      className={`min-w-0 overflow-hidden rounded-sm border p-3 sm:p-4 transition-all ${
         hasDraft
           ? "border-yellow-500/70 bg-yellow-500/[0.04]"
           : block.is_active
@@ -973,7 +973,7 @@ const BlockEditor = ({
           </div>
         </div>
       )}
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -991,9 +991,14 @@ const BlockEditor = ({
             <ArrowDown className="h-3.5 w-3.5" />
           </button>
           <span className="ml-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">#{block.position}</span>
+          <div className="ml-auto sm:hidden">
+            <BlockMetricsBadge blockId={block.id} />
+          </div>
         </div>
-        <div className="flex flex-wrap items-center justify-end gap-3">
-          <BlockMetricsBadge blockId={block.id} />
+        <div className="flex flex-wrap items-center justify-start gap-x-3 gap-y-2 sm:justify-end">
+          <div className="hidden sm:block">
+            <BlockMetricsBadge blockId={block.id} />
+          </div>
           <label className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
             {block.is_active ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
             <Switch checked={block.is_active} onCheckedChange={(v) => onChange({ is_active: v })} />
