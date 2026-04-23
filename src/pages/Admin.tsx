@@ -112,6 +112,14 @@ const Admin = () => {
   const [publishImmediate, setPublishImmediate] = useState(false);
   const [publishingId, setPublishingId] = useState<string | null>(null);
 
+  // ⚠️ Hooks que precisam rodar em TODO render (antes de qualquer early return),
+  // senão React vê contagens diferentes entre loading vs logado e quebra com
+  // "Rendered fewer hooks than expected".
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
   const load = async () => {
     if (!currentTenant) {
       setCfg(null);
