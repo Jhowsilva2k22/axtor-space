@@ -819,7 +819,7 @@ const Admin = () => {
                 )}
               </div>
             </div>
-            <div className="space-y-4">
+            <div>
               <DndContext
                 sensors={sensors}
                 collisionDetection={closestCenter}
@@ -829,8 +829,9 @@ const Admin = () => {
                   items={blocks.map((b) => b.id)}
                   strategy={verticalListSortingStrategy}
                 >
-                  {blocks.map((b, i) => (
-                    <BlockEditor
+                  <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                    {blocks.map((b, i) => (
+                      <BlockEditor
                       key={b.id}
                       block={viewBlock(b)}
                       hasDraft={b.has_draft}
@@ -846,8 +847,9 @@ const Admin = () => {
                       onDuplicate={() => duplicateBlock(viewBlock(b))}
                       onMoveUp={() => move(i, -1)}
                       onMoveDown={() => move(i, 1)}
-                    />
-                  ))}
+                      />
+                    ))}
+                  </div>
                 </SortableContext>
               </DndContext>
               {blocks.length === 0 && (
