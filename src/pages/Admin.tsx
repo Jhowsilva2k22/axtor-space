@@ -1132,6 +1132,29 @@ const Admin = () => {
           </div>
         </div>
       )}
+
+      <ImageCropDialog
+        file={pendingAvatarFile}
+        aspect={1}
+        cropShape="round"
+        title="Ajustar foto de perfil"
+        onCancel={() => setPendingAvatarFile(null)}
+        onConfirm={async (blob) => {
+          setPendingAvatarFile(null);
+          await uploadAvatar(blob);
+        }}
+      />
+      <ImageCropDialog
+        file={pendingCoverFile}
+        aspect={16 / 9}
+        cropShape="rect"
+        title="Ajustar capa de fundo"
+        onCancel={() => setPendingCoverFile(null)}
+        onConfirm={async (blob) => {
+          setPendingCoverFile(null);
+          await uploadCover(blob);
+        }}
+      />
     </div>
   );
 };
