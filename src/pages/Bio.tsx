@@ -218,7 +218,8 @@ const Bio = () => {
               {/* Scroll horizontal das pills com fade nas bordas */}
               <div className="relative min-w-0 flex-1">
                 <div
-                  className="flex items-center gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                  className="flex w-full items-center gap-2 overflow-x-auto overflow-y-hidden scroll-smooth px-1 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                  style={{ WebkitOverflowScrolling: "touch" }}
                 >
                   <CategoryChip active={activeCat === "all"} onClick={() => setActiveCat("all")}>
                     Todos
@@ -229,9 +230,23 @@ const Bio = () => {
                     </CategoryChip>
                   ))}
                 </div>
-                {/* fade nas bordas pra sinalizar scroll */}
-                <div className="pointer-events-none absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-background to-transparent" />
-                <div className="pointer-events-none absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-background to-transparent" />
+                {/* fade sutil nas bordas — usa a cor real do background do tema */}
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute inset-y-0 left-0 w-4"
+                  style={{
+                    background:
+                      "linear-gradient(to right, hsl(var(--background) / 0.6), hsl(var(--background) / 0))",
+                  }}
+                />
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute inset-y-0 right-0 w-4"
+                  style={{
+                    background:
+                      "linear-gradient(to left, hsl(var(--background) / 0.6), hsl(var(--background) / 0))",
+                  }}
+                />
               </div>
               {/* Botão de busca sticky à direita, separado das pills */}
               <button
