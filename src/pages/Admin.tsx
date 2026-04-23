@@ -452,9 +452,12 @@ const Admin = () => {
   const uploadAvatar = async (file: File | Blob) => {
     if (!cfg) return;
     setUploadingAvatar(true);
-    let upload: File = file;
+    const inputFile: File = file instanceof File
+      ? file
+      : new File([file], `avatar-${Date.now()}.jpg`, { type: file.type || "image/jpeg" });
+    let upload: File = inputFile;
     try {
-      upload = await compressImage(file, { maxDimension: 1024, maxBytes: 1_200_000, quality: 0.9 });
+      upload = await compressImage(inputFile, { maxDimension: 1024, maxBytes: 1_200_000, quality: 0.9 });
     } catch {
       // se falhar compressão, segue com original
     }
@@ -489,11 +492,14 @@ const Admin = () => {
   const uploadCover = async (file: File | Blob) => {
     if (!cfg) return;
     setUploadingCover(true);
-    let upload: File = file;
+    const inputFile: File = file instanceof File
+      ? file
+      : new File([file], `cover-${Date.now()}.jpg`, { type: file.type || "image/jpeg" });
+    let upload: File = inputFile;
     try {
       // Capa entra com blur+vinheta no fundo, então 1600px e 2MB são suficientes
       // (mantém leveza sem perda visível).
-      upload = await compressImage(file, { maxDimension: 1600, maxBytes: 2_000_000, quality: 0.85 });
+      upload = await compressImage(inputFile, { maxDimension: 1600, maxBytes: 2_000_000, quality: 0.85 });
     } catch {
       // segue com original
     }
