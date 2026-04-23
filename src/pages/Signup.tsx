@@ -161,6 +161,26 @@ const Signup = () => {
     if (planLabel === "partner") toast.success("bio criada — acesso parceiro liberado ✨");
     else if (planLabel === "tester") toast.success("bio criada — acesso beta-tester liberado ✨");
     else toast.success("bio criada com sucesso");
+
+    // Dispara email de boas-vindas (não bloqueia o fluxo se falhar)
+    try {
+      await supabase.functions.invoke("send-transactional-email", {
+        body: {
+          templateName: "welcome-tenant",
+          recipientEmail: email.trim().toLowerCase(),
+          idempotencyKey: `welcome-${result.tenant_id}`,
+          templateData: {
+            name: name.trim(),
+            bioUrl: result.url,
+            adminUrl: `${window.location.origin}/admin`,
+            slug: result.slug,
+            plan: planLabel ?? "free",
+          },
+        },
+      });
+    } catch (err) {
+      console.error("welcome email failed:", err);
+    }
   };
 
   if (created) {
