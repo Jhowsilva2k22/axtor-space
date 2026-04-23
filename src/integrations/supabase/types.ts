@@ -531,7 +531,9 @@ export type Database = {
       }
       deep_funnel_products: {
         Row: {
+          checkout_url: string | null
           created_at: string
+          cta_mode: string
           description: string | null
           funnel_id: string
           id: string
@@ -542,11 +544,18 @@ export type Database = {
           result_media_caption: string | null
           result_media_type: string | null
           result_media_url: string | null
+          thankyou_media_caption: string | null
+          thankyou_media_type: string | null
+          thankyou_media_url: string | null
+          thankyou_text: string | null
+          thankyou_whatsapp_template: string | null
           updated_at: string
           whatsapp_template: string | null
         }
         Insert: {
+          checkout_url?: string | null
           created_at?: string
+          cta_mode?: string
           description?: string | null
           funnel_id: string
           id?: string
@@ -557,11 +566,18 @@ export type Database = {
           result_media_caption?: string | null
           result_media_type?: string | null
           result_media_url?: string | null
+          thankyou_media_caption?: string | null
+          thankyou_media_type?: string | null
+          thankyou_media_url?: string | null
+          thankyou_text?: string | null
+          thankyou_whatsapp_template?: string | null
           updated_at?: string
           whatsapp_template?: string | null
         }
         Update: {
+          checkout_url?: string | null
           created_at?: string
+          cta_mode?: string
           description?: string | null
           funnel_id?: string
           id?: string
@@ -572,6 +588,11 @@ export type Database = {
           result_media_caption?: string | null
           result_media_type?: string | null
           result_media_url?: string | null
+          thankyou_media_caption?: string | null
+          thankyou_media_type?: string | null
+          thankyou_media_url?: string | null
+          thankyou_text?: string | null
+          thankyou_whatsapp_template?: string | null
           updated_at?: string
           whatsapp_template?: string | null
         }
@@ -657,6 +678,10 @@ export type Database = {
           result_intro: string | null
           slug: string
           tenant_id: string
+          thankyou_media_caption: string | null
+          thankyou_media_type: string | null
+          thankyou_media_url: string | null
+          thankyou_text: string | null
           updated_at: string
           welcome_media_caption: string | null
           welcome_media_type: string | null
@@ -675,6 +700,10 @@ export type Database = {
           result_intro?: string | null
           slug: string
           tenant_id: string
+          thankyou_media_caption?: string | null
+          thankyou_media_type?: string | null
+          thankyou_media_url?: string | null
+          thankyou_text?: string | null
           updated_at?: string
           welcome_media_caption?: string | null
           welcome_media_type?: string | null
@@ -693,6 +722,10 @@ export type Database = {
           result_intro?: string | null
           slug?: string
           tenant_id?: string
+          thankyou_media_caption?: string | null
+          thankyou_media_type?: string | null
+          thankyou_media_url?: string | null
+          thankyou_text?: string | null
           updated_at?: string
           welcome_media_caption?: string | null
           welcome_media_type?: string | null
