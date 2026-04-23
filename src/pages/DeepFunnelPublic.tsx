@@ -279,19 +279,37 @@ export default function DeepFunnelPublic() {
               )}
             </Card>
             </motion.div>
-            {whatsappUrl && (
-              <motion.div
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.7, duration: 0.4 }}
-              >
-              <Button size="lg" className="w-full gap-2 transition-transform hover:scale-[1.01] animate-[pulse_2.5s_ease-in-out_infinite]" asChild>
-                <a href={whatsappUrl} target="_blank" rel="noreferrer">
-                  <MessageCircle className="h-4 w-4" /> Continuar pelo WhatsApp
-                </a>
-              </Button>
-              </motion.div>
-            )}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7, duration: 0.4 }}
+              className="space-y-2"
+            >
+              {(ctaMode === "checkout" || ctaMode === "both") && checkoutUrl && (
+                <Button
+                  size="lg"
+                  className="w-full gap-2 transition-transform hover:scale-[1.01] animate-[pulse_2.5s_ease-in-out_infinite]"
+                  asChild
+                >
+                  <a href={checkoutUrl} target="_blank" rel="noreferrer">
+                    Quero esse <ArrowRight className="h-4 w-4" />
+                  </a>
+                </Button>
+              )}
+              {(ctaMode === "whatsapp" || ctaMode === "both") && whatsappUrl && (
+                <Button
+                  size="lg"
+                  variant={ctaMode === "both" ? "outline" : "default"}
+                  className={`w-full gap-2 transition-transform hover:scale-[1.01] ${ctaMode === "whatsapp" ? "animate-[pulse_2.5s_ease-in-out_infinite]" : ""}`}
+                  asChild
+                >
+                  <a href={whatsappUrl} target="_blank" rel="noreferrer">
+                    <MessageCircle className="h-4 w-4" />
+                    {ctaMode === "both" ? "Tirar dúvida no WhatsApp" : "Continuar pelo WhatsApp"}
+                  </a>
+                </Button>
+              )}
+            </motion.div>
           </motion.div>
         )}
       </div>
