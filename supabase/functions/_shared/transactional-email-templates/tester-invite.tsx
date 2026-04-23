@@ -1,6 +1,18 @@
 import * as React from 'npm:react@18.3.1'
 import {
-  Body, Button, Column, Container, Head, Heading, Hr, Html, Preview, Row, Section, Text,
+  Body,
+  Button,
+  Column,
+  Container,
+  Head,
+  Heading,
+  Hr,
+  Html,
+  Img,
+  Preview,
+  Row,
+  Section,
+  Text,
 } from 'npm:@react-email/components@0.0.22'
 import type { TemplateEntry } from './registry.ts'
 
@@ -31,7 +43,7 @@ const TesterInviteEmail = ({
     <Body style={main}>
       <Container style={container}>
         <Section style={header}>
-          <Text style={brand}>{SITE_NAME}</Text>
+          <Img src="https://bdxkcfngskagriaapepo.supabase.co/storage/v1/object/public/email-assets/axtor-logo.png" alt="Axtor Labs" width="120" height="40" style={{ display: "block", margin: "0 0 24px", height: "auto" }} />
           <Text style={badge}>✦ convite beta-tester</Text>
         </Section>
 
