@@ -21,17 +21,28 @@ const GOLD_NOIR_TOKENS: Record<string, string> = {
 
 type Theme = "noir" | "ivory";
 
+const readStoredTheme = (): Theme => {
+  if (typeof window === "undefined") return "noir";
+  try {
+    const stored = localStorage.getItem("app-theme");
+    return stored === "ivory" ? "ivory" : "noir";
+  } catch {
+    return "noir";
+  }
+};
+
 export const useTheme = () => {
-  const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window === "undefined") return "noir";
-    return (localStorage.getItem("app-theme") as Theme) || "noir";
-  });
+  const [theme, setTheme] = useState<Theme>(readStoredTheme);
 
   useEffect(() => {
     const root = document.documentElement;
     if (theme === "ivory") root.classList.add("theme-ivory");
     else root.classList.remove("theme-ivory");
-    localStorage.setItem("app-theme", theme);
+    try {
+      localStorage.setItem("app-theme", theme);
+    } catch {
+      // ignore storage failures
+    }
   }, [theme]);
 
   return { theme, setTheme, toggle: () => setTheme(theme === "noir" ? "ivory" : "noir") };

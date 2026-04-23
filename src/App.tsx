@@ -7,6 +7,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { TenantProvider } from "@/hooks/useTenant";
 import { CurrentTenantProvider } from "@/hooks/useCurrentTenant";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { AppErrorBoundary } from "@/components/AppErrorBoundary";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import SharePage from "./pages/Share.tsx";
@@ -37,8 +38,9 @@ const App = () => (
         <AuthProvider>
           <TenantProvider>
             <CurrentTenantProvider>
-              <ThemeProvider>
-                <Routes>
+              <AppErrorBoundary>
+                <ThemeProvider>
+                  <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/planos" element={<Landing />} />
             <Route path="/signup" element={<Signup />} />
@@ -60,8 +62,9 @@ const App = () => (
             <Route path="/:slug" element={<Bio />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
-                </Routes>
-              </ThemeProvider>
+                  </Routes>
+                </ThemeProvider>
+              </AppErrorBoundary>
             </CurrentTenantProvider>
           </TenantProvider>
         </AuthProvider>

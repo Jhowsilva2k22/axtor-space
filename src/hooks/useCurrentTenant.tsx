@@ -28,6 +28,23 @@ const C = createContext<Ctx>({
 
 const SELECTED_KEY = "admin-tenant-id-v1";
 
+const readSelectedTenantId = () => {
+  try {
+    return sessionStorage.getItem(SELECTED_KEY);
+  } catch {
+    return null;
+  }
+};
+
+const writeSelectedTenantId = (id: string | null) => {
+  try {
+    if (id) sessionStorage.setItem(SELECTED_KEY, id);
+    else sessionStorage.removeItem(SELECTED_KEY);
+  } catch {
+    // ignore storage failures
+  }
+};
+
 export const CurrentTenantProvider = ({ children }: { children: ReactNode }) => {
   const { user, isAdmin, loading: authLoading } = useAuth();
   const [tenants, setTenants] = useState<AdminTenant[]>([]);
@@ -68,10 +85,10 @@ export const CurrentTenantProvider = ({ children }: { children: ReactNode }) => 
       setTenants(rows);
 
       // Resolve tenant atual: sessionStorage > primeiro disponível
-      const stored = sessionStorage.getItem(SELECTED_KEY);
+      const stored = readSelectedTenantId();
       const valid = stored && rows.some((t) => t.id === stored) ? stored : rows[0]?.id ?? null;
       setCurrentIdState(valid);
-      if (valid) sessionStorage.setItem(SELECTED_KEY, valid);
+      writeSelectedTenantId(valid);
     } catch (err) {
       console.error("[useCurrentTenant] load failed:", err);
       setTenants([]);
@@ -89,7 +106,7 @@ export const CurrentTenantProvider = ({ children }: { children: ReactNode }) => 
 
   const setCurrentId = useCallback((id: string) => {
     setCurrentIdState(id);
-    sessionStorage.setItem(SELECTED_KEY, id);
+    writeSelectedTenantId(id);
   }, []);
 
   const current = tenants.find((t) => t.id === currentId) ?? null;

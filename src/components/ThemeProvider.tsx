@@ -51,6 +51,18 @@ const GOLD_NOIR_FALLBACK: Theme = {
 
 const PREVIEW_KEY = "bio-theme-preview";
 
+const readPreviewSlug = (): string | null => {
+  if (typeof window === "undefined") return null;
+  const url = new URLSearchParams(window.location.search);
+  const urlPreview = url.get("preview");
+  if (urlPreview) return urlPreview;
+  try {
+    return localStorage.getItem(PREVIEW_KEY);
+  } catch {
+    return null;
+  }
+};
+
 type Ctx = {
   theme: Theme;
   activeSlug: string;
@@ -91,14 +103,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const { tenant } = useTenant();
   const [theme, setTheme] = useState<Theme>(GOLD_NOIR_FALLBACK);
   const [activeSlug, setActiveSlug] = useState<string>("gold-noir");
-  const [previewSlug, setPreviewSlugState] = useState<string | null>(() => {
-    if (typeof window === "undefined") return null;
-    // ?preview=slug na URL tem prioridade (usado em iframes do admin)
-    const url = new URLSearchParams(window.location.search);
-    const urlPreview = url.get("preview");
-    if (urlPreview) return urlPreview;
-    return localStorage.getItem(PREVIEW_KEY);
-  });
+  const [previewSlug, setPreviewSlugState] = useState<string | null>(readPreviewSlug);
 
   const setPreview = (slug: string | null) => {
     // Não persiste se vier da URL — preview de iframe é volátil
@@ -108,8 +113,12 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
       setPreviewSlugState(slug);
       return;
     }
-    if (slug) localStorage.setItem(PREVIEW_KEY, slug);
-    else localStorage.removeItem(PREVIEW_KEY);
+    try {
+      if (slug) localStorage.setItem(PREVIEW_KEY, slug);
+      else localStorage.removeItem(PREVIEW_KEY);
+    } catch {
+      // ignore storage failures
+    }
     setPreviewSlugState(slug);
   };
 
