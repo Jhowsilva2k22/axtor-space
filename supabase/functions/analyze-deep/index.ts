@@ -10,18 +10,32 @@ const SYSTEM_PROMPT = `Você é consultor sênior de negócios digitais. A parti
 e catálogo de produtos do dono, escreva um VEREDICTO PERSUASIVO em PT-BR (180-260 palavras), em primeira pessoa do diagnosticador,
 que: (1) valida a dor sem ser óbvio, (2) conecta a dor à oportunidade real, (3) recomenda o produto que melhor resolve com justificativa direta,
 (4) termina com chamada pra continuar a conversa pelo WhatsApp. Tom: claro, premium, sem clichês, sem emojis em excesso.
-Você DEVE escolher exatamente UM produto da lista (use o id retornado).`;
+
+REGRA CRÍTICA SOBRE NOME:
+- Use EXATAMENTE o "lead_name" fornecido no payload, sem alterar, sem traduzir, sem inventar.
+- Se "lead_name" estiver vazio, nulo ou ausente, NÃO invente nome — comece o veredicto sem vocativo (ex: "Olha, seu diagnóstico…" ou "Os dados mostram…"). NUNCA chute um nome.
+- Use o nome no máximo 1 vez no texto, no início. Não repita.
+
+REGRA DE PRODUTOS:
+- Você DEVE escolher 1 produto principal (recommended_product_id) — o que MELHOR resolve a dor dominante.
+- Você DEVE também escolher até 2 produtos alternativos (alternative_product_ids) — produtos diferentes do principal que ainda fazem sentido pra esse perfil (complementares ou caminhos alternativos). Se só houver 1 produto disponível, retorne array vazio.
+- O veredicto deve focar no produto principal, mas pode mencionar brevemente que existem alternativas.`;
 
 const TOOLS = [
   {
     type: "function",
     function: {
       name: "deliver_veredict",
-      description: "Retorna o produto escolhido + veredicto.",
+      description: "Retorna o produto principal escolhido, alternativas e veredicto.",
       parameters: {
         type: "object",
         properties: {
           recommended_product_id: { type: "string" },
+          alternative_product_ids: {
+            type: "array",
+            items: { type: "string" },
+            description: "IDs de até 2 produtos alternativos relevantes pro perfil. Pode ser vazio.",
+          },
           veredict: { type: "string", description: "Texto persuasivo em PT-BR, 180-260 palavras" },
         },
         required: ["recommended_product_id", "veredict"],
