@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Loader2, Sparkles, Check, X, ExternalLink, Copy, Gift } from "lucide-react";
 import { ThemeToggle, useAdminLockedTheme } from "@/components/ThemeToggle";
-import { savePendingSignup } from "@/lib/pendingSignup";
+import { savePendingSignup, clearPendingSignup } from "@/lib/pendingSignup";
 
 const slugify = (s: string) =>
   s
@@ -167,6 +167,8 @@ const Signup = () => {
     const result = tdata as any as Created;
     await refresh();
     setCreated(result);
+    // Tenant criado com sucesso — limpa o pending.
+    clearPendingSignup();
     const planLabel = (tdata as any)?.plan;
     if (planLabel === "partner") toast.success("bio criada — acesso parceiro liberado ✨");
     else if (planLabel === "tester") toast.success("bio criada — acesso beta-tester liberado ✨");
