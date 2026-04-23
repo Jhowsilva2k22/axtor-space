@@ -445,17 +445,24 @@ const Admin = () => {
 
   const uploadAvatar = async (file: File) => {
     if (!cfg) return;
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Imagem muito grande (máx 5MB)");
+    setUploadingAvatar(true);
+    let upload: File = file;
+    try {
+      upload = await compressImage(file, { maxDimension: 1024, maxBytes: 1_500_000 });
+    } catch {
+      // se falhar compressão, segue com original
+    }
+    if (upload.size > 5 * 1024 * 1024) {
+      setUploadingAvatar(false);
+      toast.error("Imagem muito grande mesmo após compressão. Tente outra foto.");
       return;
     }
-    setUploadingAvatar(true);
-    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    const ext = upload.name.split(".").pop()?.toLowerCase() || "jpg";
     const path = `bio/avatar-${Date.now()}.${ext}`;
-    const { error: upErr } = await supabase.storage.from("avatars").upload(path, file, {
+    const { error: upErr } = await supabase.storage.from("avatars").upload(path, upload, {
       cacheControl: "3600",
       upsert: false,
-      contentType: file.type,
+      contentType: upload.type,
     });
     if (upErr) {
       setUploadingAvatar(false);
@@ -475,17 +482,24 @@ const Admin = () => {
 
   const uploadCover = async (file: File) => {
     if (!cfg) return;
-    if (file.size > 8 * 1024 * 1024) {
-      toast.error("Imagem muito grande (máx 8MB)");
+    setUploadingCover(true);
+    let upload: File = file;
+    try {
+      upload = await compressImage(file, { maxDimension: 1920, maxBytes: 3_000_000 });
+    } catch {
+      // segue com original
+    }
+    if (upload.size > 8 * 1024 * 1024) {
+      setUploadingCover(false);
+      toast.error("Imagem muito grande mesmo após compressão. Tente outra foto.");
       return;
     }
-    setUploadingCover(true);
-    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    const ext = upload.name.split(".").pop()?.toLowerCase() || "jpg";
     const path = `bio/cover-${Date.now()}.${ext}`;
-    const { error: upErr } = await supabase.storage.from("bio-covers").upload(path, file, {
+    const { error: upErr } = await supabase.storage.from("bio-covers").upload(path, upload, {
       cacheControl: "3600",
       upsert: false,
-      contentType: file.type,
+      contentType: upload.type,
     });
     if (upErr) {
       setUploadingCover(false);
