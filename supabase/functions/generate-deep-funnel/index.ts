@@ -18,8 +18,10 @@ Use o vocabulário, nicho e tom do briefing. Linguagem em PT-BR direta, persuasi
 Tipos permitidos de pergunta: 'single' (1 escolha), 'multi' (várias), 'scale' (1-5).
 Para 'single' e 'multi': 4-5 opções. Para 'scale': use 5 opções de 1 a 5 com labels descritivos.
 
-Também gere 5 produtos/serviços (1 por dor) que o dono pode oferecer como solução,
-com descrição persuasiva e template de mensagem de WhatsApp pronto.`;
+REGRA DE PRODUTOS:
+- Se o briefing trouxer "products" (lista de produtos reais do dono), use EXATAMENTE esses produtos: mantenha nome, descrição e preço fornecidos. Distribua-os entre as 5 dores (marketing, gestao, vendas, ia, estrutura). Se houver menos de 5, repita os mais versáteis pra cobrir todas as dores. Se houver mais de 5, escolha os 5 melhores.
+- Se NÃO houver produtos no briefing, invente 5 produtos sugeridos (1 por dor) com nome, descrição persuasiva e preço estimado coerente com o nicho.
+- Em todos os casos, gere um template de WhatsApp pronto pra cada produto, usando {{nome}} como placeholder do nome do lead.`;
 
 const TOOLS = [
   {
@@ -30,22 +32,18 @@ const TOOLS = [
       parameters: {
         type: "object",
         properties: {
-          welcome_text: { type: "string", description: "Texto de boas-vindas curto, 2-3 linhas, persuasivo" },
-          result_intro: { type: "string", description: "Texto curto que aparece na tela de resultado antes do veredicto da IA" },
+          welcome_text: { type: "string" },
+          result_intro: { type: "string" },
           questions: {
             type: "array",
-            minItems: 12,
-            maxItems: 12,
             items: {
               type: "object",
               properties: {
                 question_text: { type: "string" },
                 subtitle: { type: "string" },
-                question_type: { type: "string", enum: ["single", "multi", "scale"] },
+                question_type: { type: "string" },
                 options: {
                   type: "array",
-                  minItems: 4,
-                  maxItems: 5,
                   items: {
                     type: "object",
                     properties: {
@@ -59,39 +57,29 @@ const TOOLS = [
                           ia: { type: "number" },
                           estrutura: { type: "number" },
                         },
-                        required: ["marketing", "gestao", "vendas", "ia", "estrutura"],
-                        additionalProperties: false,
                       },
                     },
-                    required: ["label", "pain_weights"],
-                    additionalProperties: false,
                   },
                 },
               },
-              required: ["question_text", "question_type", "options"],
-              additionalProperties: false,
             },
           },
           products: {
             type: "array",
-            minItems: 5,
-            maxItems: 5,
             items: {
               type: "object",
               properties: {
                 name: { type: "string" },
                 description: { type: "string" },
-                pain_tag: { type: "string", enum: ["marketing", "gestao", "vendas", "ia", "estrutura"] },
+                pain_tag: { type: "string" },
                 price_hint: { type: "string" },
+                checkout_url: { type: "string" },
                 whatsapp_template: { type: "string", description: "Mensagem pronta com {{nome}} placeholder" },
               },
-              required: ["name", "description", "pain_tag", "whatsapp_template"],
-              additionalProperties: false,
             },
           },
         },
         required: ["welcome_text", "questions", "products"],
-        additionalProperties: false,
       },
     },
   },
@@ -266,15 +254,30 @@ Deno.serve(async (req) => {
       question_type: q.question_type,
       options: q.options,
     }));
-    const productsRows = args.products.map((p: any, i: number) => ({
-      funnel_id: finalFunnelId,
-      position: i,
-      name: p.name,
-      description: p.description,
-      pain_tag: p.pain_tag,
-      price_hint: p.price_hint ?? null,
-      whatsapp_template: p.whatsapp_template,
-    }));
+    // Mapa nome->link vindo do briefing pra preservar checkout do dono
+    const briefingProducts: Array<{ name?: string; link?: string }> = Array.isArray(briefing?.products)
+      ? briefing.products
+      : [];
+    const linkByName = new Map<string, string>();
+    for (const bp of briefingProducts) {
+      if (bp?.name && bp?.link) linkByName.set(bp.name.trim().toLowerCase(), bp.link);
+    }
+    const validPains = new Set(["marketing", "gestao", "vendas", "ia", "estrutura"]);
+    const productsRows = args.products.map((p: any, i: number) => {
+      const checkout = p.checkout_url || linkByName.get(String(p.name ?? "").trim().toLowerCase()) || null;
+      const painTag = validPains.has(p.pain_tag) ? p.pain_tag : "vendas";
+      return {
+        funnel_id: finalFunnelId,
+        position: i,
+        name: p.name,
+        description: p.description,
+        pain_tag: painTag,
+        price_hint: p.price_hint ?? null,
+        checkout_url: checkout,
+        cta_mode: checkout ? "checkout" : "whatsapp",
+        whatsapp_template: p.whatsapp_template ?? null,
+      };
+    });
 
     await admin.from("deep_funnel_questions").insert(questionsRows);
     await admin.from("deep_funnel_products").insert(productsRows);

@@ -15,6 +15,13 @@ import { motion, AnimatePresence } from "framer-motion";
 
 type Step = "list" | "briefing" | "generating" | "review";
 
+type BriefingProduct = {
+  name: string;
+  description: string;
+  price_hint: string;
+  link: string;
+};
+
 const BRIEFING_FIELDS = [
   { key: "business_name", label: "Nome do seu negócio/marca", placeholder: "Ex: Sua Marca Consultoria" },
   { key: "niche", label: "Nicho específico", placeholder: "Ex: Mentoria pra um público específico que você atende" },
@@ -38,6 +45,9 @@ export default function DeepDiagnosticEditor() {
   const { hasAddon, funnels, loading, refresh, tenantId } = useDeepDiagnostic();
   const [step, setStep] = useState<Step>("list");
   const [briefing, setBriefing] = useState<Record<string, string>>({});
+  const [briefingProducts, setBriefingProducts] = useState<BriefingProduct[]>([
+    { name: "", description: "", price_hint: "", link: "" },
+  ]);
   const [generating, setGenerating] = useState(false);
   const [activeFunnelId, setActiveFunnelId] = useState<string | null>(null);
   const [questions, setQuestions] = useState<any[]>([]);
@@ -74,8 +84,19 @@ export default function DeepDiagnosticEditor() {
     setStep("generating");
     setGenerating(true);
     try {
+      const cleanProducts = briefingProducts
+        .map((p) => ({
+          name: p.name.trim(),
+          description: p.description.trim(),
+          price_hint: p.price_hint.trim(),
+          link: p.link.trim(),
+        }))
+        .filter((p) => p.name.length > 0);
       const { data, error } = await supabase.functions.invoke("generate-deep-funnel", {
-        body: { tenant_id: tenantId, briefing },
+        body: {
+          tenant_id: tenantId,
+          briefing: { ...briefing, products: cleanProducts },
+        },
       });
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
@@ -259,6 +280,93 @@ export default function DeepDiagnosticEditor() {
                   />
                 </motion.div>
               ))}
+            </div>
+            <div className="space-y-3 rounded-lg border border-border/60 bg-muted/20 p-4">
+              <div>
+                <h2 className="font-display text-lg">Seus produtos / serviços principais</h2>
+                <p className="text-xs text-muted-foreground">
+                  Liste de 1 a 5 ofertas (entrada, intermediária e topo). A IA vai recomendar essas como solução pra cada dor detectada. Se deixar vazio, ela inventa sugestões genéricas.
+                </p>
+              </div>
+              <div className="space-y-3">
+                {briefingProducts.map((p, idx) => (
+                  <div key={idx} className="space-y-2 rounded-md border border-border/40 bg-background/40 p-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                        Produto {idx + 1}
+                      </span>
+                      {briefingProducts.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 gap-1 text-destructive hover:text-destructive"
+                          onClick={() =>
+                            setBriefingProducts((prev) => prev.filter((_, i) => i !== idx))
+                          }
+                        >
+                          <Trash2 className="h-3 w-3" /> Remover
+                        </Button>
+                      )}
+                    </div>
+                    <Input
+                      placeholder="Nome do produto/serviço"
+                      value={p.name}
+                      onChange={(e) =>
+                        setBriefingProducts((prev) =>
+                          prev.map((x, i) => (i === idx ? { ...x, name: e.target.value } : x)),
+                        )
+                      }
+                    />
+                    <Textarea
+                      placeholder="Descrição curta (o que entrega, pra quem)"
+                      rows={2}
+                      value={p.description}
+                      onChange={(e) =>
+                        setBriefingProducts((prev) =>
+                          prev.map((x, i) => (i === idx ? { ...x, description: e.target.value } : x)),
+                        )
+                      }
+                    />
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      <Input
+                        placeholder="Preço (ex: R$ 497)"
+                        value={p.price_hint}
+                        onChange={(e) =>
+                          setBriefingProducts((prev) =>
+                            prev.map((x, i) => (i === idx ? { ...x, price_hint: e.target.value } : x)),
+                          )
+                        }
+                      />
+                      <Input
+                        placeholder="Link de checkout (opcional)"
+                        value={p.link}
+                        onChange={(e) =>
+                          setBriefingProducts((prev) =>
+                            prev.map((x, i) => (i === idx ? { ...x, link: e.target.value } : x)),
+                          )
+                        }
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {briefingProducts.length < 5 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="gap-1"
+                  onClick={() =>
+                    setBriefingProducts((prev) => [
+                      ...prev,
+                      { name: "", description: "", price_hint: "", link: "" },
+                    ])
+                  }
+                >
+                  <Plus className="h-3 w-3" /> Adicionar produto
+                </Button>
+              )}
             </div>
             <div className="flex justify-between gap-3">
               <Button variant="ghost" onClick={() => setStep("list")}>Cancelar</Button>
