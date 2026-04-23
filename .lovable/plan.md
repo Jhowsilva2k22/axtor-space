@@ -1,70 +1,122 @@
 
 
-## Próximo passo no Cloudflare — adicionar os 3 registros do Lovable
+## Documentação técnica completa + teste end-to-end
 
-Você tá na tela "Confirmar registros escaneados". O Cloudflare já importou tudo do Hostinger (site, MX, SPF, DMARC, hostingermail) — perfeito, **não mexe em nada disso**, só clica em **"Continuar para a ativação"**.
+Vou criar a planta técnica completa do sistema (manual técnico, fluxos, lógica, utilidades) e rodar o teste end-to-end de email pra confirmar que tudo tá funcionando antes de seguir.
 
-Depois disso o Cloudflare vai te mostrar os **2 nameservers** dele (algo tipo `xxxx.ns.cloudflare.com` + `yyyy.ns.cloudflare.com`). É aí que você pausa e vai no Hostinger trocar.
+### 1. Verificação de status do email (pré-teste)
 
-### Sequência completa daqui pra frente
+Antes de testar, confirmar que `notify.axtor.space` saiu de `awaiting_dns` pra `active`:
+- Chamar `email_domain--check_email_domain_status` e registrar o resultado no doc.
+- Se `active`: rodar os 3 testes ponta a ponta abaixo.
+- Se ainda `awaiting_dns`: documentar tudo mesmo assim e deixar o teste de envio pendente até o DNS verificar.
 
-**1. Agora (Cloudflare)**
-- Clica **"Continuar para a ativação"** (botão azul embaixo)
-- Copia os 2 nameservers que aparecerem na próxima tela
+### 2. Testes end-to-end de email (3 fluxos)
 
-**2. Hostinger — trocar nameservers**
-- hPanel → Domínios → `axtor.space` → seção **"Nameservers"** (ou "Alterar nameservers")
-- Marca **"Usar nameservers personalizados"**
-- Cola os 2 do Cloudflare
-- Salvar
+| # | Fluxo | Como testar | Esperado |
+|---|-------|-------------|----------|
+| 1 | **Signup** | Criar conta nova em `/signup` com email real | Email "Confirmar email" gold-noir PT-BR cai na caixa |
+| 2 | **Recovery** | `/forgot-password` → digitar email da conta admin | Email "Redefinir senha" cai, link abre `/reset-password` |
+| 3 | **Invite** | `/admin/invites` → criar invite tester | Email "Convite Axtor" cai com código |
 
-**3. Voltar no Cloudflare**
-- Clicar **"Concluído, verificar nameservers"**
-- Esperar status virar **"Ativo"** (5min a 24h, geralmente <2h)
+Pra cada um: olhar `email_send_log` (status `sent`), olhar logs do `auth-email-hook` e `process-email-queue`, validar se chegou e se o link funciona.
 
-**4. Cloudflare — adicionar os 3 registros do Lovable**
+### 3. Documento `docs/MANUAL-TECNICO-2026-04-23.md`
 
-Quando estiver ativo, vai em **DNS → Registros → Adicionar registro** e cria os 3 que o diálogo do Lovable mostrou:
+Estrutura:
 
-| Tipo | Nome | Conteúdo | Proxy |
-|------|------|----------|-------|
-| TXT  | `_lova...` (nome exato do diálogo) | `lovable_email_verify=...` (valor exato) | DNS only (nuvem cinza) |
-| NS   | `notify` | `ns3.lovable.cloud` | (NS não tem proxy) |
-| NS   | `notify` | `ns4.lovable.cloud` | (NS não tem proxy) |
+**Parte 1 — Visão geral**
+- O que o sistema faz (link-in-bio multi-tenant + diagnóstico IG + admin)
+- Stack: React 18 + Vite + Tailwind + Supabase (Lovable Cloud) + Edge Functions Deno
+- Domínios: `axtor.space` (app) + `notify.axtor.space` (email sender, NS delegado pro Cloudflare→Lovable)
 
-**Importante:** o registro TXT precisa ficar **DNS only** (nuvem cinza, não laranja). Os NS o Cloudflare configura automático sem proxy.
+**Parte 2 — Arquitetura (planta)**
+- Diagrama ASCII do fluxo: Browser → React → Supabase Auth/DB/Storage → Edge Functions → APIs externas (Apify, Lovable AI, Email)
+- Roteamento (`App.tsx`): tabela rota → componente → acesso (público/admin)
+- Camadas: pages, components, hooks, lib, integrations
 
-**5. Verificar no Lovable**
-- Abre o diálogo de email no Lovable → clica **"Verificar"**
-- Status vira **active** em ~5min (DNS no Cloudflare propaga rápido)
+**Parte 3 — Banco de dados (linha por linha)**
+- Toda tabela do schema atual: nome, colunas-chave, RLS, quem lê/escreve, propósito
+- Funções SECURITY DEFINER (`has_role`, `get_diagnostic_public`, `enqueue_email`, etc)
+- Triggers e validações
+- Storage buckets: `avatars`, `email-assets` (se existir)
 
-**6. Me avisar**
-- Quando ficar verde no Lovable, eu finalizo:
-  - Provisiono infra de envio (queue, cron, suppression, unsubscribe tokens)
-  - Redeployo `auth-email-hook` e `send-transactional-email` apontando pro `notify.axtor.space`
-  - Teste ponta a ponta: signup → recovery → invite tester → invite partner
+**Parte 4 — Autenticação e sessão**
+- Fluxo `useAuth.tsx`: getSession → onAuthStateChange → sessionResolved
+- Regra absoluta: hard refresh nunca desloga (memo `mem://preferences/auth-session`)
+- Roles em `user_roles` separado (anti privilege-escalation)
+- Recovery: `/forgot-password` → email → `/reset-password`
 
-### O que NÃO mexer no Cloudflare agora
-- Nenhum dos registros que aparecem na sua tela (são do Hostinger, vão continuar funcionando)
-- Não precisa desativar proxy de nada que já tá lá
-- Site `axtor.space` continua no Hostinger sem mudança
+**Parte 5 — Multi-tenant**
+- Como `useCurrentTenant` resolve tenant ativo
+- Convites idempotentes (`AdminInvites` revoga pendentes mesmo email)
+- Plan limits (`usePlanLimits`)
 
-### Resumo visual
+**Parte 6 — Bio (link-in-bio)**
+- `Bio.tsx`: render público
+- `Admin.tsx`: CRUD cabeçalho + blocos + categorias
+- Templates prontos (`bioTemplates.ts` — coach, artist, ecommerce, infoproduct)
+- QR Code, ambient player, métricas por bloco
+- Themes: noir-gold default + ivory-gold (toggle persistido)
 
-```
-AGORA → Continuar para ativação (Cloudflare)
-  ↓
-Hostinger → trocar nameservers pros do Cloudflare
-  ↓
-Esperar Cloudflare ficar "Ativo" (até 24h)
-  ↓
-Cloudflare → adicionar 3 registros (TXT + 2 NS pro notify)
-  ↓
-Lovable → clicar Verificar → vira "active"
-  ↓
-Me avisar → eu finalizo tudo
+**Parte 7 — Diagnóstico Instagram**
+- Funil: Landing → form → `analyze-instagram` edge function
+- Apify scrape + Lovable AI (Gemini/GPT) + cache 12h + rate limit 3/sem
+- Resultado em `/share/:id` via RPC pública `get_diagnostic_public`
+- Persona IA: estrategista de mercado
 
-```
+**Parte 8 — Sistema de Email (a peça nova)**
+- **Infra**: pgmq queues (`auth_emails` + `transactional_emails`) + cron 5s + DLQ + suppression list
+- **Templates auth (6)** em PT-BR gold-noir: signup, recovery, invite, magic-link, email-change, reauthentication
+- **Templates transacionais (3)**: partner-invite, tester-invite, welcome-tenant
+- **Edge functions**: `auth-email-hook` (enqueue), `send-transactional-email`, `process-email-queue` (drainer), `handle-email-suppression`, `handle-email-unsubscribe`, `preview-transactional-email`
+- **DNS**: Hostinger nameservers → Cloudflare → axtor.space; subdomain `notify` delegado via NS para `ns3/ns4.lovable.cloud`
+- **Sender**: `notify.axtor.space`, From: `link-essence-suite <noreply@notify.axtor.space>`
+- **Throughput**: ~120 emails/min (configurável via `email_send_state`)
 
-Bora — clica em **"Continuar para a ativação"** e me manda print da próxima tela com os 2 nameservers do Cloudflare.
+**Parte 9 — Edge Functions (uma por uma)**
+Pra cada função: propósito, trigger, input/output, auth (jwt on/off), dependências externas, secrets necessários.
+
+**Parte 10 — Páginas admin**
+- `/admin` (CRUD bio + onboarding)
+- `/admin/analytics` (RPC `get_tenant_analytics`)
+- `/admin/invites` (idempotência)
+- `/admin/templates` (gestão presets)
+- `/admin/diagnostics` (leads + diagnósticos)
+- `/admin/improvements`, `/admin/block-metrics`
+
+**Parte 11 — Segurança**
+- RLS em todas as tabelas sensíveis
+- Roles em tabela separada
+- Storage com prefixo restrito
+- Validação de upload (5MB, content-type)
+- Webhook signature verification (`@lovable.dev/webhooks-js`)
+- Suppression list bloqueia bounces/complaints
+
+**Parte 12 — Memórias e regras do projeto**
+Listar tudo de `mem://`: core rules, design rules, auth rules, features memorizadas.
+
+**Parte 13 — Resultado do teste end-to-end**
+Print/log de cada um dos 3 fluxos (signup/recovery/invite) com status do `email_send_log`.
+
+**Parte 14 — Próximos passos sugeridos**
+- Domínio publicado no Lovable apontando pra `axtor.space` (já tá ativo? confirmar)
+- Code-splitting (chunk principal grande)
+- Cron de resumos semanais por tenant
+- SEO dinâmico por tenant
+- Diagnóstico paterno como produto pago
+
+### 4. Atualização de memória
+
+- Atualizar `mem://index.md` adicionando referência ao manual.
+- Criar `mem://features/email-infra` consolidando: queue, sender domain, NS delegação Cloudflare, templates PT-BR.
+
+### 5. Entregáveis
+
+- `docs/MANUAL-TECNICO-2026-04-23.md` (manual técnico completo)
+- `docs/CHECKPOINT-2026-04-23.md` (checkpoint do dia: o que mudou na sessão de email + DNS)
+- Memo `mem://features/email-infra`
+- Resultado do teste end-to-end no manual
+
+Após aprovação, executo tudo numa única passada: check status → testar 3 fluxos → escrever os 2 docs → atualizar memo → te dar o resumo do que tá pronto e o que falta antes do próximo passo (que sugiro ser: code-splitting + verificar domínio `axtor.space` apontado no Lovable).
 
