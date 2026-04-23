@@ -541,6 +541,7 @@ export type Database = {
           funnel_id: string
           how_it_works: string | null
           id: string
+          is_active: boolean
           name: string
           pain_tag: string
           position: number
@@ -569,6 +570,7 @@ export type Database = {
           funnel_id: string
           how_it_works?: string | null
           id?: string
+          is_active?: boolean
           name: string
           pain_tag: string
           position?: number
@@ -597,6 +599,7 @@ export type Database = {
           funnel_id?: string
           how_it_works?: string | null
           id?: string
+          is_active?: boolean
           name?: string
           pain_tag?: string
           position?: number
