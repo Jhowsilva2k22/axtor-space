@@ -7,6 +7,7 @@ import { Copy, ExternalLink, Link2, LayoutDashboard, Sparkles, Megaphone } from 
 import { toast } from "sonner";
 import { QRCodeDialog } from "@/components/QRCodeDialog";
 import { useDeepDiagnostic } from "@/hooks/useDeepDiagnostic";
+import { useAuth } from "@/hooks/useAuth";
 
 type Props = {
   slug: string;
@@ -100,6 +101,7 @@ const Row = ({
 
 export const MyLinksCard = ({ slug, tenantId }: Props) => {
   const { funnels } = useDeepDiagnostic();
+  const { isAdmin } = useAuth();
   const [partners, setPartners] = useState<PartnerRow[]>([]);
 
   useEffect(() => {
@@ -171,6 +173,33 @@ export const MyLinksCard = ({ slug, tenantId }: Props) => {
               qrSlug={`landing-${partnerUtm}`}
               showQr
             />
+          )}
+
+          {!captureUrl && (
+            <div className="flex items-start gap-3 rounded-sm border border-dashed border-gold/30 bg-card/20 p-4">
+              <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border border-gold/30 bg-card/40 text-muted-foreground">
+                <Megaphone className="h-4 w-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                  Link de captação (landing parceiro)
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Você ainda não tem um link na landing principal axtor.space.{" "}
+                  {isAdmin ? (
+                    <>
+                      Cadastre um UTM em{" "}
+                      <Link to="/admin/landing-partners" className="text-primary underline-offset-2 hover:underline">
+                        Parceiros landing
+                      </Link>{" "}
+                      pra ativar.
+                    </>
+                  ) : (
+                    <>Fale com o admin pra liberar um UTM exclusivo seu.</>
+                  )}
+                </p>
+              </div>
+            </div>
           )}
 
           <Row

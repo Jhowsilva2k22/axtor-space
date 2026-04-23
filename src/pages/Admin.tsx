@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Loader2, Plus, Save, Trash2, ArrowUp, ArrowDown, LogOut, ExternalLink, Eye, EyeOff, BarChart3, GripVertical, FileEdit, Send, Undo2, Copy, Palette, Sparkles, Gift, Menu, Stethoscope, MoreVertical, Droplet } from "lucide-react";
+import { Loader2, Plus, Save, Trash2, ArrowUp, ArrowDown, LogOut, ExternalLink, Eye, EyeOff, BarChart3, GripVertical, FileEdit, Send, Undo2, Copy, Palette, Sparkles, Gift, Menu, Stethoscope, MoreVertical, Droplet, Megaphone } from "lucide-react";
 import { Upload } from "lucide-react";
 import { ThemeToggle, useAdminLockedTheme } from "@/components/ThemeToggle";
 import {
@@ -668,6 +668,11 @@ const Admin = () => {
               </Link>
             )}
             {isAdmin && (
+              <Link to="/admin/landing-partners" className="inline-flex h-10 items-center gap-2 rounded-sm border border-gold bg-card/40 px-4 text-[11px] uppercase tracking-[0.2em] text-primary transition-all hover:bg-gradient-gold-soft">
+                Parceiros <Megaphone className="h-3.5 w-3.5" />
+              </Link>
+            )}
+            {isAdmin && (
               <Link to="/admin/diagnostics" className="inline-flex h-10 items-center gap-2 rounded-sm border border-border bg-card/40 px-4 text-[11px] uppercase tracking-[0.2em] text-muted-foreground transition-all hover:border-gold hover:text-primary">
                 Diagnóstico
               </Link>
@@ -753,6 +758,12 @@ const Admin = () => {
                   {isAdmin && (
                     <Link to="/admin/invites" className="inline-flex h-11 items-center justify-between gap-2 rounded-sm border border-gold bg-card/40 px-4 text-[11px] uppercase tracking-[0.2em] text-primary transition-all hover:bg-gradient-gold-soft">
                       <span>Convites</span> <Gift className="h-3.5 w-3.5" />
+                    </Link>
+                  )}
+
+                  {isAdmin && (
+                    <Link to="/admin/landing-partners" className="inline-flex h-11 items-center justify-between gap-2 rounded-sm border border-gold bg-card/40 px-4 text-[11px] uppercase tracking-[0.2em] text-primary transition-all hover:bg-gradient-gold-soft">
+                      <span>Parceiros landing</span> <Megaphone className="h-3.5 w-3.5" />
                     </Link>
                   )}
 
