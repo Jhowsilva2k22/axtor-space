@@ -187,9 +187,7 @@ const AdminInvites = () => {
         recipientEmail: inv.target_email,
         idempotencyKey: `invite-${inv.code}`,
         templateData: {
-          name: inv.note || undefined,
           inviteUrl,
-          note: inv.note || undefined,
           ...inviterData,
         },
       },
