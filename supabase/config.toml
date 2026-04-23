@@ -17,3 +17,7 @@ project_id = "bdxkcfngskagriaapepo"
     verify_jwt = false
   [functions.send-transactional-email]
     verify_jwt = false
+  [functions.generate-deep-funnel]
+    verify_jwt = true
+  [functions.analyze-deep]
+    verify_jwt = false
