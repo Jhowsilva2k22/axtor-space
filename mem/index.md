@@ -10,6 +10,7 @@ Manter `docs/CHECKPOINT-*.md` atualizado a cada milestone significativo.
 ## Memories
 - [Auth & sessão](mem://preferences/auth-session) — Regras de loading, redirect e signOut
 - [Email branding](mem://features/email-branding) — Templates auth gold-noir PT-BR
+- [Email infra](mem://features/email-infra) — Queues pgmq, sender notify.axtor.space, DNS Cloudflare→Lovable, toggle on/off
 - [Onboarding checklist](mem://features/onboarding) — Checklist persistente no Admin
 - [Bio templates](mem://features/bio-templates) — Presets por nicho (coach/artist/ecommerce/infoproduct)
 - [Invite idempotency](mem://features/invite-idempotency) — Auto-revoga pendentes ao criar invite mesmo email
@@ -17,3 +18,4 @@ Manter `docs/CHECKPOINT-*.md` atualizado a cada milestone significativo.
 - [Tenant analytics](mem://features/tenant-analytics) — RPC get_tenant_analytics + página /admin/analytics escopada por tenant
 - [Ambient player](mem://features/ambient-player) — (existente)
 - [Design rules](mem://design/rules) — (existente)
+- [Manual técnico 2026-04-23](docs/MANUAL-TECNICO-2026-04-23.md) — Planta completa do sistema (14 partes)
