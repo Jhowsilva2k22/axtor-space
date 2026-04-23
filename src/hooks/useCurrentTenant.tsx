@@ -62,6 +62,7 @@ export const CurrentTenantProvider = ({ children }: { children: ReactNode }) => 
     setLoading(true);
     let rows: AdminTenant[] = [];
 
+    console.log("[tenant] load() start, isAdmin:", isAdmin);
     try {
       if (isAdmin) {
         // Super admin enxerga todos os tenants ativos
@@ -83,6 +84,7 @@ export const CurrentTenantProvider = ({ children }: { children: ReactNode }) => 
       }
 
       setTenants(rows);
+      console.log("[tenant] load() got", rows.length, "tenants");
 
       // Resolve tenant atual: sessionStorage > primeiro disponível
       const stored = readSelectedTenantId();
@@ -95,6 +97,7 @@ export const CurrentTenantProvider = ({ children }: { children: ReactNode }) => 
       setCurrentIdState(null);
     } finally {
       // CRÍTICO: sempre liberar loading, senão Admin.tsx trava em spinner.
+      console.log("[tenant] load() done → loading=false");
       setLoading(false);
     }
   }, [user, isAdmin]);
