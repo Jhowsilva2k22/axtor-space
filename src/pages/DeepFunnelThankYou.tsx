@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, MessageCircle, Sparkles, CheckCircle2, ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
+import { applyTenantTheme } from "@/lib/applyTenantTheme";
 
 export default function DeepFunnelThankYou() {
   const { slug } = useParams();
@@ -38,6 +39,7 @@ export default function DeepFunnelThankYou() {
       setProduct(p);
       setTenant(t);
       setLoading(false);
+      void applyTenantTheme(f.tenant_id);
     })();
   }, [slug, productId]);
 
