@@ -119,6 +119,46 @@ export default function DeepDiagnosticEditor() {
     setProducts((prev) => prev.map((p, i) => (i === idx ? { ...p, ...patch } : p)));
   };
 
+  const addProduct = async () => {
+    if (!activeFunnelId) return;
+    const nextPos = products.length;
+    const { data, error } = await supabase
+      .from("deep_funnel_products")
+      .insert({
+        funnel_id: activeFunnelId,
+        position: nextPos,
+        name: "Novo produto",
+        description: "",
+        pain_tag: "vendas",
+        price_hint: "",
+        whatsapp_template: "",
+        cta_mode: "whatsapp",
+        is_active: true,
+        benefits: [],
+      })
+      .select("*")
+      .single();
+    if (error) {
+      toast({ title: "Erro ao adicionar produto", description: error.message, variant: "destructive" });
+      return;
+    }
+    setProducts((prev) => [...prev, data]);
+    toast({ title: "Produto adicionado", description: "Preencha os campos abaixo." });
+  };
+
+  const deleteProduct = async (idx: number) => {
+    const p = products[idx];
+    if (!p?.id) return;
+    if (!confirm(`Excluir o produto "${p.name}"? Essa ação não pode ser desfeita.`)) return;
+    const { error } = await supabase.from("deep_funnel_products").delete().eq("id", p.id);
+    if (error) {
+      toast({ title: "Erro ao excluir", description: error.message, variant: "destructive" });
+      return;
+    }
+    setProducts((prev) => prev.filter((_, i) => i !== idx));
+    toast({ title: "Produto removido" });
+  };
+
   const saveAll = async (publish: boolean) => {
     if (!activeFunnelId) return;
     try {
