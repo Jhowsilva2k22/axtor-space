@@ -49,16 +49,18 @@ const PresetIcon = ({ name }: { name: string }) => {
   return <Comp className="h-3.5 w-3.5" />;
 };
 
-export const CategoriesManager = () => {
+export const CategoriesManager = ({ tenantId }: { tenantId: string }) => {
   const [items, setItems] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState<Record<string, boolean>>({});
 
   const load = async () => {
+    if (!tenantId) return;
     const { data, error } = await supabase
       .from("bio_categories")
       .select("*")
+      .eq("tenant_id", tenantId)
       .order("position", { ascending: true });
     if (error) toast.error(error.message);
     setItems((data as any) ?? []);
@@ -66,8 +68,10 @@ export const CategoriesManager = () => {
   };
 
   useEffect(() => {
+    setLoading(true);
     load();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tenantId]);
 
   const create = async () => {
     setCreating(true);
@@ -81,7 +85,7 @@ export const CategoriesManager = () => {
     }
     const { data, error } = await supabase
       .from("bio_categories")
-      .insert({ name: "Nova categoria", slug, position: nextPos })
+      .insert({ name: "Nova categoria", slug, position: nextPos, tenant_id: tenantId })
       .select()
       .single();
     setCreating(false);
@@ -99,7 +103,7 @@ export const CategoriesManager = () => {
     const nextPos = (items[items.length - 1]?.position ?? 0) + 1;
     const { data, error } = await supabase
       .from("bio_categories")
-      .insert({ name: preset.name, slug, icon: preset.icon, position: nextPos })
+      .insert({ name: preset.name, slug, icon: preset.icon, position: nextPos, tenant_id: tenantId })
       .select()
       .single();
     if (error) return toast.error(error.message);
@@ -109,7 +113,11 @@ export const CategoriesManager = () => {
 
   const update = async (id: string, patch: Partial<Category>) => {
     setItems((s) => s.map((c) => (c.id === id ? { ...c, ...patch } : c)));
-    const { error } = await supabase.from("bio_categories").update(patch).eq("id", id);
+    const { error } = await supabase
+      .from("bio_categories")
+      .update(patch)
+      .eq("id", id)
+      .eq("tenant_id", tenantId);
     if (error) toast.error(error.message);
   };
 
