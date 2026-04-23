@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, MessageCircle, Sparkles, ArrowRight, Check, Clock, Users, Cog, Star } from "lucide-react";
 import { getSessionId, captureUtm } from "@/lib/analytics";
+import { applyTenantTheme } from "@/lib/applyTenantTheme";
 import { motion, AnimatePresence } from "framer-motion";
 
 type Funnel = any;
@@ -42,45 +43,8 @@ export default function DeepFunnelPublic() {
       setQuestions(qs ?? []);
       setTenant(t);
       setLoading(false);
-
-      // Herda tema da bio do dono — funil público fica visualmente coerente com a marca
-      try {
-        const { data: cfg } = await supabase
-          .from("bio_config")
-          .select("active_theme_slug")
-          .eq("tenant_id", f.tenant_id)
-          .maybeSingle();
-        const themeSlug = (cfg as any)?.active_theme_slug ?? "gold-noir";
-        const { data: theme } = await supabase
-          .from("bio_themes")
-          .select("tokens")
-          .eq("slug", themeSlug)
-          .maybeSingle();
-        const tokens = (theme as any)?.tokens;
-        if (tokens) {
-          const root = document.documentElement;
-          const set = (k: string, v: any) => {
-            if (v === undefined || v === null) return;
-            root.style.setProperty(k, String(v));
-          };
-          set("--brand-h", tokens.brandH);
-          set("--brand-s", tokens.brandS);
-          set("--brand-l", tokens.brandL);
-          if (tokens.brandLGlow) set("--brand-l-glow", tokens.brandLGlow);
-          if (tokens.surfaceH !== undefined) set("--surface-h", tokens.surfaceH);
-          if (tokens.surfaceS) set("--surface-s", tokens.surfaceS);
-          if (tokens.surfaceLBg) set("--surface-l-bg", tokens.surfaceLBg);
-          if (tokens.surfaceLCard) set("--surface-l-card", tokens.surfaceLCard);
-          if (tokens.surfaceLBorder) set("--surface-l-border", tokens.surfaceLBorder);
-          if (tokens.fontDisplay) set("--font-display", tokens.fontDisplay);
-          if (tokens.fontBody) set("--font-body", tokens.fontBody);
-          if (tokens.auroraOpacity !== undefined) set("--aurora-opacity", tokens.auroraOpacity);
-          if (tokens.radius) set("--radius", tokens.radius);
-          root.dataset.auroraEnabled = tokens.auroraEnabled === false ? "false" : "true";
-        }
-      } catch (err) {
-        console.warn("[DeepFunnelPublic] theme load failed, using fallback", err);
-      }
+      // Herda tema da bio do dono — funil fica visualmente coerente com a marca
+      void applyTenantTheme(f.tenant_id);
     })();
   }, [slug]);
 
