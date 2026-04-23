@@ -6,6 +6,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Sparkles, CheckCircle2, MessageCircle, Lock } from "lucide-react";
 import { trackFunnel } from "@/lib/analytics";
 import { useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 type DemoQuestion = {
   text: string;
@@ -116,9 +117,9 @@ export default function DeepDiagnosticDemo() {
     const next = { ...answers, [current]: pain };
     setAnswers(next);
     if (current < DEMO_QUESTIONS.length - 1) {
-      setTimeout(() => setCurrent(current + 1), 200);
+      setTimeout(() => setCurrent(current + 1), 280);
     } else {
-      setStep("result");
+      setTimeout(() => setStep("result"), 280);
     }
   };
 
@@ -137,6 +138,7 @@ export default function DeepDiagnosticDemo() {
         </div>
 
         {step === "intro" && (
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
           <Card className="space-y-6 p-8">
             <div className="space-y-3">
               <h1 className="font-display text-3xl tracking-tight md:text-4xl">
@@ -152,49 +154,82 @@ export default function DeepDiagnosticDemo() {
                 { t: "8 perguntas", d: "menos de 2 minutos" },
                 { t: "IA detecta dor", d: "5 categorias" },
                 { t: "Match de produto", d: "WhatsApp pronto" },
-              ].map((b) => (
-                <div key={b.t} className="rounded-md border border-border/60 p-3">
+              ].map((b, i) => (
+                <motion.div
+                  key={b.t}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.15 + i * 0.08, duration: 0.35 }}
+                  className="rounded-md border border-border/60 p-3"
+                >
                   <p className="text-sm font-medium">{b.t}</p>
                   <p className="text-xs text-muted-foreground">{b.d}</p>
-                </div>
+                </motion.div>
               ))}
             </div>
-            <Button size="lg" className="w-full gap-2" onClick={() => setStep("quiz")}>
+            <Button size="lg" className="w-full gap-2 transition-transform hover:scale-[1.01]" onClick={() => setStep("quiz")}>
               Começar a demo <ArrowRight className="h-4 w-4" />
             </Button>
           </Card>
+          </motion.div>
         )}
 
         {step === "quiz" && (
-          <Card className="space-y-6 p-6 md:p-8">
+          <Card className="space-y-6 p-6 md:p-8 overflow-hidden">
             <div className="space-y-2">
               <Progress value={progress} className="h-1" />
               <p className="text-xs text-muted-foreground">
                 Pergunta {current + 1} de {DEMO_QUESTIONS.length}
               </p>
             </div>
-            <div className="space-y-2">
-              <h2 className="font-display text-2xl leading-tight">{DEMO_QUESTIONS[current].text}</h2>
-              {DEMO_QUESTIONS[current].subtitle && (
-                <p className="text-sm text-muted-foreground">{DEMO_QUESTIONS[current].subtitle}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              {DEMO_QUESTIONS[current].options.map((o) => (
-                <button
-                  key={o.label}
-                  onClick={() => handleAnswer(o.pain)}
-                  className="w-full rounded-md border border-border bg-card p-4 text-left text-sm transition-colors hover:border-primary hover:bg-primary/5"
-                >
-                  {o.label}
-                </button>
-              ))}
-            </div>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={current}
+                initial={{ opacity: 0, x: 24 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -24 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                className="space-y-5"
+              >
+                <div className="space-y-2">
+                  <h2 className="font-display text-2xl leading-tight">{DEMO_QUESTIONS[current].text}</h2>
+                  {DEMO_QUESTIONS[current].subtitle && (
+                    <p className="text-sm text-muted-foreground">{DEMO_QUESTIONS[current].subtitle}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  {DEMO_QUESTIONS[current].options.map((o, oi) => (
+                    <motion.button
+                      key={o.label}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 + oi * 0.06, duration: 0.25 }}
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => handleAnswer(o.pain)}
+                      className="w-full rounded-md border border-border bg-card p-4 text-left text-sm transition-colors hover:border-primary hover:bg-primary/5"
+                    >
+                      {o.label}
+                    </motion.button>
+                  ))}
+                </div>
+              </motion.div>
+            </AnimatePresence>
           </Card>
         )}
 
         {step === "result" && (
-          <div className="space-y-6">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="space-y-6"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+            >
             <Card className="space-y-4 border-primary/40 bg-gradient-to-br from-background to-primary/5 p-8">
               <div className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs uppercase tracking-wider text-primary">
                 <CheckCircle2 className="h-3 w-3" /> Sua dor dominante: {dominantPain}
@@ -208,8 +243,10 @@ export default function DeepDiagnosticDemo() {
                 WhatsApp pronta. É isso que o Diagnóstico Profundo faz.
               </p>
             </Card>
+            </motion.div>
 
             <div className="grid gap-4 md:grid-cols-2">
+              <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35, duration: 0.4 }}>
               <Card className="space-y-3 p-6">
                 <p className="text-xs uppercase tracking-wider text-muted-foreground">Pagamento único</p>
                 <p className="font-display text-3xl">R$ 297</p>
@@ -218,6 +255,8 @@ export default function DeepDiagnosticDemo() {
                   <Lock className="h-3 w-3" /> Em breve
                 </Button>
               </Card>
+              </motion.div>
+              <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45, duration: 0.4 }}>
               <Card className="space-y-3 border-primary/40 p-6">
                 <p className="text-xs uppercase tracking-wider text-primary">Mensal</p>
                 <p className="font-display text-3xl">R$ 47<span className="text-base text-muted-foreground">/mês</span></p>
@@ -226,6 +265,7 @@ export default function DeepDiagnosticDemo() {
                   <Lock className="h-3 w-3" /> Em breve
                 </Button>
               </Card>
+              </motion.div>
             </div>
 
             <Card className="flex items-center justify-between gap-4 p-5">
@@ -243,7 +283,7 @@ export default function DeepDiagnosticDemo() {
             <Button variant="ghost" className="w-full" onClick={() => { setStep("intro"); setCurrent(0); setAnswers({}); }}>
               Refazer demo
             </Button>
-          </div>
+          </motion.div>
         )}
       </div>
     </div>

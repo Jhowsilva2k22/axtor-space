@@ -11,6 +11,7 @@ import { ArrowLeft, Sparkles, Loader2, ExternalLink, Trash2, Plus } from "lucide
 import { supabase } from "@/integrations/supabase/client";
 import { useDeepDiagnostic } from "@/hooks/useDeepDiagnostic";
 import { toast } from "@/hooks/use-toast";
+import { motion, AnimatePresence } from "framer-motion";
 
 type Step = "list" | "briefing" | "generating" | "review";
 
@@ -157,7 +158,13 @@ export default function DeepDiagnosticEditor() {
         </div>
 
         {step === "list" && (
-          <div className="space-y-6">
+          <motion.div
+            key="list"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="space-y-6"
+          >
             <div className="flex items-center justify-between">
               <h1 className="font-display text-3xl">Seus funis</h1>
               <Button onClick={() => setStep("briefing")} className="gap-2">
@@ -170,8 +177,14 @@ export default function DeepDiagnosticEditor() {
                 <Button className="mt-4" onClick={() => setStep("briefing")}>Criar meu primeiro funil</Button>
               </Card>
             )}
-            {funnels.map((f) => (
-              <Card key={f.id} className="flex items-center justify-between gap-4 p-5">
+            {funnels.map((f, i) => (
+              <motion.div
+                key={f.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.05 + i * 0.04, duration: 0.25 }}
+              >
+              <Card className="flex items-center justify-between gap-4 p-5 transition-colors hover:border-primary/40">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <h3 className="truncate font-medium">{f.name}</h3>
@@ -194,11 +207,18 @@ export default function DeepDiagnosticEditor() {
                   <Button size="sm" onClick={() => loadFunnel(f.id)}>Editar</Button>
                 </div>
               </Card>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
 
         {step === "briefing" && (
+          <motion.div
+            key="briefing"
+            initial={{ opacity: 0, x: 16 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3 }}
+          >
           <Card className="space-y-6 p-6 md:p-8">
             <div>
               <h1 className="font-display text-2xl">Briefing profundo</h1>
@@ -208,7 +228,13 @@ export default function DeepDiagnosticEditor() {
             </div>
             <div className="space-y-4">
               {BRIEFING_FIELDS.map((f, i) => (
-                <div key={f.key} className="space-y-1.5">
+                <motion.div
+                  key={f.key}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.05 + i * 0.025, duration: 0.25 }}
+                  className="space-y-1.5"
+                >
                   <Label htmlFor={f.key}>
                     {f.label}
                     {i < 5 && <span className="text-destructive"> *</span>}
@@ -220,30 +246,49 @@ export default function DeepDiagnosticEditor() {
                     onChange={(e) => setBriefing({ ...briefing, [f.key]: e.target.value })}
                     rows={2}
                   />
-                </div>
+                </motion.div>
               ))}
             </div>
             <div className="flex justify-between gap-3">
               <Button variant="ghost" onClick={() => setStep("list")}>Cancelar</Button>
-              <Button onClick={handleGenerate} className="gap-2">
+              <Button onClick={handleGenerate} className="gap-2 transition-transform hover:scale-[1.02]">
                 <Sparkles className="h-4 w-4" /> Gerar funil com IA
               </Button>
             </div>
           </Card>
+          </motion.div>
         )}
 
         {step === "generating" && (
+          <motion.div
+            key="generating"
+            initial={{ opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4 }}
+          >
           <Card className="flex flex-col items-center justify-center gap-4 p-16 text-center">
-            <Loader2 className="h-10 w-10 animate-spin text-primary" />
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ repeat: Infinity, duration: 1.4, ease: "linear" }}
+            >
+              <Sparkles className="h-10 w-10 text-primary" />
+            </motion.div>
             <h2 className="font-display text-2xl">Gerando seu funil...</h2>
             <p className="text-sm text-muted-foreground">
               A IA está montando 12 perguntas e 5 produtos. Isso leva uns 30 segundos.
             </p>
           </Card>
+          </motion.div>
         )}
 
         {step === "review" && funnel && (
-          <div className="space-y-6">
+          <motion.div
+            key="review"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35 }}
+            className="space-y-6"
+          >
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="font-display text-2xl">{funnel.name}</h1>
@@ -416,7 +461,7 @@ export default function DeepDiagnosticEditor() {
                 <Sparkles className="h-4 w-4" /> Publicar funil
               </Button>
             </div>
-          </div>
+          </motion.div>
         )}
       </div>
     </div>
