@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, MessageCircle, Sparkles, ArrowRight } from "lucide-react";
+import { Loader2, MessageCircle, Sparkles, ArrowRight, Check, Clock, Users, Cog, Star } from "lucide-react";
 import { getSessionId, captureUtm } from "@/lib/analytics";
 import { motion, AnimatePresence } from "framer-motion";
 
