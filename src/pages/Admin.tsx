@@ -877,7 +877,18 @@ const Admin = () => {
         <main className="mx-auto max-w-5xl space-y-12 px-6 py-10">
           <OnboardingChecklist
             hasAvatar={!!cfg.avatar_url}
-            hasHeadline={!!cfg.headline && cfg.headline.trim().length > 0 && cfg.headline !== "Bem-vindo à minha bio"}
+            hasHeadline={(() => {
+              const h = (cfg.headline ?? "").trim().toLowerCase();
+              if (!h) return false;
+              // Seeds padrão criados pela RPC create_tenant_for_user (não contam como "preenchido")
+              const defaults = [
+                "bem-vindo à minha bio",
+                "bem-vinda à sua bio",
+                "bem-vindo à sua bio",
+                "bem-vinda à minha bio",
+              ];
+              return !defaults.includes(h);
+            })()}
             hasActiveBlock={blocks.some((b) => b.is_active)}
             bioUrl={currentTenant?.slug ? `/${currentTenant.slug}` : "/bio"}
             onFocusHeader={() => {
