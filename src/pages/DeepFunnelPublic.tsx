@@ -119,6 +119,18 @@ export default function DeepFunnelPublic() {
     return `https://wa.me/${number}?text=${encodeURIComponent(msg)}`;
   }, [result, tenant, lead]);
 
+  const checkoutUrl = useMemo(() => {
+    if (!result?.product?.checkout_url) return null;
+    const url = new URL(result.product.checkout_url);
+    if (lead.email) url.searchParams.set("email", lead.email);
+    if (lead.name) url.searchParams.set("name", lead.name);
+    if (lead.phone) url.searchParams.set("phone", lead.phone);
+    if (result.diagnostic_id) url.searchParams.set("diag", result.diagnostic_id);
+    return url.toString();
+  }, [result, lead]);
+
+  const ctaMode: "whatsapp" | "checkout" | "both" = result?.product?.cta_mode ?? "whatsapp";
+
   if (loading) return <div className="flex min-h-screen items-center justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>;
   if (!funnel) return <div className="flex min-h-screen items-center justify-center"><p className="text-muted-foreground">Funil não encontrado.</p></div>;
 
