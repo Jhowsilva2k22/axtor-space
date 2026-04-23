@@ -896,12 +896,17 @@ const Admin = () => {
                 <Combobox
                   value={cfg.footer_text ?? ""}
                   onChange={(v) => updateCfg({ footer_text: v })}
-                  presets={[
-                    "joandersonsilva.com.br",
-                    "© 2026 Joanderson Silva",
-                    "Feito com presença",
-                    "Todos os direitos reservados",
-                  ]}
+                  presets={(() => {
+                    const name = (cfg.display_name || currentTenant?.display_name || "").trim();
+                    const slug = currentTenant?.slug ?? "";
+                    const year = new Date().getFullYear();
+                    return [
+                      slug ? `axtor.space/${slug}` : "",
+                      name ? `© ${year} ${name}` : "",
+                      "Feito com presença",
+                      "Todos os direitos reservados",
+                    ].filter(Boolean);
+                  })()}
                   placeholder="Texto do rodapé (opcional)"
                   customLabel="Usar texto personalizado"
                 />
