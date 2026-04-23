@@ -920,7 +920,7 @@ const Admin = () => {
                       disabled={uploadingAvatar}
                       onChange={(e) => {
                         const f = e.target.files?.[0];
-                        if (f) uploadAvatar(f);
+                        if (f) setPendingAvatarFile(f);
                         e.currentTarget.value = "";
                       }}
                     />
@@ -998,7 +998,7 @@ const Admin = () => {
                         disabled={uploadingCover}
                         onChange={(e) => {
                           const f = e.target.files?.[0];
-                          if (f) uploadCover(f);
+                          if (f) setPendingCoverFile(f);
                           e.currentTarget.value = "";
                         }}
                       />
