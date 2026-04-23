@@ -138,6 +138,43 @@ const Admin = () => {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
+  // Auto-finalização de cadastro: se o usuário acabou de confirmar email e voltou,
+  // não tem tenant nenhum e deixou um pendingSignup salvo, criamos o tenant aqui.
+  // Cobre o gap entre signUp() (sem sessão) e o retorno via /verify.
+  useEffect(() => {
+    if (authLoading || tenantLoading || !user) return;
+    if (currentTenant || tenants.length > 0) return;
+    if (finalizing) return;
+    const pending = readPendingSignup();
+    if (!pending) return;
+    // Só finaliza se o email do pending bater com o do usuário logado (segurança).
+    if (pending.email && user.email && pending.email !== user.email.toLowerCase()) {
+      clearPendingSignup();
+      return;
+    }
+    void (async () => {
+      setFinalizing(true);
+      setFinalizeError(null);
+      const { data, error } = await supabase.rpc("create_tenant_for_user" as any, {
+        _slug: pending.slug,
+        _display_name: pending.displayName,
+        _invite_code: pending.inviteCode || null,
+      } as any);
+      if (error) {
+        setFinalizeError(error.message);
+        setFinalizing(false);
+        return;
+      }
+      const planLabel = (data as any)?.plan;
+      clearPendingSignup();
+      if (planLabel === "partner") toast.success("bem-vinda ✨ acesso parceiro liberado");
+      else if (planLabel === "tester") toast.success("bem-vindo ✨ acesso beta-tester liberado");
+      else toast.success("sua bio está pronta");
+      await refreshTenants();
+      setFinalizing(false);
+    })();
+  }, [authLoading, tenantLoading, user, currentTenant, tenants.length, finalizing, refreshTenants]);
+
   const load = async () => {
     if (!currentTenant) {
       setCfg(null);
