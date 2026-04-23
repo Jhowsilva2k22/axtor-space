@@ -133,9 +133,12 @@ const AdminLandingPartners = () => {
     }
   };
 
-  const saveCtas = async (id: string, patch: Partial<PartnerRow>) => {
+  const saveCtas = async (id: string, patch: Partial<PartnerRow>): Promise<void> => {
     const { error } = await (supabase as any).from("landing_partners").update(patch).eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     setItems((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p)));
     toast.success("destinos salvos");
   };
