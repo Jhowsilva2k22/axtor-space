@@ -164,7 +164,11 @@ Deno.serve(async (req) => {
       const errCode = aiResp.status === 429 ? "rate_limited" : aiResp.status === 402 ? "ai_credits" : "ai_error";
       // fallback: pega 1º produto da dor dominante
       const fallback = products.find((p) => p.pain_tag === dominantPain) ?? products[0];
-      const veredict = `Identificamos sua dor principal em ${dominantPain}. Recomendamos: ${fallback.name}. Continue pelo WhatsApp para entender como aplicar isso ao seu caso.`;
+      const cleanName = (lead_name ?? "").toString().trim().split(/\s+/)[0] ?? "";
+      const greeting = cleanName ? `${cleanName}, identificamos` : "Identificamos";
+      const veredict = `${greeting} sua dor principal em ${dominantPain}. Recomendamos: ${fallback.name}. Continue pelo WhatsApp para entender como aplicar isso ao seu caso.`;
+      // Alternativas no fallback: até 2 outros produtos
+      const alternatives = products.filter((p) => p.id !== fallback.id).slice(0, 2);
       const { data: saved } = await admin
         .from("deep_diagnostics")
         .upsert({
@@ -193,6 +197,7 @@ Deno.serve(async (req) => {
           diagnostic_id: saved?.id,
           pain_detected: dominantPain,
           product: fallback,
+          products: [fallback, ...alternatives],
           veredict,
           ai_fallback: true,
         }),
@@ -204,11 +209,26 @@ Deno.serve(async (req) => {
     const toolCall = aiJson.choices?.[0]?.message?.tool_calls?.[0];
     let recommended = products.find((p) => p.pain_tag === dominantPain) ?? products[0];
     let veredict = `Sua dor principal está em ${dominantPain}. Veja a recomendação abaixo.`;
+    let alternativeIds: string[] = [];
     if (toolCall) {
       const args = JSON.parse(toolCall.function.arguments);
       const found = products.find((p) => p.id === args.recommended_product_id);
       if (found) recommended = found;
       if (args.veredict) veredict = args.veredict;
+      if (Array.isArray(args.alternative_product_ids)) {
+        alternativeIds = args.alternative_product_ids
+          .filter((id: string) => typeof id === "string" && id !== recommended.id)
+          .slice(0, 2);
+      }
+    }
+    // Aplica trava de nome real
+    veredict = enforceLeadName(veredict);
+    // Resolve alternativas (com fallback caso IA não retorne)
+    let alternatives = alternativeIds
+      .map((id) => products.find((p) => p.id === id))
+      .filter((p): p is NonNullable<typeof p> => !!p);
+    if (alternatives.length === 0) {
+      alternatives = products.filter((p) => p.id !== recommended.id).slice(0, 2);
     }
 
     const { data: saved } = await admin
@@ -240,6 +260,7 @@ Deno.serve(async (req) => {
         diagnostic_id: saved?.id,
         pain_detected: dominantPain,
         product: recommended,
+        products: [recommended, ...alternatives],
         veredict,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
