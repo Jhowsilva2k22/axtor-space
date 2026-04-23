@@ -102,10 +102,16 @@ export const CurrentTenantProvider = ({ children }: { children: ReactNode }) => 
     }
   }, [user, isAdmin]);
 
+  // Só recarrega quando user.id muda de verdade (login/logout). Mudanças de
+  // referência do objeto user (por exemplo TOKEN_REFRESHED) NÃO devem
+  // disparar reload — isso causava perda de estado/scroll ao voltar de
+  // outra aba e em alguns casos parecia "deslogar".
+  const userId = user?.id ?? null;
   useEffect(() => {
     if (authLoading) return;
     void load();
-  }, [authLoading, load]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading, userId, isAdmin]);
 
   const setCurrentId = useCallback((id: string) => {
     setCurrentIdState(id);

@@ -8,6 +8,7 @@ import { TenantProvider } from "@/hooks/useTenant";
 import { CurrentTenantProvider } from "@/hooks/useCurrentTenant";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AppErrorBoundary } from "@/components/AppErrorBoundary";
+import { ScrollLockGuard } from "@/components/ScrollLockGuard";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import SharePage from "./pages/Share.tsx";
@@ -46,6 +47,7 @@ const App = () => (
             <CurrentTenantProvider>
               <AppErrorBoundary>
                 <ThemeProvider>
+                  <ScrollLockGuard />
                   <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/planos" element={<Landing />} />
