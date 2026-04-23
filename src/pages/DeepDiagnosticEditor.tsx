@@ -625,11 +625,40 @@ export default function DeepDiagnosticEditor() {
             <Card className="space-y-4 p-6">
               <h2 className="font-display text-lg">Produtos ({products.length})</h2>
               {products.map((p, idx) => (
-                <div key={p.id} className="space-y-3 rounded-md border border-border/60 p-4">
-                  <div className="flex items-center justify-between">
-                    <Badge variant="outline">Produto {idx + 1}</Badge>
-                    <Badge>{p.pain_tag}</Badge>
+                <div
+                  key={p.id}
+                  className={`space-y-3 rounded-md border p-4 transition-opacity ${
+                    p.is_active === false ? "border-border/40 bg-muted/30 opacity-70" : "border-border/60"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex min-w-0 flex-1 items-center gap-2">
+                      <Badge variant="outline">Produto {idx + 1}</Badge>
+                      <Badge variant={p.is_active === false ? "secondary" : "default"}>{p.pain_tag}</Badge>
+                      {p.is_active === false && (
+                        <span className="truncate text-sm text-muted-foreground">— {p.name || "(sem nome)"} (desativado)</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">Ativo</span>
+                        <Switch
+                          checked={p.is_active !== false}
+                          onCheckedChange={(v) => updateProduct(idx, { is_active: v })}
+                        />
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => deleteProduct(idx)}
+                        aria-label="Excluir produto"
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
                   </div>
+                  {p.is_active !== false && (
+                  <>
                   <div>
                     <Label>Nome</Label>
                     <Input value={p.name} onChange={(e) => updateProduct(idx, { name: e.target.value })} />
@@ -724,8 +753,13 @@ export default function DeepDiagnosticEditor() {
                       />
                     </div>
                   </div>
+                  </>
+                  )}
                 </div>
               ))}
+              <Button variant="outline" onClick={addProduct} className="w-full gap-2">
+                <Plus className="h-4 w-4" /> Adicionar produto
+              </Button>
             </Card>
 
             <div className="sticky bottom-4 flex justify-end gap-2 rounded-md border border-border bg-card p-3 shadow-lg">
