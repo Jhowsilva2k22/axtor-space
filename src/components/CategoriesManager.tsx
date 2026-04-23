@@ -94,12 +94,10 @@ export const CategoriesManager = ({ tenantId }: { tenantId: string }) => {
   };
 
   const addPreset = async (preset: { name: string; slug: string; icon: string }) => {
-    let slug = preset.slug;
-    let n = 1;
-    while (items.some((i) => i.slug === slug)) {
-      n += 1;
-      slug = `${preset.slug}-${n}`;
-    }
+    // Slug sempre único por timestamp curto — permite adicionar a mesma categoria
+    // quantas vezes o dono quiser (ex: 2 categorias de "Contato" pra públicos diferentes).
+    const exists = items.some((i) => i.slug === preset.slug || i.slug.startsWith(`${preset.slug}-`));
+    const slug = exists ? `${preset.slug}-${Date.now().toString(36).slice(-4)}` : preset.slug;
     const nextPos = (items[items.length - 1]?.position ?? 0) + 1;
     const { data, error } = await supabase
       .from("bio_categories")
