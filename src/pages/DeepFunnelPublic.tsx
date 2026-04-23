@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, MessageCircle, Sparkles, ArrowRight, Check, Clock, Users, Cog, Star } from "lucide-react";
 import { getSessionId, captureUtm } from "@/lib/analytics";
+import { applyTenantTheme } from "@/lib/applyTenantTheme";
 import { motion, AnimatePresence } from "framer-motion";
 
 type Funnel = any;
@@ -42,6 +43,8 @@ export default function DeepFunnelPublic() {
       setQuestions(qs ?? []);
       setTenant(t);
       setLoading(false);
+      // Herda tema da bio do dono — funil fica visualmente coerente com a marca
+      void applyTenantTheme(f.tenant_id);
     })();
   }, [slug]);
 
