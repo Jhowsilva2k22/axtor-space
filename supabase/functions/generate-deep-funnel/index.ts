@@ -290,6 +290,12 @@ Deno.serve(async (req) => {
         checkout_url: checkout,
         cta_mode: checkout ? "checkout" : "whatsapp",
         whatsapp_template: p.whatsapp_template ?? null,
+        who_for: p.who_for ?? null,
+        how_it_works: p.how_it_works ?? null,
+        benefits: Array.isArray(p.benefits) ? p.benefits : [],
+        urgency_text: p.urgency_text ?? null,
+        cta_label: p.cta_label ?? null,
+        cta_secondary_label: p.cta_secondary_label ?? null,
       };
     });
 
