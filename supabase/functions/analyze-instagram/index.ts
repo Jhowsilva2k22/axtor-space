@@ -131,6 +131,15 @@ Deno.serve(async (req) => {
 
     const handle = sanitizeHandle(handleRaw);
 
+    // Resolve tenant a partir do utm_source da landing.
+    // Sem UTM ou UTM desconhecido = NULL → o DEFAULT da coluna (tenant principal) assume.
+    let resolvedTenantId: string | null = null;
+    const utmSource = utm?.source ? String(utm.source).trim() : null;
+    if (utmSource) {
+      const { data: rt } = await supabase.rpc("resolve_landing_tenant", { _utm_source: utmSource });
+      if (rt) resolvedTenantId = rt as unknown as string;
+    }
+
     // 0. Verifica limites por @
     const now = Date.now();
     const twelveHoursAgo = new Date(now - 12 * 60 * 60 * 1000).toISOString();
