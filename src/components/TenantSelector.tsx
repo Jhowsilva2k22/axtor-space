@@ -36,7 +36,7 @@ export const TenantSelector = () => {
   return (
     <Select value={current?.id ?? ""} onValueChange={setCurrentId}>
       <SelectTrigger className="h-10 w-[200px] rounded-sm border-gold bg-card/40 text-[11px] uppercase tracking-[0.2em] text-primary">
-        <span className="flex items-center gap-2 mt-[2px]">
+        <span className="flex items-center gap-2 mt-[3px]">
           <Building2 className="h-3.5 w-3.5 shrink-0" />
           <SelectValue placeholder="Tenant…" />
         </span>
