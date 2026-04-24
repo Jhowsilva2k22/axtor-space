@@ -156,8 +156,8 @@ export const QRCodeDialog = ({ url, slug, trigger }: Props) => {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger ?? (
-          <button className="inline-flex h-10 items-center gap-2 rounded-sm border-gold bg-card/40 uppercase tracking-[0.2em] text-primary transition-all hover:bg-gradient-gold-soft text-left font-normal border text-xs border-solid px-[14px] pr-0 mr-0 ml-px pt-0 pl-[13px] mx-0">
-            QRCODE <QrCode className="py-0 text-right mx-[97px] pt-0 pb-0 pl-0 pr-0 h-[14px] w-[52px] px-px" />
+          <button className="inline-flex h-11 w-full items-center justify-between gap-2 rounded-sm border border-gold bg-card/40 px-4 text-[11px] uppercase tracking-[0.2em] text-primary transition-all hover:bg-gradient-gold-soft">
+            <span>QR code</span> <QrCode className="h-3.5 w-3.5" />
           </button>
         )}
       </DialogTrigger>
