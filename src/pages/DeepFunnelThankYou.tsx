@@ -53,7 +53,8 @@ export default function DeepFunnelThankYou() {
     const tpl: string =
       product?.thankyou_whatsapp_template ??
       `Oi! Acabei de comprar ${product?.name ?? "um produto"} e quero saber o próximo passo.`;
-    const msg = tpl.replace(/\{\{nome\}\}/gi, leadName);
+    const firstName = leadName.split(' ')[0] || "";
+    const msg = tpl.replace(/\{\{nome\}\}/gi, firstName);
     const number = (tenant.whatsapp_number ?? "").replace(/\D/g, "");
     if (!number) return null;
     return `https://wa.me/${number}?text=${encodeURIComponent(msg)}`;

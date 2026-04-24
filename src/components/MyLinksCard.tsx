@@ -109,7 +109,7 @@ export const MyLinksCard = ({ slug, tenantId }: Props) => {
     (async () => {
       const { data } = await supabase
         .from("landing_partners")
-        .select("utm_source,is_active")
+        .select("utm_source,is_active,note")
         .eq("tenant_id", tenantId)
         .eq("is_active", true);
       if (!cancelled) setPartners((data as PartnerRow[] | null) ?? []);
@@ -164,18 +164,23 @@ export const MyLinksCard = ({ slug, tenantId }: Props) => {
             />
           )}
 
-          {captureUrl && (
-            <Row
-              icon={<Megaphone className="h-4 w-4" />}
-              title="Seu link de captação (landing parceiro)"
-              url={captureUrl}
-              hint="Leads que entram pela landing axtor.space com esse UTM caem direto na sua conta."
-              qrSlug={`landing-${partnerUtm}`}
-              showQr
-            />
-          )}
+          {partners.map((p) => {
+            const partnerUrl = `${ORIGIN}/?utm_source=${encodeURIComponent(p.utm_source)}&utm_medium=instagram`;
+            const partnerName = p.note || p.utm_source;
+            return (
+              <Row
+                key={p.utm_source}
+                icon={<Megaphone className="h-4 w-4" />}
+                title={`Link do Parceiro: ${partnerName}`}
+                url={partnerUrl}
+                hint={`Leads que entrarem por este link (UTM: ${p.utm_source}) caem direto na sua conta.`}
+                qrSlug={`landing-${p.utm_source}`}
+                showQr
+              />
+            );
+          })}
 
-          {!captureUrl && (
+          {partners.length === 0 && (
             <div className="flex items-start gap-3 rounded-sm border border-dashed border-gold/30 bg-card/20 p-4">
               <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border border-gold/30 bg-card/40 text-muted-foreground">
                 <Megaphone className="h-4 w-4" />

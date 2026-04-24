@@ -123,7 +123,8 @@ export default function DeepFunnelPublic() {
   const buildWhatsappUrl = (product: any) => {
     if (!product || !tenant?.whatsapp_number) return null;
     const tpl: string = product.whatsapp_template ?? "Olá!";
-    const msg = tpl.replace(/\{\{nome\}\}/gi, lead.name || "");
+    const firstName = lead.name.split(' ')[0] || "";
+    const msg = tpl.replace(/\{\{nome\}\}/gi, firstName);
     const number = (tenant.whatsapp_number ?? "").replace(/\D/g, "");
     if (!number) return null;
     return `https://wa.me/${number}?text=${encodeURIComponent(msg)}`;
@@ -179,11 +180,52 @@ export default function DeepFunnelPublic() {
           <Card className="space-y-5 p-6 md:p-8">
             <h2 className="font-display text-2xl">Antes de começar, me conta:</h2>
             <div className="space-y-3">
-              <div><Label>Seu nome</Label><Input value={lead.name} onChange={(e) => setLead({ ...lead, name: e.target.value })} /></div>
-              <div><Label>WhatsApp</Label><Input value={lead.phone} onChange={(e) => setLead({ ...lead, phone: e.target.value })} placeholder="(11) 99999-9999" /></div>
-              <div><Label>@ do Instagram (opcional)</Label><Input value={lead.instagram_handle} onChange={(e) => setLead({ ...lead, instagram_handle: e.target.value })} placeholder="@seuhandle" /></div>
+              <div>
+                <Label>Seu nome completo</Label>
+                <Input
+                  value={lead.name}
+                  onChange={(e) => setLead({ ...lead, name: e.target.value })}
+                  placeholder="Ex: Joanderson Silva"
+                />
+              </div>
+              <div>
+                <Label>WhatsApp</Label>
+                <Input
+                  value={lead.phone}
+                  onChange={(e) => {
+                    let val = e.target.value.replace(/\D/g, '');
+                    if (val.length > 11) val = val.slice(0, 11);
+                    let formatted = val;
+                    if (val.length > 2) formatted = `(${val.slice(0, 2)}) ${val.slice(2)}`;
+                    if (val.length > 7) formatted = `(${val.slice(0, 2)}) ${val.slice(2, 7)}-${val.slice(7)}`;
+                    setLead({ ...lead, phone: formatted });
+                  }}
+                  placeholder="(11) 99999-9999"
+                />
+              </div>
+              <div>
+                <Label>@ do Instagram (opcional)</Label>
+                <Input
+                  value={lead.instagram_handle}
+                  onChange={(e) => {
+                    let val = e.target.value.trim();
+                    if (val.length > 0 && !val.startsWith('@')) val = '@' + val;
+                    setLead({ ...lead, instagram_handle: val });
+                  }}
+                  placeholder="@seuhandle"
+                />
+              </div>
             </div>
-            <Button size="lg" className="w-full gap-2" disabled={!lead.name || !lead.phone} onClick={() => setStep("quiz")}>
+            <Button
+              size="lg"
+              className="w-full gap-2"
+              disabled={
+                lead.name.trim().split(/\s+/).length < 2 || 
+                lead.name.trim().length < 5 || 
+                lead.phone.replace(/\D/g, "").length < 10
+              }
+              onClick={() => setStep("quiz")}
+            >
               Continuar <ArrowRight className="h-4 w-4" />
             </Button>
           </Card>
@@ -268,12 +310,18 @@ export default function DeepFunnelPublic() {
             {/* Bloco do veredicto + dor dominante */}
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.5, delay: 0.1 }}>
               <Card className="space-y-4 border-primary/40 bg-gradient-to-br from-background to-primary/5 p-6 md:p-8">
-                {funnel.result_intro && <p className="text-sm text-muted-foreground">{funnel.result_intro}</p>}
+                {funnel.result_intro && (
+                  <p className="text-sm text-muted-foreground">
+                    {funnel.result_intro.replace(/\{\{nome\}\}/gi, lead.name.split(' ')[0] || '')}
+                  </p>
+                )}
                 <div className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs uppercase tracking-wider text-primary">
                   Dor dominante: {result?.pain_detected ?? "—"}
                 </div>
                 {result?.veredict && (
-                  <p className="whitespace-pre-line text-sm leading-relaxed text-foreground/90">{result.veredict}</p>
+                  <p className="whitespace-pre-line text-sm leading-relaxed text-foreground/90">
+                    {result.veredict.replace(/\{\{nome\}\}/gi, lead.name.split(' ')[0] || '')}
+                  </p>
                 )}
               </Card>
             </motion.div>
