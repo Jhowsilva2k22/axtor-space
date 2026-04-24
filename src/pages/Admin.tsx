@@ -806,7 +806,7 @@ const Admin = () => {
 
                   {isAdmin && (
                     <Link to="/admin/diagnostics" className="inline-flex h-11 items-center justify-between gap-2 rounded-sm border border-border bg-card/40 px-4 text-[11px] uppercase tracking-[0.2em] text-muted-foreground transition-all hover:border-gold hover:text-primary">
-                      <span>DIAGNÓSTICO</span> <Stethoscope className="h-3.5 w-3.5" />
+                      <span className="text-xs">DIAGNÓSTICO</span> <Stethoscope className="h-3.5 w-3.5" />
                     </Link>
                   )}
 
