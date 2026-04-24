@@ -25,8 +25,7 @@ export const TenantSelector = () => {
   // Único tenant: mostra como label estática
   if (tenants.length === 1 && current) {
     return (
-      <div className="inline-flex h-10 items-center gap-2 rounded-sm border border-gold/40 bg-card/40 px-3 text-[11px] uppercase tracking-[0.2em] text-primary">
-        <Building2 className="h-3.5 w-3.5" />
+      <div className="inline-flex h-10 items-center justify-center rounded-sm border border-gold/40 bg-card/40 px-3 text-[11px] uppercase tracking-[0.2em] text-primary text-center">
         {current.display_name}
       </div>
     );
@@ -35,10 +34,9 @@ export const TenantSelector = () => {
   // Múltiplos tenants (super admin ou owner de vários): seletor
   return (
     <Select value={current?.id ?? ""} onValueChange={setCurrentId}>
-      <SelectTrigger className="h-10 w-[200px] rounded-sm border-gold bg-card/40 text-[11px] uppercase tracking-[0.2em] text-primary">
-        <span className="flex items-center gap-2 mt-[3px] my-[2px]">
-          <Building2 className="h-3.5 w-3.5 shrink-0" />
-          <SelectValue placeholder="Tenant…" />
+      <SelectTrigger className="h-10 w-[200px] rounded-sm border-gold bg-card/40 text-[11px] uppercase tracking-[0.2em] text-primary text-center">
+        <span className="flex-1 flex items-center justify-center mt-[3px] my-[2px]">
+          <SelectValue placeholder="Tenant…">{current?.display_name}</SelectValue>
         </span>
       </SelectTrigger>
       <SelectContent className="max-h-72">

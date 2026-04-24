@@ -647,9 +647,9 @@ const Admin = () => {
       <div className="aurora-b" />
       <header className="sticky top-0 z-30 border-b border-gold/30 bg-background/80 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 md:px-6">
-          <div className="min-w-0">
-            <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">painel</p>
-            <h1 className="font-display text-2xl">Admin</h1>
+          <div className="min-w-0 flex flex-col justify-center">
+            <p className="text-[10px] leading-none uppercase tracking-[0.3em] text-muted-foreground mb-1">painel</p>
+            <h1 className="font-display text-2xl leading-none mt-0.5">Admin</h1>
           </div>
 
           {/* Desktop nav (lg+) */}
@@ -917,34 +917,38 @@ const Admin = () => {
                 <Input value={cfg.display_name} onChange={(e) => updateCfg({ display_name: e.target.value })} className="h-11 rounded-sm border-gold bg-input" />
               </Field>
               <Field label="Foto de perfil">
-                <div className="flex items-center gap-3">
+                <div className="flex gap-4">
                   {cfg.avatar_url ? (
-                    <img src={cfg.avatar_url} alt="avatar" className="h-11 w-11 shrink-0 rounded-full border border-gold object-cover" />
+                    <img src={cfg.avatar_url} alt="avatar" className="h-16 w-16 shrink-0 rounded-full border border-gold object-cover" />
                   ) : (
-                    <div className="h-11 w-11 shrink-0 rounded-full border border-dashed border-gold/50" />
+                    <div className="h-16 w-16 shrink-0 rounded-full border border-dashed border-gold/50" />
                   )}
-                  <label className="inline-flex h-11 cursor-pointer items-center gap-2 rounded-sm border border-gold bg-card/40 px-4 text-[11px] uppercase tracking-[0.2em] text-primary transition-all hover:bg-gradient-gold-soft">
-                    {uploadingAvatar ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
-                    {uploadingAvatar ? "Enviando..." : "Enviar foto"}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      disabled={uploadingAvatar}
-                      onChange={(e) => {
-                        const f = e.target.files?.[0];
-                        if (f) setPendingAvatarFile(f);
-                        e.currentTarget.value = "";
-                      }}
+                  <div className="flex-1 flex flex-col justify-center gap-2.5 min-w-0">
+                    <div>
+                      <label className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-sm border border-gold bg-card/40 px-4 text-[10px] uppercase tracking-[0.2em] text-primary transition-all hover:bg-gradient-gold-soft">
+                        {uploadingAvatar ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+                        {uploadingAvatar ? "Enviando..." : "Enviar foto"}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          disabled={uploadingAvatar}
+                          onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            if (f) setPendingAvatarFile(f);
+                            e.currentTarget.value = "";
+                          }}
+                        />
+                      </label>
+                    </div>
+                    <Input
+                      value={cfg.avatar_url ?? ""}
+                      onChange={(e) => updateCfg({ avatar_url: e.target.value })}
+                      placeholder="ou cole uma URL https://..."
+                      className="h-9 rounded-sm border-gold/50 bg-input text-xs"
                     />
-                  </label>
+                  </div>
                 </div>
-                <Input
-                  value={cfg.avatar_url ?? ""}
-                  onChange={(e) => updateCfg({ avatar_url: e.target.value })}
-                  placeholder="ou cole uma URL https://..."
-                  className="mt-2 h-9 rounded-sm border-gold/50 bg-input text-xs"
-                />
               </Field>
               <Field label="Headline (frase principal)" full>
                 <Textarea value={cfg.headline} onChange={(e) => updateCfg({ headline: e.target.value })} rows={3} className="rounded-sm border-gold bg-input" />
@@ -1188,13 +1192,13 @@ const ToggleChip = ({
   onChange: (v: boolean) => void;
 }) => (
   <label
-    className={`flex h-10 cursor-pointer items-center justify-between gap-2 rounded-sm border px-3 transition-colors ${
+    className={`flex min-h-[40px] w-full cursor-pointer items-center justify-between gap-2 rounded-sm border px-3 py-1.5 transition-colors ${
       checked ? "border-gold/60 bg-card/60 text-primary" : "border-border bg-card/20 text-muted-foreground hover:border-gold/30"
     }`}
   >
-    <span className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em]">
-      {icon}
-      {label}
+    <span className="flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.15em] leading-tight">
+      <span className="shrink-0">{icon}</span>
+      <span>{label}</span>
     </span>
     <Switch checked={checked} onCheckedChange={onChange} />
   </label>
@@ -1281,7 +1285,8 @@ const BlockEditor = ({
         <span className="ml-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">#{block.position}</span>
 
         <div className="ml-auto flex items-center gap-2">
-          <span className={`hidden sm:inline-flex h-7 items-center rounded-sm border px-2 text-[10px] uppercase tracking-[0.2em] ${block.is_active ? "border-gold/40 text-primary" : "border-border text-muted-foreground"}`}>
+          <span className={`hidden sm:inline-flex h-7 items-center gap-1.5 rounded-sm border px-2 text-[10px] uppercase tracking-[0.2em] transition-all ${block.is_active ? "border-gold/40 text-primary animate-pulse-soft" : "border-border text-muted-foreground"}`}>
+            {block.is_active && <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-gold" />}
             {block.is_active ? "ativo" : "oculto"}
           </span>
           <DropdownMenu>
@@ -1313,25 +1318,31 @@ const BlockEditor = ({
       </div>
 
       {/* Linha 3: chips de toggles (Ativo / Destaque / Cor original) */}
-      <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
-        <ToggleChip
-          icon={block.is_active ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
-          label={block.is_active ? "Ativo" : "Oculto"}
-          checked={block.is_active}
-          onChange={(v) => onChange({ is_active: v })}
-        />
-        <ToggleChip
-          icon={<Sparkles className="h-3.5 w-3.5" />}
-          label="Destaque"
-          checked={block.highlight}
-          onChange={(v) => onChange({ highlight: v })}
-        />
-        <ToggleChip
-          icon={<Droplet className="h-3.5 w-3.5" />}
-          label="Cor original"
-          checked={block.use_brand_color}
-          onChange={(v) => onChange({ use_brand_color: v })}
-        />
+      <div className="mt-3 flex flex-wrap gap-2">
+        <div className="flex-1 min-w-[125px]">
+          <ToggleChip
+            icon={block.is_active ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+            label={block.is_active ? "Ativo" : "Oculto"}
+            checked={block.is_active}
+            onChange={(v) => onChange({ is_active: v })}
+          />
+        </div>
+        <div className="flex-1 min-w-[125px]">
+          <ToggleChip
+            icon={<Sparkles className="h-3.5 w-3.5" />}
+            label="Destaque"
+            checked={block.highlight}
+            onChange={(v) => onChange({ highlight: v })}
+          />
+        </div>
+        <div className="flex-1 min-w-[125px]">
+          <ToggleChip
+            icon={<Droplet className="h-3.5 w-3.5" />}
+            label="Cor original"
+            checked={block.use_brand_color}
+            onChange={(v) => onChange({ use_brand_color: v })}
+          />
+        </div>
       </div>
 
       <div className="mt-4 grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">

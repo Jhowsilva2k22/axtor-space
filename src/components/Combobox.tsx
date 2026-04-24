@@ -74,7 +74,7 @@ export const Combobox: React.FC<ComboboxProps> = ({
           role="combobox"
           aria-expanded={open}
           className={cn(
-            "h-11 w-full justify-between rounded-sm border-gold bg-input font-normal",
+            "h-9 w-full justify-between rounded-sm border-gold bg-input font-normal",
             !value && "text-muted-foreground",
             className,
           )}

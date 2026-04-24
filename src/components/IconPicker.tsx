@@ -177,7 +177,7 @@ export const IconPicker = ({
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="flex h-11 w-full items-center justify-between gap-2 rounded-sm border border-gold bg-input px-3 text-sm text-foreground transition-all hover:bg-card/60"
+          className="flex h-9 w-full items-center justify-between gap-2 rounded-sm border border-gold bg-input px-3 text-sm text-foreground transition-all hover:bg-card/60"
         >
           <span className="flex items-center gap-2 min-w-0">
             {iconUrl ? (

@@ -249,6 +249,14 @@ All colors MUST be HSL.
     animation: fade-up 0.6s ease-out both;
   }
 
+  @keyframes pulse-soft {
+    0%, 100% { opacity: 1; filter: brightness(1); box-shadow: 0 0 0 transparent; }
+    50% { opacity: 0.85; filter: brightness(1.1); box-shadow: 0 0 12px hsl(var(--primary) / 0.25); }
+  }
+  .animate-pulse-soft {
+    animation: pulse-soft 3s ease-in-out infinite;
+  }
+
   /* Premium button: gold gradient + shimmer sweep + lift */
   @keyframes btn-shimmer {
     0% { transform: translateX(-120%) skewX(-20deg); }
