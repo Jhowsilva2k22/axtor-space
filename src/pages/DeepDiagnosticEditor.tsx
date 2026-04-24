@@ -700,6 +700,24 @@ export default function DeepDiagnosticEditor() {
                     <Label>Preço (texto livre)</Label>
                     <Input value={p.price_hint ?? ""} onChange={(e) => updateProduct(idx, { price_hint: e.target.value })} />
                   </div>
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <div>
+                      <Label>Duração da sessão</Label>
+                      <Input
+                        placeholder="Ex: 1 hora"
+                        value={p.session_duration ?? ""}
+                        onChange={(e) => updateProduct(idx, { session_duration: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <Label>Duração do plano</Label>
+                      <Input
+                        placeholder="Ex: 30 dias"
+                        value={p.plan_duration ?? ""}
+                        onChange={(e) => updateProduct(idx, { plan_duration: e.target.value })}
+                      />
+                    </div>
+                  </div>
                   <div>
                     <Label>Mensagem de WhatsApp pronta</Label>
                     <Textarea
