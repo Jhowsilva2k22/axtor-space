@@ -343,6 +343,20 @@ export default function DeepFunnelPublic() {
                           <Cog className="h-3 w-3" /> Como funciona
                         </div>
                         <p className="text-sm leading-relaxed text-foreground/85">{product.how_it_works}</p>
+                        {(product.session_duration || product.plan_duration) && (
+                          <div className="flex flex-wrap gap-3 pt-1 text-xs text-foreground/70">
+                            {product.session_duration && (
+                              <span className="inline-flex items-center gap-1">
+                                <Clock className="h-3 w-3 text-primary" /> Sessão: <strong className="text-foreground">{product.session_duration}</strong>
+                              </span>
+                            )}
+                            {product.plan_duration && (
+                              <span className="inline-flex items-center gap-1">
+                                <Clock className="h-3 w-3 text-primary" /> Plano: <strong className="text-foreground">{product.plan_duration}</strong>
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
                     )}
 
