@@ -19,7 +19,9 @@ import {
   TrendingUp,
   DollarSign,
   RefreshCw,
+  Download,
 } from "lucide-react";
+import * as XLSX from "xlsx";
 
 type Range = 1 | 7 | 30 | 90;
 
@@ -69,6 +71,7 @@ const AdminAnalytics = () => {
   const [data, setData] = useState<Summary | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   const load = async () => {
     if (!currentTenant) return;
@@ -96,6 +99,55 @@ const AdminAnalytics = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authLoading, tenantLoading, user, currentTenant?.id, range]);
+
+  const handleExport = async () => {
+    if (!currentTenant) return;
+    setExporting(true);
+    try {
+      const { data: rpc, error } = await supabase.rpc("export_tenant_leads", {
+        _tenant_id: currentTenant.id,
+      });
+      if (error) throw error;
+      const payload = rpc as any;
+      const wb = XLSX.utils.book_new();
+      const leads = (payload?.leads ?? []).map((l: any) => ({
+        Data: l.created_at ? new Date(l.created_at).toLocaleString("pt-BR") : "",
+        Nome: l.full_name ?? "",
+        Email: l.email ?? "",
+        Telefone: l.phone ?? "",
+        Instagram: l.instagram_handle ?? "",
+        Origem: l.source ?? "",
+        UTM_Source: l.utm_source ?? "",
+        UTM_Medium: l.utm_medium ?? "",
+        UTM_Campaign: l.utm_campaign ?? "",
+        Privado: l.profile_is_private ? "Sim" : "Não",
+      }));
+      const deep = (payload?.deep_diagnostics ?? []).map((d: any) => ({
+        Data: d.created_at ? new Date(d.created_at).toLocaleString("pt-BR") : "",
+        Funil: d.funnel_name ?? "",
+        Nome: d.lead_name ?? "",
+        Email: d.lead_email ?? "",
+        Telefone: d.lead_phone ?? "",
+        Instagram: d.instagram_handle ?? "",
+        Dor_Detectada: d.pain_detected ?? "",
+        Produto_Recomendado: d.recommended_product ?? "",
+        Veredicto: d.ai_veredict ?? "",
+        Status: d.status ?? "",
+        UTM_Source: d.utm_source ?? "",
+        UTM_Medium: d.utm_medium ?? "",
+        UTM_Campaign: d.utm_campaign ?? "",
+      }));
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(leads), "Todos os Leads");
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(deep), "Diagnóstico Profundo");
+      const ts = new Date().toISOString().slice(0, 10);
+      XLSX.writeFile(wb, `leads-${currentTenant.slug}-${ts}.xlsx`);
+      toast.success?.(`Planilha gerada com ${leads.length} leads e ${deep.length} diagnósticos.`);
+    } catch (e: any) {
+      toast.error?.(e?.message ?? "Não foi possível exportar");
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const cost = useMemo(() => {
     if (!data) return null;
@@ -164,6 +216,10 @@ const AdminAnalytics = () => {
           </div>
           <Button variant="outline" size="icon" onClick={load} disabled={refreshing}>
             <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleExport} disabled={exporting || !currentTenant} className="gap-2">
+            {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+            <span className="hidden sm:inline text-[10px] uppercase tracking-[0.2em]">Excel</span>
           </Button>
           <TenantSelector />
           <ThemeToggle />
