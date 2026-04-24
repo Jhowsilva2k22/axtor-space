@@ -17,7 +17,7 @@ export const BlockMetricsBadge = ({ blockId }: { blockId: string }) => {
   useEffect(() => {
     let cancel = false;
     (async () => {
-      const { data: res, error } = await supabase.rpc("get_block_analytics", {
+      const { data: res, error } = await supabase.rpc("get_block_analytics_v2", {
         _block_id: blockId,
         _days: 30,
       });
@@ -37,8 +37,10 @@ export const BlockMetricsBadge = ({ blockId }: { blockId: string }) => {
       title="Ver métricas detalhadas"
     >
       <BarChart3 className="h-3.5 w-3.5 shrink-0 text-primary" />
-      {loading || !data ? (
+      {loading ? (
         <Loader2 className="h-3 w-3 animate-spin" />
+      ) : !data ? (
+        <span className="text-[10px] tracking-normal text-muted-foreground">Sem dados ainda</span>
       ) : (
         <div className="grid flex-1 grid-cols-4 gap-2">
           <Stat label="24h" value={data.clicks_24h} />

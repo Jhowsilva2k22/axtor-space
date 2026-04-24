@@ -544,11 +544,13 @@ export type Database = {
           is_active: boolean
           name: string
           pain_tag: string
+          plan_duration: string | null
           position: number
           price_hint: string | null
           result_media_caption: string | null
           result_media_type: string | null
           result_media_url: string | null
+          session_duration: string | null
           thankyou_media_caption: string | null
           thankyou_media_type: string | null
           thankyou_media_url: string | null
@@ -573,11 +575,13 @@ export type Database = {
           is_active?: boolean
           name: string
           pain_tag: string
+          plan_duration?: string | null
           position?: number
           price_hint?: string | null
           result_media_caption?: string | null
           result_media_type?: string | null
           result_media_url?: string | null
+          session_duration?: string | null
           thankyou_media_caption?: string | null
           thankyou_media_type?: string | null
           thankyou_media_url?: string | null
@@ -602,11 +606,13 @@ export type Database = {
           is_active?: boolean
           name?: string
           pain_tag?: string
+          plan_duration?: string | null
           position?: number
           price_hint?: string | null
           result_media_caption?: string | null
           result_media_type?: string | null
           result_media_url?: string | null
+          session_duration?: string | null
           thankyou_media_caption?: string | null
           thankyou_media_type?: string | null
           thankyou_media_url?: string | null
@@ -1492,8 +1498,13 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      export_tenant_leads: { Args: { _tenant_id: string }; Returns: Json }
       get_analytics_summary: { Args: { _days?: number }; Returns: Json }
       get_block_analytics: {
+        Args: { _block_id: string; _days?: number }
+        Returns: Json
+      }
+      get_block_analytics_v2: {
         Args: { _block_id: string; _days?: number }
         Returns: Json
       }

@@ -19,13 +19,14 @@ Tipos permitidos de pergunta: 'single' (1 escolha), 'multi' (várias), 'scale' (
 Para 'single' e 'multi': 4-5 opções. Para 'scale': use 5 opções de 1 a 5 com labels descritivos.
 
 REGRA DE PRODUTOS:
-- Se o briefing trouxer "products" (lista de produtos reais do dono), use EXATAMENTE esses produtos: mantenha nome, descrição e preço fornecidos. Distribua-os entre as 5 dores (marketing, gestao, vendas, ia, estrutura). Se houver menos de 5, repita os mais versáteis pra cobrir todas as dores. Se houver mais de 5, escolha os 5 melhores.
-- Se NÃO houver produtos no briefing, invente 5 produtos sugeridos (1 por dor) com nome, descrição persuasiva e preço estimado coerente com o nicho.
+- O dono SEMPRE define nome, preço, duração da sessão e duração do plano. Você NUNCA inventa esses 4 campos.
+- Se o briefing trouxer "products" (lista de produtos reais do dono), use EXATAMENTE esses produtos: copie nome, price_hint, session_duration e plan_duration LITERAIS do briefing — não traduza, não arredonde, não substitua. Distribua-os entre as 5 dores (marketing, gestao, vendas, ia, estrutura). Se houver menos de 5, repita os mais versáteis. Se houver mais de 5, escolha os 5 melhores.
+- Se NÃO houver produtos no briefing, deixe price_hint, session_duration e plan_duration COMO STRING VAZIA "" pra que o dono preencha depois no painel. Você ainda inventa nome e descrição persuasiva.
 - Em todos os casos, gere um template de WhatsApp pronto pra cada produto, usando {{nome}} como placeholder do nome do lead.
 
 PARA CADA PRODUTO, preencha OBRIGATORIAMENTE os campos de copy estruturada:
 - who_for: 1 frase descrevendo PRA QUEM É (perfil específico, momento, dor)
-- how_it_works: 1-2 frases descrevendo COMO FUNCIONA (formato, duração, dinâmica)
+- how_it_works: 1-2 frases descrevendo COMO FUNCIONA (formato e dinâmica). NÃO mencione duração — isso fica nos campos session_duration / plan_duration controlados pelo dono.
 - benefits: array de 3-5 bullets curtos e concretos (transformações/entregas, sem floreio)
 - urgency_text: 1 frase de URGÊNCIA OU ESCASSEZ honesta (ex: "Próxima turma fecha sexta — 12 vagas", "Bônus de implementação até domingo", "Só 5 vagas por mês"). Se não fizer sentido, deixe vazio.
 - cta_label: texto do BOTÃO PRINCIPAL adequado ao tipo de oferta. Use frases ativas em 1ª pessoa, ex: "Quero entrar na próxima turma", "Quero agendar minha consultoria", "Quero comprar agora", "Quero garantir minha vaga", "Quero começar agora".
@@ -81,6 +82,8 @@ const TOOLS = [
                 description: { type: "string" },
                 pain_tag: { type: "string" },
                 price_hint: { type: "string" },
+                session_duration: { type: "string", description: "Duração da sessão (ex: '1 hora'). COPIE LITERAL do briefing; se não houver, deixe vazio." },
+                plan_duration: { type: "string", description: "Duração do plano de ação (ex: '30 dias'). COPIE LITERAL do briefing; se não houver, deixe vazio." },
                 checkout_url: { type: "string" },
                 whatsapp_template: { type: "string", description: "Mensagem pronta com {{nome}} placeholder" },
                 who_for: { type: "string", description: "Pra quem é o produto (1 frase)" },
@@ -287,6 +290,8 @@ Deno.serve(async (req) => {
         description: p.description,
         pain_tag: painTag,
         price_hint: p.price_hint ?? null,
+        session_duration: p.session_duration ?? null,
+        plan_duration: p.plan_duration ?? null,
         checkout_url: checkout,
         cta_mode: checkout ? "checkout" : "whatsapp",
         whatsapp_template: p.whatsapp_template ?? null,

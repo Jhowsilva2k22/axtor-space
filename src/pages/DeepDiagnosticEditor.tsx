@@ -19,6 +19,8 @@ type BriefingProduct = {
   name: string;
   description: string;
   price_hint: string;
+  session_duration: string;
+  plan_duration: string;
   link: string;
 };
 
@@ -46,7 +48,7 @@ export default function DeepDiagnosticEditor() {
   const [step, setStep] = useState<Step>("list");
   const [briefing, setBriefing] = useState<Record<string, string>>({});
   const [briefingProducts, setBriefingProducts] = useState<BriefingProduct[]>([
-    { name: "", description: "", price_hint: "", link: "" },
+    { name: "", description: "", price_hint: "", session_duration: "", plan_duration: "", link: "" },
   ]);
   const [generating, setGenerating] = useState(false);
   const [activeFunnelId, setActiveFunnelId] = useState<string | null>(null);
@@ -89,6 +91,8 @@ export default function DeepDiagnosticEditor() {
           name: p.name.trim(),
           description: p.description.trim(),
           price_hint: p.price_hint.trim(),
+          session_duration: p.session_duration.trim(),
+          plan_duration: p.plan_duration.trim(),
           link: p.link.trim(),
         }))
         .filter((p) => p.name.length > 0);
@@ -191,6 +195,8 @@ export default function DeepDiagnosticEditor() {
           description: p.description,
           whatsapp_template: p.whatsapp_template,
           price_hint: p.price_hint,
+          session_duration: p.session_duration,
+          plan_duration: p.plan_duration,
           result_media_url: p.result_media_url,
           result_media_type: p.result_media_type,
           checkout_url: p.checkout_url,
@@ -396,6 +402,29 @@ export default function DeepDiagnosticEditor() {
                         }
                       />
                     </div>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      <Input
+                        placeholder="Duração da sessão (ex: 1 hora)"
+                        value={p.session_duration}
+                        onChange={(e) =>
+                          setBriefingProducts((prev) =>
+                            prev.map((x, i) => (i === idx ? { ...x, session_duration: e.target.value } : x)),
+                          )
+                        }
+                      />
+                      <Input
+                        placeholder="Duração do plano (ex: 30 dias)"
+                        value={p.plan_duration}
+                        onChange={(e) =>
+                          setBriefingProducts((prev) =>
+                            prev.map((x, i) => (i === idx ? { ...x, plan_duration: e.target.value } : x)),
+                          )
+                        }
+                      />
+                    </div>
+                    <p className="text-[10px] text-muted-foreground">
+                      Esses campos são SEUS — a IA nunca inventa duração nem valor.
+                    </p>
                   </div>
                 ))}
               </div>
@@ -408,7 +437,7 @@ export default function DeepDiagnosticEditor() {
                   onClick={() =>
                     setBriefingProducts((prev) => [
                       ...prev,
-                      { name: "", description: "", price_hint: "", link: "" },
+                      { name: "", description: "", price_hint: "", session_duration: "", plan_duration: "", link: "" },
                     ])
                   }
                 >
@@ -670,6 +699,24 @@ export default function DeepDiagnosticEditor() {
                   <div>
                     <Label>Preço (texto livre)</Label>
                     <Input value={p.price_hint ?? ""} onChange={(e) => updateProduct(idx, { price_hint: e.target.value })} />
+                  </div>
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <div>
+                      <Label>Duração da sessão</Label>
+                      <Input
+                        placeholder="Ex: 1 hora"
+                        value={p.session_duration ?? ""}
+                        onChange={(e) => updateProduct(idx, { session_duration: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <Label>Duração do plano</Label>
+                      <Input
+                        placeholder="Ex: 30 dias"
+                        value={p.plan_duration ?? ""}
+                        onChange={(e) => updateProduct(idx, { plan_duration: e.target.value })}
+                      />
+                    </div>
                   </div>
                   <div>
                     <Label>Mensagem de WhatsApp pronta</Label>
