@@ -19,6 +19,8 @@ type BriefingProduct = {
   name: string;
   description: string;
   price_hint: string;
+  session_duration: string;
+  plan_duration: string;
   link: string;
 };
 
@@ -46,7 +48,7 @@ export default function DeepDiagnosticEditor() {
   const [step, setStep] = useState<Step>("list");
   const [briefing, setBriefing] = useState<Record<string, string>>({});
   const [briefingProducts, setBriefingProducts] = useState<BriefingProduct[]>([
-    { name: "", description: "", price_hint: "", link: "" },
+    { name: "", description: "", price_hint: "", session_duration: "", plan_duration: "", link: "" },
   ]);
   const [generating, setGenerating] = useState(false);
   const [activeFunnelId, setActiveFunnelId] = useState<string | null>(null);
