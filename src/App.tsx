@@ -1,5 +1,7 @@
+import { lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { Loader2 } from "lucide-react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,32 +11,50 @@ import { CurrentTenantProvider } from "@/hooks/useCurrentTenant";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AppErrorBoundary } from "@/components/AppErrorBoundary";
 import { ScrollLockGuard } from "@/components/ScrollLockGuard";
-import Index from "./pages/Index.tsx";
-import NotFound from "./pages/NotFound.tsx";
-import SharePage from "./pages/Share.tsx";
-import Bio from "./pages/Bio.tsx";
-import AdminLogin from "./pages/AdminLogin.tsx";
-import Admin from "./pages/Admin.tsx";
-import ForgotPassword from "./pages/ForgotPassword.tsx";
-import ResetPassword from "./pages/ResetPassword.tsx";
-import AdminAnalytics from "./pages/AdminAnalytics.tsx";
-import AdminBlockMetrics from "./pages/AdminBlockMetrics.tsx";
-import AdminTemplates from "./pages/AdminTemplates.tsx";
-import AdminImprovements from "./pages/AdminImprovements.tsx";
-import AdminInvites from "./pages/AdminInvites.tsx";
-import AdminLandingPartners from "./pages/AdminLandingPartners.tsx";
-import RedirectCampaign from "./pages/RedirectCampaign.tsx";
-import Landing from "./pages/Landing.tsx";
-import Signup from "./pages/Signup.tsx";
-import Unsubscribe from "./pages/Unsubscribe.tsx";
-import ResetSession from "./pages/ResetSession.tsx";
-import AdminDiagnostics from "./pages/AdminDiagnostics.tsx";
-import DeepDiagnosticDemo from "./pages/DeepDiagnosticDemo.tsx";
-import DeepDiagnosticEditor from "./pages/DeepDiagnosticEditor.tsx";
-import DeepFunnelPublic from "./pages/DeepFunnelPublic.tsx";
-import DeepFunnelThankYou from "./pages/DeepFunnelThankYou.tsx";
 
-const queryClient = new QueryClient();
+// Eager: rotas mais visitadas (entry points públicos)
+import Index from "./pages/Index.tsx";
+import Bio from "./pages/Bio.tsx";
+import NotFound from "./pages/NotFound.tsx";
+
+// Lazy: tudo o resto carrega sob demanda → bundle inicial muito menor
+const SharePage = lazy(() => import("./pages/Share.tsx"));
+const AdminLogin = lazy(() => import("./pages/AdminLogin.tsx"));
+const Admin = lazy(() => import("./pages/Admin.tsx"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword.tsx"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword.tsx"));
+const AdminAnalytics = lazy(() => import("./pages/AdminAnalytics.tsx"));
+const AdminBlockMetrics = lazy(() => import("./pages/AdminBlockMetrics.tsx"));
+const AdminTemplates = lazy(() => import("./pages/AdminTemplates.tsx"));
+const AdminImprovements = lazy(() => import("./pages/AdminImprovements.tsx"));
+const AdminInvites = lazy(() => import("./pages/AdminInvites.tsx"));
+const AdminLandingPartners = lazy(() => import("./pages/AdminLandingPartners.tsx"));
+const RedirectCampaign = lazy(() => import("./pages/RedirectCampaign.tsx"));
+const Landing = lazy(() => import("./pages/Landing.tsx"));
+const Signup = lazy(() => import("./pages/Signup.tsx"));
+const Unsubscribe = lazy(() => import("./pages/Unsubscribe.tsx"));
+const ResetSession = lazy(() => import("./pages/ResetSession.tsx"));
+const AdminDiagnostics = lazy(() => import("./pages/AdminDiagnostics.tsx"));
+const DeepDiagnosticDemo = lazy(() => import("./pages/DeepDiagnosticDemo.tsx"));
+const DeepDiagnosticEditor = lazy(() => import("./pages/DeepDiagnosticEditor.tsx"));
+const DeepFunnelPublic = lazy(() => import("./pages/DeepFunnelPublic.tsx"));
+const DeepFunnelThankYou = lazy(() => import("./pages/DeepFunnelThankYou.tsx"));
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30_000,
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
+
+const RouteFallback = () => (
+  <div className="flex min-h-screen items-center justify-center bg-background">
+    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+  </div>
+);
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -48,7 +68,8 @@ const App = () => (
               <AppErrorBoundary>
                 <ThemeProvider>
                   <ScrollLockGuard />
-                  <Routes>
+                  <Suspense fallback={<RouteFallback />}>
+                    <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/planos" element={<Landing />} />
             <Route path="/signup" element={<Signup />} />
@@ -76,7 +97,8 @@ const App = () => (
             <Route path="/:slug" element={<Bio />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
-                  </Routes>
+                    </Routes>
+                  </Suspense>
                 </ThemeProvider>
               </AppErrorBoundary>
             </CurrentTenantProvider>
