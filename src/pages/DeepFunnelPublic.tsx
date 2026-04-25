@@ -155,7 +155,6 @@ export default function DeepFunnelPublic() {
   const mediaLocked = q?.media_url && (q.lock_until_media_ends || funnel.lock_until_media_ends) && !mediaEnded && skipCountdown > 0;
 
   return (
-  return (
     <div className="relative min-h-screen grain overflow-x-hidden">
       <div className="aurora-a opacity-40" />
       <div className="aurora-b opacity-40" />
