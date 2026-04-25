@@ -122,7 +122,7 @@ export const MyLinksCard = ({ slug, tenantId }: Props) => {
   const bioUrl = `${ORIGIN}/${slug}`;
   const adminUrl = `${ORIGIN}/admin`;
   const publishedFunnel = funnels.find((f) => f.is_published);
-  const funnelUrl = publishedFunnel ? `${ORIGIN}/d/${publishedFunnel.slug}` : null;
+  const funnelUrl = publishedFunnel ? `${ORIGIN}/d/funnel/${publishedFunnel.slug}` : null;
   const partnerUtm = partners[0]?.utm_source ?? null;
   const captureUrl = partnerUtm
     ? `${ORIGIN}/?utm_source=${encodeURIComponent(partnerUtm)}&utm_medium=instagram`

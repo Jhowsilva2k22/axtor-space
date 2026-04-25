@@ -10,6 +10,8 @@ import { Loader2, MessageCircle, Sparkles, ArrowRight, Check, Clock, Users, Cog,
 import { getSessionId, captureUtm } from "@/lib/analytics";
 import { applyTenantTheme } from "@/lib/applyTenantTheme";
 import { motion, AnimatePresence } from "framer-motion";
+import { COUNTRIES, maskPhone, type CountryCode, suggestEmailDomain } from "@/lib/validators";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type Funnel = any;
 type Question = any;
@@ -24,6 +26,7 @@ export default function DeepFunnelPublic() {
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [scores, setScores] = useState<Record<string, number>>({ marketing: 0, gestao: 0, vendas: 0, ia: 0, estrutura: 0 });
   const [lead, setLead] = useState({ name: "", email: "", phone: "", instagram_handle: "" });
+  const [country, setCountry] = useState<CountryCode>("BR");
   const [result, setResult] = useState<any>(null);
   const [tenant, setTenant] = useState<any>(null);
   const [mediaEnded, setMediaEnded] = useState(false);
@@ -122,7 +125,7 @@ export default function DeepFunnelPublic() {
 
   const buildWhatsappUrl = (product: any) => {
     if (!product || !tenant?.whatsapp_number) return null;
-    const tpl: string = product.whatsapp_template ?? "Olá!";
+    const tpl: string = product.whatsapp_template || `Olá! Sou o(a) {{nome}} e acabei de finalizar o diagnóstico. Quero entender melhor como funciona o ${product.name}.`;
     const firstName = lead.name.split(' ')[0] || "";
     const msg = tpl.replace(/\{\{nome\}\}/gi, firstName);
     const number = (tenant.whatsapp_number ?? "").replace(/\D/g, "");
@@ -161,7 +164,7 @@ export default function DeepFunnelPublic() {
             </div>
             <h1 className="font-display text-3xl leading-tight md:text-4xl">{funnel.name}</h1>
             {funnel.welcome_media_url && (
-              <motion.div initial={{ scale: 0.97, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.15, duration: 0.4 }} className="overflow-hidden rounded-md border">
+              <motion.div initial={{ scale: 0.97, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.15, duration: 0.4 }} className="overflow-hidden rounded-2xl border">
                 {funnel.welcome_media_type === "video" && <video src={funnel.welcome_media_url} controls className="w-full" />}
                 {funnel.welcome_media_type === "audio" && <audio src={funnel.welcome_media_url} controls className="w-full" />}
                 {funnel.welcome_media_type === "image" && <img src={funnel.welcome_media_url} alt="" className="w-full" />}
@@ -177,34 +180,94 @@ export default function DeepFunnelPublic() {
 
         {step === "lead" && (
           <motion.div initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.35 }}>
-          <Card className="space-y-5 p-6 md:p-8">
-            <h2 className="font-display text-2xl">Antes de começar, me conta:</h2>
-            <div className="space-y-3">
+          <Card className="space-y-6 p-6 md:p-8 border-gold-gradient backdrop-blur">
+            <div>
+              <h2 className="font-display text-4xl leading-tight sm:text-5xl">
+                Onde você quer<br />receber seu <span className="text-gold italic">diagnóstico</span>?
+              </h2>
+              <p className="mt-4 text-muted-foreground">
+                Vamos enviar o relatório completo e seu plano de ação. Sem spam — palavra.
+              </p>
+            </div>
+            
+            <div className="space-y-5">
               <div>
-                <Label>Seu nome completo</Label>
+                <label className="mb-2 block text-xs uppercase tracking-[0.2em] text-muted-foreground">Nome completo</label>
                 <Input
                   value={lead.name}
-                  onChange={(e) => setLead({ ...lead, name: e.target.value })}
-                  placeholder="Ex: Joanderson Silva"
+                  onChange={(e) => setLead({ ...lead, name: e.target.value.replace(/[^a-zA-ZáàâãäéèêëíìîïóòôõöúùûüçÁÀÂÃÄÉÈÊËÍÌÎÏÓÒÔÕÖÚÙÛÜÇ '-]/g, "").slice(0, 80) })}
+                  placeholder="Nome e sobrenome"
+                  autoComplete="name"
+                  className="h-11 rounded-full border-gold bg-input font-light"
                 />
               </div>
+              
               <div>
-                <Label>WhatsApp</Label>
+                <label className="mb-2 block text-xs uppercase tracking-[0.2em] text-muted-foreground">Email</label>
                 <Input
-                  value={lead.phone}
-                  onChange={(e) => {
-                    let val = e.target.value.replace(/\D/g, '');
-                    if (val.length > 11) val = val.slice(0, 11);
-                    let formatted = val;
-                    if (val.length > 2) formatted = `(${val.slice(0, 2)}) ${val.slice(2)}`;
-                    if (val.length > 7) formatted = `(${val.slice(0, 2)}) ${val.slice(2, 7)}-${val.slice(7)}`;
-                    setLead({ ...lead, phone: formatted });
-                  }}
-                  placeholder="(11) 99999-9999"
+                  type="email"
+                  value={lead.email}
+                  onChange={(e) => setLead({ ...lead, email: e.target.value.replace(/\s/g, "").slice(0, 120) })}
+                  placeholder="voce@exemplo.com"
+                  autoComplete="email"
+                  inputMode="email"
+                  className="h-11 rounded-full border-gold bg-input font-light"
                 />
+                {suggestEmailDomain(lead.email) && (
+                  <button
+                    type="button"
+                    onClick={() => setLead({ ...lead, email: suggestEmailDomain(lead.email) || lead.email })}
+                    className="mt-2 text-xs text-primary underline-offset-2 hover:underline"
+                  >
+                    Quis dizer <span className="font-medium">{suggestEmailDomain(lead.email)}</span>?
+                  </button>
+                )}
               </div>
+
               <div>
-                <Label>@ do Instagram (opcional)</Label>
+                <label className="mb-2 block text-xs uppercase tracking-[0.2em] text-muted-foreground">WhatsApp</label>
+                <div className="flex gap-2">
+                  <Select
+                    value={country}
+                    onValueChange={(v: CountryCode) => {
+                      setCountry(v);
+                      setLead({ ...lead, phone: maskPhone(lead.phone, v) });
+                    }}
+                  >
+                    <SelectTrigger className="h-11 w-[120px] shrink-0 rounded-full border-gold bg-input font-light">
+                      <SelectValue>
+                        <span className="flex items-center gap-1.5">
+                          <span>{COUNTRIES.find((c) => c.code === country)?.flag}</span>
+                          <span>{COUNTRIES.find((c) => c.code === country)?.dial}</span>
+                        </span>
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent className="max-h-72">
+                      {COUNTRIES.map((c) => (
+                        <SelectItem key={c.code} value={c.code}>
+                          <span className="flex items-center gap-2">
+                            <span>{c.flag}</span>
+                            <span className="font-medium">{c.dial}</span>
+                            <span className="text-muted-foreground">{c.name}</span>
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    type="tel"
+                    value={lead.phone}
+                    onChange={(e) => setLead({ ...lead, phone: maskPhone(e.target.value, country) })}
+                    placeholder={country === "BR" ? "(11) 98765-4321" : "Número"}
+                    autoComplete="tel-national"
+                    inputMode="numeric"
+                    className="h-11 flex-1 rounded-full border-gold bg-input font-light"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-xs uppercase tracking-[0.2em] text-muted-foreground">@ do Instagram (opcional)</label>
                 <Input
                   value={lead.instagram_handle}
                   onChange={(e) => {
@@ -213,21 +276,27 @@ export default function DeepFunnelPublic() {
                     setLead({ ...lead, instagram_handle: val });
                   }}
                   placeholder="@seuhandle"
+                  className="h-11 rounded-full border-gold bg-input font-light"
                 />
               </div>
             </div>
+            
             <Button
               size="lg"
-              className="w-full gap-2"
+              className="btn-luxe h-12 w-full gap-2 rounded-full text-sm font-semibold uppercase tracking-[0.15em]"
               disabled={
                 lead.name.trim().split(/\s+/).length < 2 || 
                 lead.name.trim().length < 5 || 
-                lead.phone.replace(/\D/g, "").length < 10
+                lead.phone.replace(/\D/g, "").length < 10 ||
+                !lead.email.includes("@")
               }
               onClick={() => setStep("quiz")}
             >
-              Continuar <ArrowRight className="h-4 w-4" />
+              Gerar meu diagnóstico agora <ArrowRight className="h-4 w-4" />
             </Button>
+            <p className="text-center text-xs text-muted-foreground">
+              Ao continuar você concorda em receber seu relatório por email/WhatsApp.
+            </p>
           </Card>
           </motion.div>
         )}
@@ -259,7 +328,7 @@ export default function DeepFunnelPublic() {
                     className="space-y-1"
                   >
                     {q.media_caption && <p className="text-xs text-muted-foreground">{q.media_caption}</p>}
-                    <div className="overflow-hidden rounded-md border">
+                    <div className="overflow-hidden rounded-2xl border">
                       {q.media_type === "video" && (
                         <video ref={mediaRef as any} src={q.media_url} controls autoPlay className="w-full" onEnded={() => setMediaEnded(true)} />
                       )}
@@ -284,7 +353,7 @@ export default function DeepFunnelPublic() {
                       whileTap={{ scale: mediaLocked ? 1 : 0.98 }}
                       disabled={mediaLocked}
                       onClick={() => handleAnswer(q, oi)}
-                      className="w-full rounded-md border border-border bg-card p-4 text-left text-sm transition-colors hover:border-primary hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="w-full rounded-2xl border border-border bg-card p-4 text-left text-sm transition-colors hover:border-primary hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {o.label}
                     </motion.button>
@@ -306,24 +375,59 @@ export default function DeepFunnelPublic() {
         )}
 
         {step === "result" && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} className="space-y-5">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} className="space-y-8 relative">
+            {/* Fundo orgânico pulsante (Fios de Ouro / Fibra ótica dourada) */}
+            <div className="pointer-events-none absolute inset-0 overflow-hidden flex items-center justify-center opacity-30">
+              <div className="absolute w-[600px] h-[600px] border-[1px] border-gold/20 rounded-full blur-[2px] animate-[spin_30s_linear_infinite]" />
+              <div className="absolute w-[800px] h-[800px] border-[1px] border-gold/10 rounded-full blur-[4px] animate-[spin_40s_linear_infinite_reverse]" />
+              <div className="absolute w-[1000px] h-[1000px] border-[1px] border-primary/5 rounded-full blur-[8px] animate-[pulse_10s_ease-in-out_infinite]" />
+            </div>
+
             {/* Bloco do veredicto + dor dominante */}
-            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.5, delay: 0.1 }}>
-              <Card className="space-y-4 border-primary/40 bg-gradient-to-br from-background to-primary/5 p-6 md:p-8">
-                {funnel.result_intro && (
-                  <p className="text-sm text-muted-foreground">
+            <motion.div initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }} className="relative z-10">
+              <div className="relative overflow-hidden rounded-3xl border border-gold/20 bg-card/40 p-8 text-center backdrop-blur-md md:p-12 shadow-2xl">
+                <div className="pointer-events-none absolute left-1/2 top-0 h-32 w-full -translate-x-1/2 -translate-y-1/2 bg-primary/20 blur-[80px]" />
+                
+                <p className="text-[10px] uppercase tracking-[0.4em] text-gold">diagnóstico concluído</p>
+                <h2 className="mt-4 font-display text-4xl leading-tight sm:text-5xl">
+                  Olá, <span className="text-gold italic">{lead.name.split(' ')[0]}</span>.
+                </h2>
+                
+                {funnel.result_intro ? (
+                  <p className="mt-4 text-muted-foreground mx-auto max-w-2xl">
                     {funnel.result_intro.replace(/\{\{nome\}\}/gi, lead.name.split(' ')[0] || '')}
                   </p>
-                )}
-                <div className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs uppercase tracking-wider text-primary">
-                  Dor dominante: {result?.pain_detected ?? "—"}
-                </div>
-                {result?.veredict && (
-                  <p className="whitespace-pre-line text-sm leading-relaxed text-foreground/90">
-                    {result.veredict.replace(/\{\{nome\}\}/gi, lead.name.split(' ')[0] || '')}
+                ) : (
+                  <p className="mt-4 text-muted-foreground mx-auto max-w-2xl">
+                    Analisamos cuidadosamente suas respostas. Este é um momento de clareza para o seu negócio. Abaixo você encontra o veredicto do seu posicionamento e a estratégia desenhada para o seu próximo nível.
                   </p>
                 )}
-              </Card>
+
+                <div className="mt-8 flex justify-center">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-4 py-1.5 text-xs uppercase tracking-widest text-primary">
+                    <Sparkles className="h-3.5 w-3.5" /> Dor principal: {result?.pain_detected ?? "Não identificada"}
+                  </div>
+                </div>
+
+                {result?.veredict && (
+                  <div className="mt-8 rounded-2xl bg-background/50 p-6 border border-border/50 text-left">
+                    <p className="whitespace-pre-line text-sm leading-relaxed text-foreground/90 italic">
+                      "{result.veredict.replace(/\{\{nome\}\}/gi, lead.name.split(' ')[0] || '')}"
+                    </p>
+                  </div>
+                )}
+
+                {/* Storytelling Bridge / Gancho Condutivo */}
+                <div className="mt-12 space-y-6 text-left border-t border-border/30 pt-8">
+                  <h3 className="font-display text-2xl text-gold">O caminho para o seu próximo nível</h3>
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    Baseado no seu momento atual, identificamos que o seu maior gargalo não é apenas técnico, mas sim de <strong>posicionamento estratégico</strong>. Você tem o conhecimento, mas a forma como o mercado te enxerga ainda não reflete o valor real do que você entrega.
+                  </p>
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    Para mudar isso, desenhamos uma estratégia que une autoridade imediata com uma estrutura de vendas intencional. Não se trata de "postar mais", mas de ser <strong>escolhido</strong> pelos clientes que não questionam o seu preço.
+                  </p>
+                </div>
+              </div>
             </motion.div>
 
             {/* Cards de produto: principal + alternativas */}
@@ -334,135 +438,206 @@ export default function DeepFunnelPublic() {
               const chkUrl = buildCheckoutUrl(product);
               const ctaLabel = product.cta_label ?? "Quero esse";
               const secondaryLabel = product.cta_secondary_label ?? (ctaMode === "both" ? "Tirar dúvida no WhatsApp" : "Falar no WhatsApp");
-              const benefits: string[] = Array.isArray(product.benefits) ? product.benefits : [];
+              
+              // Nova estrutura de benefícios (objeto) vs legada (array)
+              const rawBenefits = product.benefits;
+              const isObj = typeof rawBenefits === 'object' && rawBenefits !== null && !Array.isArray(rawBenefits);
+              const benefits: string[] = isObj ? ((rawBenefits as any).items || []) : (Array.isArray(rawBenefits) ? rawBenefits : []);
+              
+              // Lógica de Oferta Exclusiva (Prioriza o que vier do banco, fallback para isPrimary)
+              const isExclusive = isObj ? (rawBenefits as any).is_exclusive : isPrimary;
+              const originalPrice = isObj ? (rawBenefits as any).original_price : (isPrimary ? "R$ 694,00" : "");
+              const guaranteeDays = isObj ? ((rawBenefits as any).guarantee_days || 7) : 7;
+              
               return (
                 <motion.div
                   key={product.id ?? idx}
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 + idx * 0.15, duration: 0.45 }}
+                  className="relative z-10"
                 >
-                  <Card
+                  <div
                     className={
                       isPrimary
-                        ? "space-y-5 border-primary/50 bg-gradient-to-br from-background via-background to-primary/10 p-6 md:p-8"
-                        : "space-y-5 border-border/60 bg-card/40 p-6 md:p-8"
+                        ? "relative overflow-hidden space-y-8 rounded-3xl border border-gold/50 bg-gradient-to-br from-background via-background to-primary/10 p-8 transition-all duration-500 hover:border-gold hover:shadow-[0_0_40px_-10px_rgba(212,175,55,0.3)] shadow-2xl"
+                        : "space-y-6 rounded-3xl border border-border/60 bg-card/40 p-8 transition-all duration-500 hover:border-primary/40 hover:bg-card/60"
                     }
                   >
+                    {isPrimary && (
+                      <>
+                        <div className="pointer-events-none absolute right-0 top-0 h-64 w-64 -translate-y-1/2 translate-x-1/2 rounded-full bg-gold/10 blur-[80px]" />
+                        <div className="absolute top-0 right-0 p-4">
+                          <div className="rounded-full bg-gold px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-black shadow-lg">
+                            Oferta Exclusiva
+                          </div>
+                        </div>
+                      </>
+                    )}
+
                     <div
                       className={
                         isPrimary
-                          ? "inline-flex items-center gap-1.5 rounded-full border border-primary/50 bg-primary/15 px-3 py-1 text-[10px] font-medium uppercase tracking-wider text-primary"
+                          ? "inline-flex items-center gap-1.5 rounded-full border border-gold/50 bg-gold/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-gold"
                           : "inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/40 px-3 py-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground"
                       }
                     >
                       {isPrimary ? <><Star className="h-3 w-3 fill-current" /> Recomendado pra você</> : <>Você também pode gostar</>}
                     </div>
 
-                    <div className="space-y-2">
-                      <h2 className={isPrimary ? "font-display text-3xl leading-tight md:text-4xl" : "font-display text-2xl leading-tight"}>
+                    <div className="space-y-2 relative z-10">
+                      <h2 className={isPrimary ? "font-display text-4xl leading-tight" : "font-display text-2xl leading-tight"}>
                         {product.name}
                       </h2>
                       {product.description && (
-                        <p className="text-muted-foreground">{product.description}</p>
+                        <p className="text-muted-foreground leading-relaxed">{product.description}</p>
                       )}
                     </div>
 
-                    {product.result_media_url && isPrimary && (
-                      <div className="overflow-hidden rounded-md border">
-                        {product.result_media_type === "video" && <video src={product.result_media_url} controls className="w-full" />}
-                        {product.result_media_type === "audio" && <audio src={product.result_media_url} controls className="w-full" />}
-                        {product.result_media_type === "image" && <img src={product.result_media_url} alt="" className="w-full" />}
-                      </div>
-                    )}
-
-                    {product.who_for && (
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-primary/80">
-                          <Users className="h-3 w-3" /> Pra quem é
-                        </div>
-                        <p className="text-sm leading-relaxed text-foreground/85">{product.who_for}</p>
-                      </div>
-                    )}
-
-                    {product.how_it_works && (
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-primary/80">
-                          <Cog className="h-3 w-3" /> Como funciona
-                        </div>
-                        <p className="text-sm leading-relaxed text-foreground/85">{product.how_it_works}</p>
-                        {(product.session_duration || product.plan_duration) && (
-                          <div className="flex flex-wrap gap-3 pt-1 text-xs text-foreground/70">
-                            {product.session_duration && (
-                              <span className="inline-flex items-center gap-1">
-                                <Clock className="h-3 w-3 text-primary" /> Sessão: <strong className="text-foreground">{product.session_duration}</strong>
-                              </span>
-                            )}
-                            {product.plan_duration && (
-                              <span className="inline-flex items-center gap-1">
-                                <Clock className="h-3 w-3 text-primary" /> Plano: <strong className="text-foreground">{product.plan_duration}</strong>
-                              </span>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    )}
-
                     {benefits.length > 0 && (
-                      <ul className="space-y-1.5">
-                        {benefits.map((b, bi) => (
-                          <li key={bi} className="flex items-start gap-2 text-sm">
-                            <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
-                            <span className="text-foreground/85">{b}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-
-                    {product.price_hint && (
-                      <div className="text-sm">
-                        <span className="text-muted-foreground">Investimento: </span>
-                        <span className="font-medium text-foreground">{product.price_hint}</span>
+                      <div className="space-y-4 pt-2 relative z-10">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gold/80">O que você recebe:</p>
+                        <ul className="space-y-3">
+                          {benefits.map((b, bi) => (
+                            <li key={bi} className="flex items-start gap-3 text-sm group">
+                              <div className="mt-0.5 rounded-full bg-gold/20 p-1 group-hover:bg-gold/40 transition-colors">
+                                <Check className="h-3 w-3 text-gold" />
+                              </div>
+                              <span className="text-foreground/90 font-medium">{b}</span>
+                            </li>
+                          ))}
+                        </ul>
                       </div>
                     )}
 
-                    {product.urgency_text && (
-                      <div className="flex items-start gap-2 rounded-md border border-primary/30 bg-primary/5 p-3 text-xs text-foreground/85">
-                        <Clock className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-primary" />
-                        <span>{product.urgency_text}</span>
+                    {isPrimary && (
+                      <div className="grid grid-cols-2 gap-4 py-4 border-y border-border/30">
+                        <div className="text-center border-r border-border/30">
+                          <p className="text-2xl font-display text-gold">+20M</p>
+                          <p className="text-[10px] uppercase tracking-tighter text-muted-foreground">Seguidores Gerados</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-2xl font-display text-gold">+300K</p>
+                          <p className="text-[10px] uppercase tracking-tighter text-muted-foreground">Clientes Conquistados</p>
+                        </div>
                       </div>
                     )}
 
-                    <div className="space-y-2 pt-1">
-                      {(ctaMode === "checkout" || ctaMode === "both") && chkUrl && (
-                        <Button
-                          size="lg"
-                          className={`w-full gap-2 transition-transform hover:scale-[1.01] ${isPrimary ? "animate-[pulse_2.5s_ease-in-out_infinite]" : ""}`}
-                          asChild
-                        >
-                          <a href={chkUrl} target="_blank" rel="noreferrer">
-                            {ctaLabel} <ArrowRight className="h-4 w-4" />
-                          </a>
-                        </Button>
+                    <div className="pt-4 space-y-4 relative z-10">
+                      {isPrimary && (
+                        <div className="flex flex-col items-center gap-1">
+                          <span className="text-xs text-muted-foreground line-through opacity-60">Valor Total: {originalPrice}</span>
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-xs font-bold uppercase text-gold">Por apenas:</span>
+                            <span className="text-4xl font-display text-foreground">{product.price_hint}</span>
+                          </div>
+                          <span className="text-[10px] font-bold text-green-500 uppercase tracking-widest animate-pulse">Economia Real Detectada</span>
+                        </div>
                       )}
-                      {(ctaMode === "whatsapp" || ctaMode === "both") && wppUrl && (
-                        <Button
-                          size="lg"
-                          variant={ctaMode === "both" ? "outline" : "default"}
-                          className={`w-full gap-2 transition-transform hover:scale-[1.01] ${isPrimary && ctaMode === "whatsapp" ? "animate-[pulse_2.5s_ease-in-out_infinite]" : ""}`}
-                          asChild
-                        >
-                          <a href={wppUrl} target="_blank" rel="noreferrer">
+                      
+                      {!isPrimary && product.price_hint && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground uppercase tracking-widest">Investimento:</span>
+                          <span className="text-lg font-semibold text-foreground">{product.price_hint}</span>
+                        </div>
+                      )}
+
+                      <div className="space-y-3">
+                        {(ctaMode === "checkout" || ctaMode === "both") && chkUrl && (
+                          <Button
+                            size="lg"
+                            className={isPrimary ? "btn-luxe w-full gap-2 h-14 uppercase tracking-widest text-xs font-bold" : "w-full gap-2 h-12"}
+                            asChild
+                          >
+                            <a href={chkUrl} target="_blank" rel="noreferrer">
+                              {ctaLabel} <ArrowRight className="h-4 w-4" />
+                            </a>
+                          </Button>
+                        )}
+                        {(ctaMode === "whatsapp" || ctaMode === "both") && wppUrl && (
+                          <a
+                            href={wppUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className={isPrimary ? "btn-luxe flex w-full items-center justify-center gap-2 h-14 uppercase tracking-widest text-xs font-bold rounded-full" : "flex w-full items-center justify-center gap-2 h-12 border border-border hover:bg-muted/50 rounded-full text-sm transition-colors"}
+                          >
                             <MessageCircle className="h-4 w-4" />
                             {ctaMode === "whatsapp" ? ctaLabel : secondaryLabel}
                           </a>
-                        </Button>
+                        )}
+                      </div>
+
+                      {isPrimary && (
+                        <div className="mt-6 rounded-2xl bg-green-500/5 border border-green-500/20 p-4 flex gap-4 items-center">
+                          <div className="h-10 w-10 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                            <ShieldCheck className="h-6 w-6 text-green-500" />
+                          </div>
+                          <div className="space-y-0.5">
+                            <p className="text-xs font-bold text-foreground">Garantia Incondicional de {guaranteeDays} Dias</p>
+                            <p className="text-[10px] text-muted-foreground leading-relaxed">
+                              Se não gostar, devolvemos 100% do seu dinheiro. Sem perguntas.
+                            </p>
+                          </div>
+                        </div>
                       )}
                     </div>
-                  </Card>
+                  </div>
                 </motion.div>
               );
             })}
+
+            {/* Seção de Autoridade: Quem é Stefany Mello */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+              className="mt-20 relative overflow-hidden rounded-[40px] bg-card/30 border border-border/40 p-8 md:p-12"
+            >
+              <div className="grid md:grid-cols-2 gap-12 items-center">
+                <div className="space-y-6 order-2 md:order-1">
+                  <h3 className="font-display text-4xl leading-tight">
+                    Quem é <span className="text-gold italic">Stefany Mello</span>?
+                  </h3>
+                  <div className="space-y-4 text-sm leading-relaxed text-muted-foreground/90">
+                    <p>
+                      Stefany Mello é estrategista de posicionamento e gestão digital para negócios premium.
+                    </p>
+                    <p>
+                      Com visão estratégica e execução orientada a resultado, desenvolve e gerencia estratégias digitais que transformam a presença online de negócios em um ativo comercial real capaz de gerar autoridade, atrair o cliente certo e justificar o preço cobrado.
+                    </p>
+                    <p>
+                      Sua metodologia une posicionamento estratégico, gestão de conteúdo e inteligência editorial para construir uma presença digital consistente, intencional e alinhada ao nível do negócio que representa.
+                    </p>
+                    <p className="text-foreground font-medium italic">
+                      "Para quem entendeu que presença digital não é sobre estar online. É sobre ser escolhido."
+                    </p>
+                  </div>
+                  <div className="pt-4">
+                    <div className="inline-flex items-center gap-3 rounded-full border border-gold/30 bg-gold/10 px-4 py-2 text-[10px] uppercase tracking-widest text-gold font-bold">
+                      Diretora Axtor • Estrategista Premium
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="relative order-1 md:order-2 flex justify-center">
+                  <div className="relative w-full aspect-[4/5] max-w-[320px] rounded-[32px] overflow-hidden shadow-2xl border border-gold/20">
+                    <img 
+                      src="https://axtor.space/wp-content/uploads/2024/04/stefany-perfil.jpg" 
+                      alt="Stefany Mello" 
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=800";
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                  </div>
+                  {/* Elementos decorativos */}
+                  <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-gold/10 blur-3xl rounded-full" />
+                  <div className="absolute -top-4 -left-4 w-24 h-24 bg-primary/10 blur-3xl rounded-full" />
+                </div>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </div>

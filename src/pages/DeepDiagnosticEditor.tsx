@@ -138,7 +138,7 @@ export default function DeepDiagnosticEditor() {
         whatsapp_template: "",
         cta_mode: "whatsapp",
         is_active: true,
-        benefits: [],
+        benefits: { items: [], is_exclusive: false, original_price: "", guarantee_days: 7, metrics: [] },
       })
       .select("*")
       .single();
@@ -729,6 +729,93 @@ export default function DeepDiagnosticEditor() {
                   <div>
                     <Label>URL de mídia de resultado (opcional)</Label>
                     <Input value={p.result_media_url ?? ""} onChange={(e) => updateProduct(idx, { result_media_url: e.target.value })} />
+                  </div>
+
+                  <div className="rounded-md border border-gold/30 bg-gold/5 p-4 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label className="text-gold">Modo: Oferta Exclusiva do Diagnóstico</Label>
+                        <p className="text-[10px] text-muted-foreground">Ativa o layout de alta conversão (âncora + bônus + garantia)</p>
+                      </div>
+                      <Switch
+                        checked={p.benefits?.is_exclusive === true}
+                        onCheckedChange={(v) => {
+                          const b = typeof p.benefits === 'object' && !Array.isArray(p.benefits) ? p.benefits : { items: Array.isArray(p.benefits) ? p.benefits : [] };
+                          updateProduct(idx, { benefits: { ...b, is_exclusive: v } });
+                        }}
+                      />
+                    </div>
+
+                    {p.benefits?.is_exclusive && (
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div>
+                          <Label className="text-xs">Preço Original (Âncora)</Label>
+                          <Input 
+                            placeholder="Ex: R$ 694" 
+                            value={p.benefits?.original_price ?? ""} 
+                            onChange={(e) => {
+                              const b = typeof p.benefits === 'object' && !Array.isArray(p.benefits) ? p.benefits : { items: [] };
+                              updateProduct(idx, { benefits: { ...b, original_price: e.target.value } });
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs">Dias de Garantia</Label>
+                          <Input 
+                            type="number"
+                            value={p.benefits?.guarantee_days ?? 7} 
+                            onChange={(e) => {
+                              const b = typeof p.benefits === 'object' && !Array.isArray(p.benefits) ? p.benefits : { items: [] };
+                              updateProduct(idx, { benefits: { ...b, guarantee_days: parseInt(e.target.value) || 7 } });
+                            }}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    <div>
+                      <Label className="text-xs uppercase tracking-widest opacity-70">O que você recebe (Checklist)</Label>
+                      <div className="mt-2 space-y-2">
+                        {(Array.isArray(p.benefits?.items) ? p.benefits.items : (Array.isArray(p.benefits) ? p.benefits : [])).map((item: string, ii: number) => (
+                          <div key={ii} className="flex gap-2">
+                            <Input 
+                              value={item} 
+                              onChange={(e) => {
+                                const currentItems = Array.isArray(p.benefits?.items) ? [...p.benefits.items] : (Array.isArray(p.benefits) ? [...p.benefits] : []);
+                                currentItems[ii] = e.target.value;
+                                const b = typeof p.benefits === 'object' && !Array.isArray(p.benefits) ? p.benefits : { items: [] };
+                                updateProduct(idx, { benefits: { ...b, items: currentItems } });
+                              }}
+                            />
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={() => {
+                                const currentItems = Array.isArray(p.benefits?.items) ? [...p.benefits.items] : (Array.isArray(p.benefits) ? [...p.benefits] : []);
+                                const filtered = currentItems.filter((_, i) => i !== ii);
+                                const b = typeof p.benefits === 'object' && !Array.isArray(p.benefits) ? p.benefits : { items: [] };
+                                updateProduct(idx, { benefits: { ...b, items: filtered } });
+                              }}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ))}
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="w-full h-8 text-[10px] border-dashed"
+                          onClick={() => {
+                            const currentItems = Array.isArray(p.benefits?.items) ? [...p.benefits.items] : (Array.isArray(p.benefits) ? [...p.benefits] : []);
+                            const newList = [...currentItems, ""];
+                            const b = typeof p.benefits === 'object' && !Array.isArray(p.benefits) ? p.benefits : { items: [] };
+                            updateProduct(idx, { benefits: { ...b, items: newList } });
+                          }}
+                        >
+                          + Adicionar item à oferta
+                        </Button>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="rounded-md border border-primary/30 bg-primary/5 p-3 space-y-3">
