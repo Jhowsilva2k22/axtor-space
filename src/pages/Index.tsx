@@ -83,15 +83,23 @@ const Index = () => {
     const utm = params.get("utm_source") || params.get("ref");
     
     (async () => {
-      // Fetch tenant and bio_config
+      // 1. Tentar carregar do Cache Local (Instantâneo)
+      const cacheKey = `bio-cache-${utm || "global"}`;
+      const cached = sessionStorage.getItem(cacheKey);
+      if (cached) {
+        setBioCfg(JSON.parse(cached));
+      }
+
+      // 2. Buscar atualização em segundo plano
       const slug = utm || "joanderson";
       const { data: t } = await supabase.from("tenants").select("*").eq("slug", slug).maybeSingle();
-      
-      // Se não achar o tenant (RLS), busca a bio_config pelo display_name da Stefany como plano B
       const { data: bc } = await supabase.from("bio_config").select("*").eq("display_name", "Stefany Mello").maybeSingle();
       
       if (t) setTenant(t);
-      if (bc) setBioCfg(bc);
+      if (bc) {
+        setBioCfg(bc);
+        sessionStorage.setItem(cacheKey, JSON.stringify(bc));
+      }
 
       if (!utm) return;
       const { data: rows } = await (supabase as any).rpc("get_landing_partner_ctas", { _utm_source: utm });
@@ -280,11 +288,11 @@ const HandleStep = ({ handle, setHandle, onSubmit, bioCfg, tenant }: any) => {
           <div className="relative flex justify-center">
             <div className="relative w-full aspect-square max-w-[240px] rounded-[32px] overflow-hidden shadow-2xl border border-gold/20">
               <img 
-                src={`${bioPhoto}?t=${Date.now()}`} 
+                src={bioPhoto} 
                 alt={bioName} 
                 className="w-full h-full object-cover"
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = `https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=800&t=${Date.now()}`;
+                  (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=800";
                 }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />

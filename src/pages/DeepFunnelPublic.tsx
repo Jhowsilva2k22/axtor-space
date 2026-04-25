@@ -651,11 +651,11 @@ export default function DeepFunnelPublic() {
                 <div className="relative order-1 md:order-2 flex justify-center">
                   <div className="relative w-full aspect-[4/5] max-w-[320px] rounded-[32px] overflow-hidden shadow-2xl border border-gold/20">
                     <img 
-                      src={`${(funnel?.briefing?.use_global_bio ? tenant?.global_avatar_url : funnel?.briefing?.bio_image_url) || "https://axtor.space/wp-content/uploads/2024/04/stefany-perfil.jpg"}?t=${Date.now()}`} 
+                      src={(funnel?.briefing?.use_global_bio ? tenant?.global_avatar_url : funnel?.briefing?.bio_image_url) || "https://axtor.space/wp-content/uploads/2024/04/stefany-perfil.jpg"} 
                       alt={tenant?.display_name || "Stefany Mello"} 
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        (e.target as HTMLImageElement).src = `https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=800&t=${Date.now()}`;
+                        (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=800";
                       }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />

@@ -80,13 +80,26 @@ const Bio = () => {
 
   useEffect(() => {
     if (!tenant) return;
+    
     (async () => {
+      // 1. Carregamento instantâneo do Cache
+      const cacheKey = `bio-cfg-${tenant.id}`;
+      const cached = sessionStorage.getItem(cacheKey);
+      if (cached) {
+        setCfg(JSON.parse(cached));
+      }
+
+      // 2. Busca atualização em background
       const [{ data: c }, { data: b }, { data: cats }] = await Promise.all([
         supabase.from("bio_config").select("*").eq("tenant_id", tenant.id).maybeSingle(),
         supabase.from("bio_blocks").select("*").eq("tenant_id", tenant.id).eq("is_active", true).order("position", { ascending: true }),
         supabase.from("bio_categories").select("*").eq("tenant_id", tenant.id).eq("is_active", true).order("position", { ascending: true }),
       ]);
-      setCfg(c as any);
+      
+      if (c) {
+        setCfg(c as any);
+        sessionStorage.setItem(cacheKey, JSON.stringify(c));
+      }
       setBlocks((b as any) ?? []);
       setCategories((cats as any) ?? []);
       setLoading(false);
