@@ -252,7 +252,7 @@ const Index = () => {
         {step === "private" && data && <PrivateStep data={data} onRetry={reset} />}
         {step === "not_found" && <NotFoundStep handle={handle} onRetry={reset} />}
         {step === "blocked" && data && <BlockedStep data={data} />}
-        {step === "result" && data && <ResultStep data={data} onRestart={reset} partnerCtas={partnerCtas} />}
+        {step === "result" && data && <ResultStep data={data} onRestart={reset} partnerCtas={partnerCtas} tenant={tenant} bioCfg={bioCfg} />}
       </main>
 
       <footer className="relative z-10 border-t border-gold/30 text-center text-xs uppercase tracking-[0.25em] text-muted-foreground py-[20px]">
@@ -692,31 +692,43 @@ const ShareButton = ({
   );
 };
 
-const ResultStep = ({ data, onRestart, partnerCtas }: { data: DiagnosisData; onRestart: () => void; partnerCtas: PartnerCtas | null }) => {
+const ResultStep = ({ data, onRestart, partnerCtas, tenant, bioCfg }: { data: DiagnosisData; onRestart: () => void; partnerCtas: PartnerCtas | null; tenant: any; bioCfg: any }) => {
   const d = data.diagnosis!;
   const p = data.profile!;
   const score = d.score_geral ?? 0;
 
-  // Resolve CTAs: parceiro (se UTM válido) > defaults (Joanderson)
+  // Resolve CTAs: parceiro (se UTM válido) > defaults (Stefany Mello)
   const ORIGIN = typeof window !== "undefined" ? window.location.origin : "https://axtor.space";
-  const partnerName = partnerCtas?.display_name?.split(" ")[0] ?? null;
+  
+  // NOME: Parceiro > Bio Config > Fallback Stefany
+  const partnerName = partnerCtas?.display_name?.split(" ")[0] 
+    || bioCfg?.display_name?.split(" ")[0] 
+    || "Stefany";
+
   const bioHref = partnerCtas
     ? (partnerCtas.bio_url || `${ORIGIN}/${partnerCtas.slug}`)
     : "/bio";
-  const bioLabel = partnerName ? `Ver bio de ${partnerName}` : "Ver bio do Joanderson";
-  const igHandleRaw = partnerCtas?.instagram_handle || "eusoujoanderson1";
+    
+  const bioLabel = `Ver bio de ${partnerName}`;
+
+  // INSTAGRAM: Parceiro > Bio Config > Fallback
+  const igHandleRaw = partnerCtas?.instagram_handle || bioCfg?.instagram_handle || "stefany.mello_";
   const igHandle = igHandleRaw.replace(/^@+/, "");
   const igHref = `https://instagram.com/${igHandle}`;
-  const igOwnerLabel = partnerName ?? "o Joanderson";
-  const waNumber = partnerCtas ? (partnerCtas.whatsapp_number ?? "").replace(/\D/g, "") : "";
+  const igOwnerLabel = `a ${partnerName}`;
+
+  // WHATSAPP: Parceiro > Tenant > Fallback informado pelo usuário
+  const waNumber = (partnerCtas?.whatsapp_number || tenant?.whatsapp_number || "5511976300904").replace(/\D/g, "");
   const waMessage = partnerCtas?.whatsapp_message
-    ?? "Acabei de fazer o diagnóstico e quero estratégia personalizada";
-  const waHref = partnerCtas
-    ? (waNumber ? `https://wa.me/${waNumber}?text=${encodeURIComponent(waMessage)}` : null)
-    : `https://wa.me/5511976947591?text=${encodeURIComponent(waMessage)}`; // Fallback para o número principal se não houver parceiro
+    || bioCfg?.whatsapp_message
+    || "Acabei de fazer o diagnóstico e quero estratégia personalizada";
+    
+  const waHref = waNumber ? `https://wa.me/${waNumber}?text=${encodeURIComponent(waMessage)}` : null;
+
   const secondaryCta = partnerCtas?.secondary_cta_url
     ? { label: partnerCtas.secondary_cta_label || "Saiba mais", url: partnerCtas.secondary_cta_url }
     : null;
+    
   const isPartner = !!partnerCtas;
 
   return (
@@ -810,7 +822,7 @@ const ResultStep = ({ data, onRestart, partnerCtas }: { data: DiagnosisData; onR
               className="btn-luxe h-16 w-full gap-3 rounded-full text-xs font-bold uppercase tracking-[0.2em] shadow-lg shadow-gold/20"
               asChild
             >
-              <Link to={`/d/funnel/${partnerCtas?.slug || "stefany-mello"}`}>
+              <Link to={`/d/funnel/stefany-mello-3bnv`}>
                 Fazer Análise Completa (2 min) <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -837,28 +849,6 @@ const ResultStep = ({ data, onRestart, partnerCtas }: { data: DiagnosisData; onR
           </div>
 
           <div className="mt-8 opacity-60 grayscale hover:grayscale-0 transition-all">
-            <ShareButton diagnosticId={data.diagnostic_id} handle={p.username} score={score} />
-          </div>
-        </div>
-      </div>
-
-          <div className="mx-auto mt-8 flex max-w-md items-center gap-4 rounded-2xl border border-gold/40 bg-card/40 p-4 text-left">
-            <Instagram className="h-6 w-6 shrink-0 text-primary" />
-            <div className="flex-1 text-sm">
-              <p className="font-medium text-foreground">Curtiu o diagnóstico?</p>
-              <p className="text-xs font-light text-muted-foreground">Segue {igOwnerLabel} no Instagram pra mais análises e estratégias.</p>
-            </div>
-            <a
-              href={igHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-full border border-gold bg-background/50 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-primary transition-all hover:bg-gradient-gold-soft"
-            >
-              Seguir
-            </a>
-          </div>
-
-          <div className="mt-8">
             <ShareButton diagnosticId={data.diagnostic_id} handle={p.username} score={score} />
           </div>
         </div>
