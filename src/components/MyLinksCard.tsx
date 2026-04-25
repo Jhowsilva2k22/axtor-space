@@ -3,7 +3,10 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Copy, ExternalLink, Link2, LayoutDashboard, Sparkles, Megaphone } from "lucide-react";
+import { Copy, ExternalLink, Link2, LayoutDashboard, Sparkles, Megaphone, Settings2, Save, Loader2, MessageCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { QRCodeDialog } from "@/components/QRCodeDialog";
 import { useDeepDiagnostic } from "@/hooks/useDeepDiagnostic";
@@ -14,7 +17,18 @@ type Props = {
   tenantId: string;
 };
 
-type PartnerRow = { utm_source: string; is_active: boolean; note?: string | null };
+type PartnerRow = { 
+  id: string;
+  utm_source: string; 
+  is_active: boolean; 
+  note?: string | null;
+  bio_url: string | null;
+  instagram_handle: string | null;
+  whatsapp_number: string | null;
+  whatsapp_message: string | null;
+  secondary_cta_label: string | null;
+  secondary_cta_url: string | null;
+};
 
 const ORIGIN = typeof window !== "undefined" ? window.location.origin : "https://axtor.space";
 
@@ -109,7 +123,7 @@ export const MyLinksCard = ({ slug, tenantId }: Props) => {
     (async () => {
       const { data } = await supabase
         .from("landing_partners")
-        .select("utm_source,is_active,note")
+        .select("*")
         .eq("tenant_id", tenantId)
         .eq("is_active", true);
       if (!cancelled) setPartners((data as PartnerRow[] | null) ?? []);
@@ -168,15 +182,41 @@ export const MyLinksCard = ({ slug, tenantId }: Props) => {
             const partnerUrl = `${ORIGIN}/?utm_source=${encodeURIComponent(p.utm_source)}&utm_medium=instagram`;
             const partnerName = p.note || p.utm_source;
             return (
-              <Row
-                key={p.utm_source}
-                icon={<Megaphone className="h-4 w-4" />}
-                title={`Link do Parceiro: ${partnerName}`}
-                url={partnerUrl}
-                hint={`Leads que entrarem por este link (UTM: ${p.utm_source}) caem direto na sua conta.`}
-                qrSlug={`landing-${p.utm_source}`}
-                showQr
-              />
+              <div key={p.id} className="group flex flex-col gap-3 rounded-[24px] border border-gold/20 bg-card/40 p-5 transition-all hover:bg-card/50">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3 min-w-0">
+                    <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-gold/30 bg-gradient-gold-soft text-primary">
+                      <Megaphone className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-[10px] uppercase tracking-[0.25em] font-bold text-muted-foreground/60">Link de Captação / {partnerName}</div>
+                      <div className="mt-1 break-all font-mono text-xs text-gold">{partnerUrl}</div>
+                      <p className="mt-1 text-[11px] text-muted-foreground/80">Leads que entrarem por aqui são atribuídos automaticamente a você.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 pt-2">
+                  <Button variant="outline" size="sm" className="h-10 rounded-full border-gold/20 px-4 text-[10px] font-bold uppercase tracking-[0.2em] transition-all hover:bg-gold/10" onClick={() => copy("Link de Captação", partnerUrl)}>
+                    <Copy className="h-3.5 w-3.5" /> copiar
+                  </Button>
+                  
+                  <PartnerSettingsDialog partner={p} onUpdate={(patch) => setPartners(prev => prev.map(item => item.id === p.id ? { ...item, ...patch } : item))} />
+
+                  <QRCodeDialog
+                    url={partnerUrl}
+                    slug={`landing-${p.utm_source}`}
+                    trigger={
+                      <Button variant="outline" size="sm" className="h-10 rounded-full border-gold/20 px-4 text-[10px] font-bold uppercase tracking-[0.2em] transition-all hover:bg-gold/10">
+                        QR Code
+                      </Button>
+                    }
+                  />
+                  <a href={partnerUrl} target="_blank" rel="noreferrer" className="inline-flex h-10 items-center gap-2 rounded-full border border-gold/20 px-4 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground transition-all hover:bg-gold/10 hover:text-gold">
+                    <ExternalLink className="h-3.5 w-3.5" /> Abrir
+                  </a>
+                </div>
+              </div>
             );
           })}
 
@@ -221,3 +261,120 @@ export const MyLinksCard = ({ slug, tenantId }: Props) => {
 };
 
 export default MyLinksCard;
+
+const PartnerSettingsDialog = ({ partner, onUpdate }: { partner: PartnerRow; onUpdate: (patch: Partial<PartnerRow>) => void }) => {
+  const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    bio_url: partner.bio_url ?? "",
+    instagram_handle: (partner.instagram_handle ?? "").replace(/^@+/, ""),
+    whatsapp_number: partner.whatsapp_number ?? "",
+    whatsapp_message: partner.whatsapp_message ?? "",
+    secondary_cta_label: partner.secondary_cta_label ?? "",
+    secondary_cta_url: partner.secondary_cta_url ?? "",
+  });
+
+  const save = async () => {
+    setSaving(true);
+    const patch = {
+      bio_url: form.bio_url.trim() || null,
+      instagram_handle: form.instagram_handle.trim().replace(/^@+/, "") || null,
+      whatsapp_number: form.whatsapp_number.replace(/\D/g, "") || null,
+      whatsapp_message: form.whatsapp_message.trim() || null,
+      secondary_cta_label: form.secondary_cta_label.trim() || null,
+      secondary_cta_url: form.secondary_cta_url.trim() || null,
+    };
+    
+    const { error } = await supabase.from("landing_partners").update(patch).eq("id", partner.id);
+    setSaving(false);
+    
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    
+    onUpdate(patch);
+    toast.success("Estratégia de conversão atualizada!");
+    setOpen(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm" className="h-10 rounded-full border-gold bg-gold/5 px-4 text-[10px] font-bold uppercase tracking-[0.2em] text-gold transition-all hover:bg-gold/10">
+          <Settings2 className="h-3.5 w-3.5" /> Configurar Conversão
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl rounded-[32px] border-gold/20 bg-card/90 p-8 backdrop-blur-xl">
+        <DialogHeader>
+          <DialogTitle className="font-display text-2xl">Ajustar <span className="text-gold italic">Conversão</span></DialogTitle>
+          <p className="text-sm text-muted-foreground">Personalize para onde os leads desse link serão enviados após o diagnóstico.</p>
+        </DialogHeader>
+
+        <div className="mt-6 grid gap-6 md:grid-cols-2">
+          <div className="md:col-span-2 space-y-2">
+            <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/60">Sua Bio / Site Principal</label>
+            <Input
+              value={form.bio_url}
+              onChange={(e) => setForm(f => ({ ...f, bio_url: e.target.value }))}
+              placeholder="https://..."
+              className="h-12 rounded-full border-gold/20 bg-background/40 px-5 font-light"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/60">WhatsApp (Número com DDD)</label>
+            <Input
+              value={form.whatsapp_number}
+              onChange={(e) => setForm(f => ({ ...f, whatsapp_number: e.target.value }))}
+              placeholder="55..."
+              className="h-12 rounded-full border-gold/20 bg-background/40 px-5 font-light"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/60">@ Instagram</label>
+            <Input
+              value={form.instagram_handle}
+              onChange={(e) => setForm(f => ({ ...f, instagram_handle: e.target.value }))}
+              placeholder="seu_perfil"
+              className="h-12 rounded-full border-gold/20 bg-background/40 px-5 font-light"
+            />
+          </div>
+          <div className="md:col-span-2 space-y-2">
+            <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/60">Mensagem do WhatsApp</label>
+            <Textarea
+              value={form.whatsapp_message}
+              onChange={(e) => setForm(f => ({ ...f, whatsapp_message: e.target.value }))}
+              rows={2}
+              className="rounded-2xl border-gold/20 bg-background/40 p-4 font-light"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-gold/80 underline decoration-gold/30 underline-offset-4">Terceiro Botão (Título)</label>
+            <Input
+              value={form.secondary_cta_label}
+              onChange={(e) => setForm(f => ({ ...f, secondary_cta_label: e.target.value }))}
+              placeholder="Ex: Agendar Mentoria"
+              className="h-12 rounded-full border-gold/30 bg-gold/5 px-5 font-bold focus:border-gold"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-gold/80 underline decoration-gold/30 underline-offset-4">Terceiro Botão (Link)</label>
+            <Input
+              value={form.secondary_cta_url}
+              onChange={(e) => setForm(f => ({ ...f, secondary_cta_url: e.target.value }))}
+              placeholder="https://..."
+              className="h-12 rounded-full border-gold/30 bg-gold/5 px-5 font-bold focus:border-gold"
+            />
+          </div>
+
+          <div className="md:col-span-2 flex justify-end pt-4">
+            <Button onClick={save} disabled={saving} className="btn-luxe h-12 w-full md:w-auto rounded-full px-10 text-xs font-bold uppercase tracking-[0.2em]">
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Salvar Minha Estratégia
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
