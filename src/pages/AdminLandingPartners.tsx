@@ -144,16 +144,18 @@ const AdminLandingPartners = () => {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="relative min-h-screen grain overflow-x-hidden">
+      <div className="aurora-a" />
+      <div className="aurora-b" />
       <ThemeToggle className="absolute right-5 top-5 z-20" />
-      <header className="mx-auto flex max-w-5xl items-center justify-between px-6 py-6">
-        <Link to="/admin" className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-muted-foreground hover:text-primary">
-          <ArrowLeft className="h-3 w-3" /> voltar
+      <header className="relative z-10 mx-auto flex max-w-5xl items-center justify-between px-6 py-10">
+        <Link to="/admin" className="inline-flex h-10 items-center gap-2 rounded-full border border-gold/20 bg-card/40 px-5 text-[10px] uppercase tracking-[0.2em] text-muted-foreground transition-all hover:bg-gold/10 hover:text-primary">
+          <ArrowLeft className="h-3.5 w-3.5" /> voltar
         </Link>
-        <h1 className="font-display text-2xl">
-          Parceiros da <span className="text-gold italic">landing</span>
+        <h1 className="font-display text-3xl">
+          Parceiros da <span className="text-gold italic text-shadow-gold">landing</span>
         </h1>
-        <div className="w-10" />
+        <div className="w-24" />
       </header>
 
       <main className="mx-auto max-w-5xl space-y-8 px-6 pb-16">
@@ -165,52 +167,52 @@ const AdminLandingPartners = () => {
           </p>
         </section>
 
-        <section className="rounded-sm border-gold p-6">
-          <h2 className="font-display text-lg">Adicionar parceiro</h2>
-          <form onSubmit={submit} className="mt-4 grid gap-4 md:grid-cols-3">
-            <div>
-              <label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Tenant</label>
+        <section className="relative z-10 rounded-[32px] border border-gold/20 bg-card/40 p-8 backdrop-blur-xl shadow-2xl">
+          <h2 className="font-display text-xl">Novo parceiro</h2>
+          <form onSubmit={submit} className="mt-6 grid gap-6 md:grid-cols-3">
+            <div className="space-y-2">
+              <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/80">Tenant Proprietário</label>
               <Select value={tenantId} onValueChange={setTenantId}>
-                <SelectTrigger className="mt-1 h-11 rounded-sm border-gold bg-input">
+                <SelectTrigger className="h-12 rounded-full border-gold/20 bg-card/30 px-5 transition-all focus:border-gold/50">
                   <SelectValue placeholder="escolha o tenant" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="rounded-[24px] border-gold/20 bg-card/90 backdrop-blur-xl">
                   {tenants.map((t) => (
                     <SelectItem key={t.id} value={t.id}>
-                      {t.display_name} <span className="text-muted-foreground">/ {t.slug}</span>
+                      {t.display_name} <span className="text-muted-foreground/60 text-[10px]">/ {t.slug}</span>
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">UTM source</label>
+            <div className="space-y-2">
+              <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/80">Código UTM source</label>
               <Input
                 value={utmSource}
                 onChange={(e) => setUtmSource(e.target.value)}
                 placeholder="ex: stefany"
-                className="mt-1 h-11 rounded-sm border-gold bg-input"
+                className="h-12 rounded-full border-gold/20 bg-card/30 px-5 font-light transition-all focus:border-gold/50"
               />
             </div>
-            <div>
-              <label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Nota (interna)</label>
+            <div className="space-y-2">
+              <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/80">Identificação Interna</label>
               <Input
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                placeholder="ex: divulga no instagram dela"
-                className="mt-1 h-11 rounded-sm border-gold bg-input"
+                placeholder="ex: Campanha Instagram"
+                className="h-12 rounded-full border-gold/20 bg-card/30 px-5 font-light transition-all focus:border-gold/50"
               />
             </div>
-            <div className="md:col-span-3">
-              <Button type="submit" disabled={submitting} className="btn-luxe h-11 rounded-sm">
-                {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />} adicionar
+            <div className="md:col-span-3 pt-2">
+              <Button type="submit" disabled={submitting} className="btn-luxe h-12 w-full md:w-auto rounded-full px-10 text-xs font-bold uppercase tracking-[0.2em] shadow-lg shadow-gold/10">
+                {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />} Cadastrar Parceiro
               </Button>
             </div>
           </form>
         </section>
 
-        <section className="rounded-sm border-gold p-6">
-          <h2 className="font-display text-lg">Parceiros ativos</h2>
+        <section className="relative z-10 rounded-[32px] border border-gold/20 bg-card/40 p-8 backdrop-blur-xl shadow-2xl">
+          <h2 className="font-display text-xl">Parceiros ativos</h2>
           {loading ? (
             <div className="flex items-center justify-center py-10">
               <Loader2 className="h-5 w-5 animate-spin text-primary" />
@@ -277,106 +279,114 @@ const PartnerRowItem = ({ partner: p, onToggleActive, onCopy, onRemove, onSaveCt
   };
 
   return (
-    <li className="rounded-sm border border-gold/30 bg-card/40 p-4">
+    <li className="overflow-hidden rounded-[24px] border border-gold/20 bg-card/20 transition-all hover:bg-card/30">
+      <div className="p-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <span className="font-display text-base">
+            <span className="font-display text-lg">
               {p.tenants?.display_name ?? "(tenant)"}{" "}
-              <span className="text-xs text-muted-foreground">/ {p.tenants?.slug}</span>
+              <span className="text-xs text-muted-foreground/60">/ {p.tenants?.slug}</span>
             </span>
-            <span className="rounded-sm border border-gold/40 bg-gradient-gold-soft px-2 py-0.5 text-[10px] uppercase tracking-wider text-primary">
+            <span className="rounded-full border border-gold/40 bg-gold/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-gold">
               {p.utm_source}
             </span>
             {hasCtas && (
-              <span className="rounded-sm border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] uppercase tracking-wider text-primary">
-                CTAs ok
+              <span className="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-primary">
+                Configurado
               </span>
             )}
           </div>
           <div className="mt-1 break-all font-mono text-[11px] text-muted-foreground">{captureUrl}</div>
           {p.note && <div className="mt-1 text-[11px] text-muted-foreground">{p.note}</div>}
-        </div>
-        <div className="flex shrink-0 flex-wrap items-center gap-2">
-          <div className="flex items-center gap-2 pr-2">
-            <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">ativo</span>
+           <div className="flex shrink-0 flex-wrap items-center gap-3 mt-4">
+          <div className="flex items-center gap-3 rounded-full bg-white/5 px-4 py-2 transition-all hover:bg-white/10">
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/80">Ativo</span>
             <Switch checked={p.is_active} onCheckedChange={(v) => onToggleActive(p.id, v)} />
           </div>
-          <Button variant="outline" size="sm" className="h-9 rounded-sm border-gold/50 text-[10px] uppercase tracking-[0.2em]" onClick={() => setOpen((o) => !o)}>
-            {open ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />} CTAs
+          <Button variant="outline" size="sm" className="h-10 rounded-full border-gold/20 px-4 text-[10px] font-bold uppercase tracking-[0.2em] transition-all hover:bg-gold/10 hover:text-gold" onClick={() => setOpen((o) => !o)}>
+            {open ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />} Destinos
           </Button>
-          <Button variant="outline" size="sm" className="h-9 rounded-sm border-gold/50 text-[10px] uppercase tracking-[0.2em]" onClick={() => onCopy(p.utm_source)}>
-            <Copy className="h-3 w-3" /> copiar
+          <Button variant="outline" size="sm" className="h-10 rounded-full border-gold/20 px-4 text-[10px] font-bold uppercase tracking-[0.2em] transition-all hover:bg-gold/10" onClick={() => onCopy(p.utm_source)}>
+            <Copy className="h-3.5 w-3.5" /> copiar
           </Button>
-          <Button variant="outline" size="sm" className="h-9 rounded-sm border-destructive/40 text-[10px] uppercase tracking-[0.2em] text-destructive hover:bg-destructive/10" onClick={() => onRemove(p.id)}>
-            <Trash2 className="h-3 w-3" />
+          <Button variant="outline" size="sm" className="h-10 rounded-full border-destructive/20 px-4 text-[10px] font-bold uppercase tracking-[0.2em] text-destructive hover:bg-destructive/10" onClick={() => onRemove(p.id)}>
+            <Trash2 className="h-3.5 w-3.5" />
           </Button>
+        </div>
         </div>
       </div>
 
       {open && (
-        <div className="mt-4 grid gap-3 border-t border-gold/20 pt-4 md:grid-cols-2">
-          <p className="text-[11px] text-muted-foreground md:col-span-2">
-            Destinos exibidos pro lead no fim do diagnóstico. Em branco = usa o padrão (bio do tenant).
+        <div className="space-y-6 border-t border-gold/10 bg-gold/5 p-8 backdrop-blur-md mt-6">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-1 rounded-full bg-gold" />
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gold">Configuração dos Destinos do Lead</p>
+          </div>
+          <p className="text-xs text-muted-foreground/80 leading-relaxed">
+            Personalize para onde o lead será enviado após o diagnóstico. Se deixar vazio, usaremos os dados padrão da sua Bio.
           </p>
-          <div className="md:col-span-2">
-            <label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">URL da bio</label>
-            <Input
-              value={form.bio_url}
-              onChange={(e) => setForm((f) => ({ ...f, bio_url: e.target.value }))}
-              placeholder={`${ORIGIN}/${p.tenants?.slug ?? ""}`}
-              className="mt-1 h-10 rounded-sm border-gold/50 bg-input"
-            />
-          </div>
-          <div>
-            <label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">@ Instagram</label>
-            <Input
-              value={form.instagram_handle}
-              onChange={(e) => setForm((f) => ({ ...f, instagram_handle: e.target.value }))}
-              placeholder="usuario"
-              className="mt-1 h-10 rounded-sm border-gold/50 bg-input"
-            />
-          </div>
-          <div>
-            <label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">WhatsApp (DDI+DDD+nº)</label>
-            <Input
-              value={form.whatsapp_number}
-              onChange={(e) => setForm((f) => ({ ...f, whatsapp_number: e.target.value }))}
-              placeholder="5511999999999"
-              className="mt-1 h-10 rounded-sm border-gold/50 bg-input"
-            />
-          </div>
-          <div className="md:col-span-2">
-            <label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Mensagem padrão WhatsApp</label>
-            <Textarea
-              value={form.whatsapp_message}
-              onChange={(e) => setForm((f) => ({ ...f, whatsapp_message: e.target.value }))}
-              rows={2}
-              className="mt-1 rounded-sm border-gold/50 bg-input"
-            />
-          </div>
-          <div>
-            <label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Botão extra · texto</label>
-            <Input
-              value={form.secondary_cta_label}
-              onChange={(e) => setForm((f) => ({ ...f, secondary_cta_label: e.target.value }))}
-              placeholder="Agende uma call"
-              className="mt-1 h-10 rounded-sm border-gold/50 bg-input"
-            />
-          </div>
-          <div>
-            <label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Botão extra · URL</label>
-            <Input
-              value={form.secondary_cta_url}
-              onChange={(e) => setForm((f) => ({ ...f, secondary_cta_url: e.target.value }))}
-              placeholder="https://..."
-              className="mt-1 h-10 rounded-sm border-gold/50 bg-input"
-            />
-          </div>
-          <div className="md:col-span-2 flex justify-end">
-            <Button onClick={save} disabled={saving} className="btn-luxe h-10 rounded-sm">
-              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} salvar destinos
-            </Button>
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="md:col-span-2 space-y-2">
+              <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/60">URL da Bio / Site Principal</label>
+              <Input
+                value={form.bio_url}
+                onChange={(e) => setForm((f) => ({ ...f, bio_url: e.target.value }))}
+                placeholder={`${ORIGIN}/${p.tenants?.slug ?? ""}`}
+                className="h-12 rounded-full border-gold/20 bg-background/40 px-5 font-light focus:border-gold/50"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/60">@ Instagram</label>
+              <Input
+                value={form.instagram_handle}
+                onChange={(e) => setForm((f) => ({ ...f, instagram_handle: e.target.value }))}
+                placeholder="usuario"
+                className="h-12 rounded-full border-gold/20 bg-background/40 px-5 font-light focus:border-gold/50"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/60">WhatsApp (DDI+DDD+Número)</label>
+              <Input
+                value={form.whatsapp_number}
+                onChange={(e) => setForm((f) => ({ ...f, whatsapp_number: e.target.value }))}
+                placeholder="5511999999999"
+                className="h-12 rounded-full border-gold/20 bg-background/40 px-5 font-light focus:border-gold/50"
+              />
+            </div>
+            <div className="md:col-span-2 space-y-2">
+              <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/60">Mensagem Inicial do WhatsApp</label>
+              <Textarea
+                value={form.whatsapp_message}
+                onChange={(e) => setForm((f) => ({ ...f, whatsapp_message: e.target.value }))}
+                rows={2}
+                className="rounded-2xl border-gold/20 bg-background/40 p-4 font-light focus:border-gold/50"
+                placeholder="Olá! Acabei de fazer o diagnóstico..."
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-gold/80">Botão Extra (Título)</label>
+              <Input
+                value={form.secondary_cta_label}
+                onChange={(e) => setForm((f) => ({ ...f, secondary_cta_label: e.target.value }))}
+                placeholder="Ex: Agendar Call de Diagnóstico"
+                className="h-12 rounded-full border-gold/30 bg-gold/5 px-5 font-bold focus:border-gold"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-gold/80">Botão Extra (URL/Link)</label>
+              <Input
+                value={form.secondary_cta_url}
+                onChange={(e) => setForm((f) => ({ ...f, secondary_cta_url: e.target.value }))}
+                placeholder="https://calendly.com/sua-agenda"
+                className="h-12 rounded-full border-gold/30 bg-gold/5 px-5 font-bold focus:border-gold"
+              />
+            </div>
+            <div className="md:col-span-2 flex justify-end pt-4">
+              <Button onClick={save} disabled={saving} className="btn-luxe h-12 w-full md:w-auto rounded-full px-10 text-xs font-bold uppercase tracking-[0.2em] shadow-lg shadow-gold/10">
+                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Salvar Alterações
+              </Button>
+            </div>
           </div>
         </div>
       )}
