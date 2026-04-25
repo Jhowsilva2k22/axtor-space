@@ -390,6 +390,7 @@ const PartnerRowItem = ({ partner: p, onToggleActive, onCopy, onRemove, onSaveCt
           </div>
         </div>
       )}
+      </div>
     </li>
   );
 };
