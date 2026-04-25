@@ -522,14 +522,27 @@ export default function DeepDiagnosticEditor() {
                     onCheckedChange={(v) => setFunnel({ ...funnel, lock_until_media_ends: v })}
                   />
                 </div>
-                <div>
-                  <Label>Permitir pular a mídia após (segundos)</Label>
                   <Input
                     type="number"
                     min={0}
                     value={funnel.allow_skip_after_seconds ?? 5}
                     onChange={(e) => setFunnel({ ...funnel, allow_skip_after_seconds: parseInt(e.target.value) || 0 })}
                   />
+                </div>
+
+                <div className="rounded-md border border-gold/30 bg-gold/5 p-3 space-y-3">
+                  <p className="text-xs font-medium uppercase tracking-wider text-gold">Identidade de Autoridade (Bio)</p>
+                  <div>
+                    <Label>URL da Foto (Quem é...)</Label>
+                    <Input
+                      placeholder="Cole o link da foto de perfil para a bio do final do diagnóstico"
+                      value={funnel.briefing?.bio_image_url ?? ""}
+                      onChange={(e) => setFunnel({ 
+                        ...funnel, 
+                        briefing: { ...funnel.briefing, bio_image_url: e.target.value } 
+                      })}
+                    />
+                  </div>
                 </div>
 
                 <div className="rounded-md border border-primary/30 bg-primary/5 p-3 space-y-3">

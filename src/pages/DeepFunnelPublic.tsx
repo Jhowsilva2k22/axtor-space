@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, MessageCircle, Sparkles, ArrowRight, Check, Clock, Users, Cog, Star } from "lucide-react";
+import { Loader2, MessageCircle, Sparkles, ArrowRight, Check, Clock, Users, Cog, Star, ShieldCheck } from "lucide-react";
 import { getSessionId, captureUtm } from "@/lib/analytics";
 import { applyTenantTheme } from "@/lib/applyTenantTheme";
 import { motion, AnimatePresence } from "framer-motion";
@@ -448,6 +448,7 @@ export default function DeepFunnelPublic() {
               const isExclusive = isObj ? (rawBenefits as any).is_exclusive : isPrimary;
               const originalPrice = isObj ? (rawBenefits as any).original_price : (isPrimary ? "R$ 694,00" : "");
               const guaranteeDays = isObj ? ((rawBenefits as any).guarantee_days || 7) : 7;
+              const bioImage = funnel?.briefing?.bio_image_url || "https://axtor.space/wp-content/uploads/2024/04/stefany-perfil.jpg";
               
               return (
                 <motion.div
@@ -459,12 +460,12 @@ export default function DeepFunnelPublic() {
                 >
                   <div
                     className={
-                      isPrimary
-                        ? "relative overflow-hidden space-y-8 rounded-3xl border border-gold/50 bg-gradient-to-br from-background via-background to-primary/10 p-8 transition-all duration-500 hover:border-gold hover:shadow-[0_0_40px_-10px_rgba(212,175,55,0.3)] shadow-2xl"
-                        : "space-y-6 rounded-3xl border border-border/60 bg-card/40 p-8 transition-all duration-500 hover:border-primary/40 hover:bg-card/60"
+                      isExclusive
+                        ? "relative overflow-hidden space-y-8 rounded-[40px] border border-gold/50 bg-gradient-to-br from-background via-background to-primary/10 p-8 transition-all duration-500 hover:border-gold hover:shadow-[0_0_40px_-10px_rgba(212,175,55,0.3)] shadow-2xl"
+                        : "space-y-6 rounded-[32px] border border-border/60 bg-card/40 p-8 transition-all duration-500 hover:border-primary/40 hover:bg-card/60"
                     }
                   >
-                    {isPrimary && (
+                    {isExclusive && (
                       <>
                         <div className="pointer-events-none absolute right-0 top-0 h-64 w-64 -translate-y-1/2 translate-x-1/2 rounded-full bg-gold/10 blur-[80px]" />
                         <div className="absolute top-0 right-0 p-4">
@@ -477,16 +478,16 @@ export default function DeepFunnelPublic() {
 
                     <div
                       className={
-                        isPrimary
+                        isExclusive
                           ? "inline-flex items-center gap-1.5 rounded-full border border-gold/50 bg-gold/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-gold"
                           : "inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/40 px-3 py-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground"
                       }
                     >
-                      {isPrimary ? <><Star className="h-3 w-3 fill-current" /> Recomendado pra você</> : <>Você também pode gostar</>}
+                      {isExclusive ? <><Star className="h-3 w-3 fill-current" /> Recomendado pra você</> : <>Você também pode gostar</>}
                     </div>
 
                     <div className="space-y-2 relative z-10">
-                      <h2 className={isPrimary ? "font-display text-4xl leading-tight" : "font-display text-2xl leading-tight"}>
+                      <h2 className={isExclusive ? "font-display text-4xl leading-tight" : "font-display text-2xl leading-tight"}>
                         {product.name}
                       </h2>
                       {product.description && (
@@ -499,7 +500,7 @@ export default function DeepFunnelPublic() {
                         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gold/80">O que você recebe:</p>
                         <ul className="space-y-3">
                           {benefits.map((b, bi) => (
-                            <li key={bi} className="flex items-start gap-3 text-sm group">
+                            <li key={bi} className="flex items-start gap-3 text-sm group text-left">
                               <div className="mt-0.5 rounded-full bg-gold/20 p-1 group-hover:bg-gold/40 transition-colors">
                                 <Check className="h-3 w-3 text-gold" />
                               </div>
@@ -510,7 +511,7 @@ export default function DeepFunnelPublic() {
                       </div>
                     )}
 
-                    {isPrimary && (
+                    {isExclusive && (
                       <div className="grid grid-cols-2 gap-4 py-4 border-y border-border/30">
                         <div className="text-center border-r border-border/30">
                           <p className="text-2xl font-display text-gold">+20M</p>
@@ -524,7 +525,7 @@ export default function DeepFunnelPublic() {
                     )}
 
                     <div className="pt-4 space-y-4 relative z-10">
-                      {isPrimary && (
+                      {isExclusive && (
                         <div className="flex flex-col items-center gap-1">
                           <span className="text-xs text-muted-foreground line-through opacity-60">Valor Total: {originalPrice}</span>
                           <div className="flex items-baseline gap-2">
@@ -535,7 +536,7 @@ export default function DeepFunnelPublic() {
                         </div>
                       )}
                       
-                      {!isPrimary && product.price_hint && (
+                      {!isExclusive && product.price_hint && (
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-muted-foreground uppercase tracking-widest">Investimento:</span>
                           <span className="text-lg font-semibold text-foreground">{product.price_hint}</span>
@@ -546,29 +547,36 @@ export default function DeepFunnelPublic() {
                         {(ctaMode === "checkout" || ctaMode === "both") && chkUrl && (
                           <Button
                             size="lg"
-                            className={isPrimary ? "btn-luxe w-full gap-2 h-14 uppercase tracking-widest text-xs font-bold" : "w-full gap-2 h-12"}
+                            className={isExclusive ? "btn-luxe w-full gap-2 h-14 uppercase tracking-widest text-xs font-bold" : "w-full gap-2 h-12"}
                             asChild
                           >
-                            <a href={chkUrl} target="_blank" rel="noreferrer">
+                            <a href={chkUrl} target="_blank" rel="noreferrer" className="flex items-center justify-center">
                               {ctaLabel} <ArrowRight className="h-4 w-4" />
                             </a>
                           </Button>
                         )}
                         {(ctaMode === "whatsapp" || ctaMode === "both") && wppUrl && (
-                          <a
-                            href={wppUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className={isPrimary ? "btn-luxe flex w-full items-center justify-center gap-2 h-14 uppercase tracking-widest text-xs font-bold rounded-full" : "flex w-full items-center justify-center gap-2 h-12 border border-border hover:bg-muted/50 rounded-full text-sm transition-colors"}
+                          <Button
+                            size="lg"
+                            variant={isExclusive ? "default" : "outline"}
+                            className={isExclusive ? "btn-luxe w-full gap-2 h-14 uppercase tracking-widest text-xs font-bold rounded-full" : "w-full gap-2 h-12 rounded-full"}
+                            asChild
                           >
-                            <MessageCircle className="h-4 w-4" />
-                            {ctaMode === "whatsapp" ? ctaLabel : secondaryLabel}
-                          </a>
+                            <a
+                              href={wppUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="flex items-center justify-center"
+                            >
+                              <MessageCircle className="h-4 w-4" />
+                              {ctaMode === "whatsapp" ? ctaLabel : secondaryLabel}
+                            </a>
+                          </Button>
                         )}
                       </div>
 
-                      {isPrimary && (
-                        <div className="mt-6 rounded-2xl bg-green-500/5 border border-green-500/20 p-4 flex gap-4 items-center">
+                      {isExclusive && (
+                        <div className="mt-6 rounded-3xl bg-green-500/5 border border-green-500/20 p-4 flex gap-4 items-center text-left">
                           <div className="h-10 w-10 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
                             <ShieldCheck className="h-6 w-6 text-green-500" />
                           </div>
@@ -592,16 +600,16 @@ export default function DeepFunnelPublic() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
-              className="mt-20 relative overflow-hidden rounded-[40px] bg-card/30 border border-border/40 p-8 md:p-12"
+              className="mt-20 relative overflow-hidden rounded-[40px] bg-card/30 border border-border/40 p-8 md:p-12 text-left"
             >
               <div className="grid md:grid-cols-2 gap-12 items-center">
                 <div className="space-y-6 order-2 md:order-1">
                   <h3 className="font-display text-4xl leading-tight">
-                    Quem é <span className="text-gold italic">Stefany Mello</span>?
+                    Quem é <span className="text-gold italic">{funnel?.tenant?.display_name || "Stefany Mello"}</span>?
                   </h3>
                   <div className="space-y-4 text-sm leading-relaxed text-muted-foreground/90">
                     <p>
-                      Stefany Mello é estrategista de posicionamento e gestão digital para negócios premium.
+                      {funnel?.tenant?.display_name || "Stefany Mello"} é estrategista de posicionamento e gestão digital para negócios premium.
                     </p>
                     <p>
                       Com visão estratégica e execução orientada a resultado, desenvolve e gerencia estratégias digitais que transformam a presença online de negócios em um ativo comercial real capaz de gerar autoridade, atrair o cliente certo e justificar o preço cobrado.
@@ -623,8 +631,8 @@ export default function DeepFunnelPublic() {
                 <div className="relative order-1 md:order-2 flex justify-center">
                   <div className="relative w-full aspect-[4/5] max-w-[320px] rounded-[32px] overflow-hidden shadow-2xl border border-gold/20">
                     <img 
-                      src="https://axtor.space/wp-content/uploads/2024/04/stefany-perfil.jpg" 
-                      alt="Stefany Mello" 
+                      src={funnel?.briefing?.bio_image_url || "https://axtor.space/wp-content/uploads/2024/04/stefany-perfil.jpg"} 
+                      alt={funnel?.tenant?.display_name || "Stefany Mello"} 
                       className="w-full h-full object-cover"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=800";

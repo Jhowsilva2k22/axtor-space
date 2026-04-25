@@ -313,24 +313,24 @@ const HandleStep = ({ handle, setHandle, onSubmit }: any) => (
       </p>
     </form>
 
-    <div className="mt-20 grid gap-4 sm:grid-cols-3">
+    <div className="mt-20 grid gap-6 sm:grid-cols-3">
       {[
         { icon: Target, title: "Posicionamento", desc: "Seu @ está atraindo o público certo?" },
         { icon: TrendingUp, title: "Conversão", desc: "Quanto você está deixando na mesa." },
         { icon: Zap, title: "Plano de ação", desc: "5 movimentos prioritários para você." },
       ].map((it) => (
-        <div key={it.title} className="group rounded-full border-gold-gradient p-6 text-left backdrop-blur transition-all hover:-translate-y-1 hover:shadow-gold">
-          <div className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-gradient-gold-soft">
+        <div key={it.title} className="group rounded-[32px] border border-gold/20 bg-card/40 p-8 text-left backdrop-blur transition-all hover:-translate-y-1 hover:shadow-gold">
+          <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-gradient-gold-soft">
             <it.icon className="h-5 w-5 text-primary" />
           </div>
-          <h3 className="mt-4 font-display text-2xl text-card-foreground">{it.title}</h3>
+          <h3 className="mt-6 font-display text-2xl text-card-foreground">{it.title}</h3>
           <p className="mt-2 text-sm font-light text-muted-foreground">{it.desc}</p>
         </div>
       ))}
     </div>
 
     {/* Ponte: do diagnóstico pro link-in-bio */}
-    <div className="mt-24 rounded-full border-gold-gradient bg-card/40 p-8 text-left backdrop-blur sm:p-12">
+    <div className="mt-24 rounded-[40px] border border-gold/20 bg-card/40 p-8 text-left backdrop-blur sm:p-12">
       <span className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">Bio fraca foi um dos pontos?</span>
       <h2 className="mt-3 font-display text-3xl leading-tight sm:text-4xl">
         Crie uma bio <span className="text-gold italic">profissional</span> sem código.
@@ -692,7 +692,7 @@ const ResultStep = ({ data, onRestart, partnerCtas }: { data: DiagnosisData; onR
       </div>
 
       {/* Plano de ação */}
-      <div className="rounded-full border-gold-gradient p-8">
+      <div className="rounded-[40px] border border-gold/20 bg-card/30 p-8">
         <h3 className="font-display text-2xl">Seu plano de ação <span className="text-gold">priorizado</span></h3>
         <ol className="mt-6 space-y-4">
           {d.plano_acao?.map((step, i) => (
@@ -705,7 +705,7 @@ const ResultStep = ({ data, onRestart, partnerCtas }: { data: DiagnosisData; onR
       </div>
 
       {/* CTA final — funil topo→fundo */}
-      <div className="relative overflow-hidden rounded-full border-gold-gradient p-8 text-center sm:p-10">
+      <div className="relative overflow-hidden rounded-[40px] border border-gold/20 bg-card/30 p-8 text-center sm:p-10">
         <div className="pointer-events-none absolute inset-0 bg-gradient-gold-soft" />
         <div className="relative">
           <span className="inline-flex items-center gap-2 rounded-full border border-gold bg-background/40 px-4 py-1.5 text-[10px] uppercase tracking-[0.3em] text-primary">
