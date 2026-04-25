@@ -639,6 +639,48 @@ export default function DeepFunnelPublic() {
                 </div>
               </div>
             </motion.div>
+
+            {/* Seção Estratégica: Você viveu o funil */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="mt-20 relative overflow-hidden rounded-[32px] border border-gold/30 bg-gold/5 p-10 text-center backdrop-blur-xl"
+            >
+              <div className="pointer-events-none absolute inset-0 bg-gradient-gold-soft opacity-30" />
+              <div className="relative z-10 space-y-6">
+                <span className="inline-flex items-center gap-2 rounded-full border border-gold/50 bg-background/40 px-4 py-1.5 text-[10px] uppercase tracking-[0.4em] text-gold font-bold">
+                  Consciência de Funil
+                </span>
+                
+                <h3 className="font-display text-3xl leading-tight sm:text-4xl">
+                  O caminho que você acabou de fazer é <span className="text-gold italic">o mesmo funil</span> que entrego para os meus clientes.
+                </h3>
+                
+                <p className="mx-auto max-w-xl text-muted-foreground leading-relaxed">
+                  Você acaba de experimentar na pele a jornada de alta conversão da <span className="text-foreground font-bold">Axtor</span>. Do topo ao fundo de funil, de forma automática e persuasiva.
+                </p>
+
+                <div className="pt-4">
+                  <p className="text-[11px] uppercase tracking-[0.3em] text-gold/60 font-bold">
+                    DO TOPO AO FUNDO DE FUNIL · VOCÊ ACABOU DE VIVER
+                  </p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
+                  <Button
+                    variant="outline"
+                    className="h-12 rounded-full border-gold/40 hover:bg-gold/10 text-xs uppercase tracking-widest px-8"
+                    asChild
+                  >
+                    <a href={`/${tenant?.slug || "stefany-mello"}`} target="_blank" rel="noreferrer">
+                      Ver rodando na minha Bio
+                    </a>
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </div>

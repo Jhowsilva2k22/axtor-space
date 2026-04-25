@@ -790,64 +790,57 @@ const ResultStep = ({ data, onRestart, partnerCtas }: { data: DiagnosisData; onR
         </ol>
       </div>
 
-      {/* CTA final — funil topo→fundo */}
-      <div className="relative overflow-hidden rounded-[32px] border border-gold/20 bg-card/30 p-8 text-center sm:p-10">
-        <div className="pointer-events-none absolute inset-0 bg-gradient-gold-soft" />
-        <div className="relative">
-          <span className="inline-flex items-center gap-2 rounded-full border border-gold bg-background/40 px-4 py-1.5 text-[10px] uppercase tracking-[0.3em] text-primary">
-            <Sparkles className="h-3 w-3" /> próximo passo
+      {/* CTA final — Transição estratégica para o Funil Profundo */}
+      <div className="relative overflow-hidden rounded-[32px] border border-gold/40 bg-card/40 p-8 text-center sm:p-12 shadow-2xl backdrop-blur-xl">
+        <div className="pointer-events-none absolute inset-0 bg-gradient-gold-soft opacity-40" />
+        <div className="relative z-10">
+          <span className="inline-flex items-center gap-2 rounded-full border border-gold/50 bg-gold/5 px-4 py-1.5 text-[10px] uppercase tracking-[0.3em] text-gold font-bold">
+            <Sparkles className="h-3 w-3" /> Análise de Perfil Concluída
           </span>
-          <h3 className="mt-5 font-display text-3xl sm:text-5xl">
-            Pare de <span className="text-gold italic">analisar</span>.<br />Comece a <span className="text-gold italic">executar</span>.
+          <h3 className="mt-6 font-display text-4xl leading-tight sm:text-6xl">
+            A análise do seu perfil é apenas a <span className="text-gold italic">ponta do iceberg</span>.
           </h3>
-          <p className="mx-auto mt-5 max-w-2xl text-sm text-muted-foreground sm:text-base">
-            O caminho que você acabou de fazer é <span className="text-foreground">o mesmo funil que entrego pros meus clientes</span>. Veja ele rodando ao vivo na minha bio — ou pule direto pra ação.
+          <p className="mx-auto mt-6 max-w-2xl text-base text-muted-foreground leading-relaxed sm:text-lg">
+            Agora, leve apenas <span className="text-foreground font-bold">2 minutos</span> para fazer sua <span className="text-gold italic">Análise Estratégica Completa</span>. No final, você terá não apenas uma solução para o Instagram, mas clareza absoluta sobre seus próximos passos de escala.
           </p>
 
-          <div className="mx-auto mt-8 flex max-w-2xl flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
-            {bioHref.startsWith("/") ? (
-              <Link
-                to={bioHref}
-                className="btn-luxe inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-full px-5 text-xs font-semibold uppercase tracking-[0.15em] sm:text-sm"
-              >
-                {bioLabel} <ArrowRight className="h-4 w-4" />
+          <div className="mx-auto mt-10 flex max-w-xl flex-col items-stretch gap-4">
+            <Button
+              size="lg"
+              className="btn-luxe h-16 w-full gap-3 rounded-full text-xs font-bold uppercase tracking-[0.2em] shadow-lg shadow-gold/20"
+              asChild
+            >
+              <Link to={`/d/funnel/${partnerCtas?.slug || "stefany-mello"}`}>
+                Fazer Análise Completa (2 min) <ArrowRight className="h-4 w-4" />
               </Link>
-            ) : (
-              <a
-                href={bioHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-luxe inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-full px-5 text-xs font-semibold uppercase tracking-[0.15em] sm:text-sm"
-              >
-                {bioLabel} <ArrowRight className="h-4 w-4" />
-              </a>
-            )}
-            {secondaryCta && (
-              <a
-                href={secondaryCta.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-full border border-gold bg-card/40 px-5 text-xs font-semibold uppercase tracking-[0.15em] text-primary transition-all hover:bg-gradient-gold-soft sm:text-sm"
-              >
-                {secondaryCta.label} <ArrowRight className="h-4 w-4" />
-              </a>
-            )}
+            </Button>
+            
+            <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground/60">
+              recomendado para quem busca escala e autoridade real
+            </p>
           </div>
 
-          {waHref && (
+          <div className="mx-auto mt-12 flex max-w-md items-center gap-4 rounded-2xl border border-gold/20 bg-background/40 p-4 text-left">
+            <Instagram className="h-5 w-5 shrink-0 text-gold" />
+            <div className="flex-1 text-xs">
+              <p className="font-bold text-foreground">Gostou desse primeiro diagnóstico?</p>
+              <p className="font-light text-muted-foreground">Segue {igOwnerLabel} no Instagram para insights diários.</p>
+            </div>
             <a
-              href={waHref}
+              href={igHref}
               target="_blank"
               rel="noopener noreferrer"
-              className="mx-auto mt-3 inline-flex h-12 max-w-2xl items-center justify-center gap-2 rounded-full border border-primary/60 bg-background/40 px-6 text-xs font-semibold uppercase tracking-[0.15em] text-primary transition-all hover:border-gold hover:bg-gradient-gold-soft sm:w-full sm:text-sm"
+              className="rounded-full border border-gold/30 bg-gold/5 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-gold transition-all hover:bg-gold/10"
             >
-              <MessageCircle className="h-4 w-4" /> {isPartner ? `Falar com ${partnerName}` : "Quero estratégia personalizada"}
+              Seguir
             </a>
-          )}
+          </div>
 
-          <p className="mt-4 text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
-            do topo ao fundo de funil · você acabou de viver
-          </p>
+          <div className="mt-8 opacity-60 grayscale hover:grayscale-0 transition-all">
+            <ShareButton diagnosticId={data.diagnostic_id} handle={p.username} score={score} />
+          </div>
+        </div>
+      </div>
 
           <div className="mx-auto mt-8 flex max-w-md items-center gap-4 rounded-2xl border border-gold/40 bg-card/40 p-4 text-left">
             <Instagram className="h-6 w-6 shrink-0 text-primary" />
