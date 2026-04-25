@@ -161,3 +161,25 @@ export function validatePhoneBR(raw: string, optional = true): { ok: boolean; er
 
   return { ok: true };
 }
+
+export function normalizeWhatsappUrl(url: string): string {
+  if (!url || typeof url !== "string") return url;
+  
+  // Se contiver whatsapp.com (api, web, etc)
+  if (url.includes("whatsapp.com")) {
+    try {
+      const urlObj = new URL(url.startsWith("http") ? url : `https://${url}`);
+      let phone = urlObj.searchParams.get("phone");
+      let text = urlObj.searchParams.get("text");
+      
+      if (phone) {
+        const cleanPhone = phone.replace(/\D/g, "");
+        const query = text ? `?text=${encodeURIComponent(text)}` : "";
+        return `https://wa.me/${cleanPhone}${query}`;
+      }
+    } catch (e) {
+      return url;
+    }
+  }
+  return url;
+}

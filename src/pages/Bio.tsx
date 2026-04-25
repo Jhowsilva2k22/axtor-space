@@ -8,6 +8,7 @@ import AmbientPlayer from "@/components/AmbientPlayer";
 import FeedbackWidget from "@/components/FeedbackWidget";
 import { trackPageView, trackBioClick } from "@/lib/analytics";
 import { useTenant } from "@/hooks/useTenant";
+import { normalizeWhatsappUrl } from "@/lib/validators";
 import PlanBadge from "@/components/PlanBadge";
 
 type BioConfig = {
@@ -375,10 +376,12 @@ const BlockCard = ({ block }: { block: Block }) => {
       </div>
     </>
   );
+  const finalUrl = normalizeWhatsappUrl(block.url);
+
   // Sempre abre em nova aba (inclusive rotas internas) para preservar a /bio aberta
   return (
     <a
-      href={block.url}
+      href={finalUrl}
       target="_blank"
       rel={isInternal ? "noopener" : "noopener noreferrer"}
       className={cls}

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { ArrowRight, Sparkles, Lock, CheckCircle2, AlertTriangle, Loader2, Instagram, TrendingUp, Target, Zap, SearchX, Share2, Clock, Check, Crown, MessageCircle, ExternalLink } from "lucide-react";
-import { validateEmail, validateName, validatePhone, maskPhone, suggestEmailDomain, COUNTRIES, type CountryCode } from "@/lib/validators";
+import { validateEmail, validateName, validatePhone, maskPhone, suggestEmailDomain, COUNTRIES, normalizeWhatsappUrl, type CountryCode } from "@/lib/validators";
 import { trackPageView, trackFunnel } from "@/lib/analytics";
 import { useEffect } from "react";
 import FeedbackWidget from "@/components/FeedbackWidget";
@@ -392,7 +392,7 @@ const HandleStep = ({ handle, setHandle, onSubmit, bioCfg, tenant, partnerCtas }
             <>
               {partnerCtas.bio_url && (
                 <a
-                  href={partnerCtas.bio_url}
+                  href={normalizeWhatsappUrl(partnerCtas.bio_url)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn-luxe inline-flex h-11 items-center gap-2 rounded-full px-5 text-xs font-semibold uppercase tracking-[0.15em]"
@@ -402,7 +402,7 @@ const HandleStep = ({ handle, setHandle, onSubmit, bioCfg, tenant, partnerCtas }
               )}
               {partnerCtas.whatsapp_number && (
                 <a
-                  href={`https://wa.me/${partnerCtas.whatsapp_number}?text=${encodeURIComponent(partnerCtas.whatsapp_message || "")}`}
+                  href={normalizeWhatsappUrl(`https://wa.me/${partnerCtas.whatsapp_number}?text=${encodeURIComponent(partnerCtas.whatsapp_message || "")}`)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex h-11 items-center gap-2 rounded-full border border-gold bg-card/40 px-5 text-xs uppercase tracking-[0.15em] text-primary transition-all hover:shadow-gold"
@@ -412,7 +412,7 @@ const HandleStep = ({ handle, setHandle, onSubmit, bioCfg, tenant, partnerCtas }
               )}
               {partnerCtas.secondary_cta_label && partnerCtas.secondary_cta_url && (
                 <a
-                  href={partnerCtas.secondary_cta_url}
+                  href={normalizeWhatsappUrl(partnerCtas.secondary_cta_url)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex h-11 items-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 text-xs uppercase tracking-[0.15em] text-foreground transition-all hover:bg-white/10"
@@ -713,7 +713,7 @@ const ResultStep = ({ data, onRestart, partnerCtas }: { data: DiagnosisData; onR
     ?? "Acabei de fazer o diagnóstico e quero estratégia personalizada";
   const waHref = partnerCtas
     ? (waNumber ? `https://wa.me/${waNumber}?text=${encodeURIComponent(waMessage)}` : null)
-    : `https://wa.me/?text=${encodeURIComponent(waMessage)}`;
+    : `https://wa.me/5511976947591?text=${encodeURIComponent(waMessage)}`; // Fallback para o número principal se não houver parceiro
   const secondaryCta = partnerCtas?.secondary_cta_url
     ? { label: partnerCtas.secondary_cta_label || "Saiba mais", url: partnerCtas.secondary_cta_url }
     : null;
