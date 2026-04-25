@@ -918,6 +918,7 @@ const Admin = () => {
             <h2 className="font-display text-2xl">Cabeçalho da <span className="text-gold italic">bio</span></h2>
             <div className="mt-6 grid gap-4 md:grid-cols-2">
               <Field label="Nome de exibição">
+                <p className="mb-2 text-[10px] text-gold/60 italic font-light">O nome principal que todos verão no topo da sua bio.</p>
                 <Input value={cfg.display_name} onChange={(e) => updateCfg({ display_name: e.target.value })} className="h-11 rounded-sm border-gold bg-input" />
               </Field>
               <Field label="Foto de perfil">
@@ -955,9 +956,11 @@ const Admin = () => {
                 </div>
               </Field>
               <Field label="Headline (frase principal)" full>
+                <p className="mb-2 text-[10px] text-gold/60 italic font-light">Sua promessa ou descrição curta de alto impacto (Bio do Instagram).</p>
                 <Textarea value={cfg.headline} onChange={(e) => updateCfg({ headline: e.target.value })} rows={3} className="rounded-sm border-gold bg-input" />
               </Field>
               <Field label="Sub-headline (linha pequena)">
+                <p className="mb-2 text-[10px] text-gold/60 italic font-light">Um texto de apoio para dar mais contexto à sua oferta.</p>
                 <Input value={cfg.sub_headline ?? ""} onChange={(e) => updateCfg({ sub_headline: e.target.value })} className="h-11 rounded-sm border-gold bg-input" />
               </Field>
               <Field label="Footer">
@@ -985,6 +988,7 @@ const Admin = () => {
                 )}
               </Field>
               <Field label="Capa de fundo (opcional)" full>
+                <p className="mb-3 text-[10px] text-gold/60 italic font-light">Cria um fundo cinematográfico com efeito de profundidade (Blur + Parallax).</p>
                 <div className="flex flex-col gap-3">
                   {cfg.cover_url ? (
                     <div className="relative h-32 w-full overflow-hidden rounded-sm border border-gold">
@@ -1035,9 +1039,6 @@ const Admin = () => {
                       </Button>
                     )}
                   </div>
-                  <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">
-                    aplicada como fundo fixo (parallax) com blur e vinheta. máx 8MB.
-                  </p>
                 </div>
               </Field>
             </div>
@@ -1351,6 +1352,7 @@ const BlockEditor = ({
 
       <div className="mt-4 grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
         <Field label="Tipo">
+          <p className="mb-2 text-[10px] text-gold/60 italic font-light">Define o comportamento do bloco (Link, WhatsApp, Vídeo, etc.).</p>
           <Select
             value={block.kind}
             onValueChange={(v) => {
@@ -1376,6 +1378,7 @@ const BlockEditor = ({
           />
         </Field>
         <Field label="Label">
+          <p className="mb-2 text-[10px] text-gold/60 italic font-light">O título que aparecerá dentro do botão.</p>
           <Input value={block.label} onChange={(e) => onChange({ label: e.target.value })} className="h-9 rounded-sm border-gold bg-input" />
         </Field>
         <Field label="Badge (opcional)">
@@ -1417,6 +1420,7 @@ const BlockEditor = ({
           </p>
         </Field>
         <Field label="URL" full>
+          <p className="mb-2 text-[10px] text-gold/60 italic font-light">O destino do clique. Pode ser um link externo ou uma rota interna.</p>
           <Input value={block.url} onChange={(e) => onChange({ url: e.target.value })} placeholder="https:// ou /rota interna" className="h-9 rounded-sm border-gold bg-input" />
         </Field>
         <Field label="Descrição (opcional)" full>

@@ -664,82 +664,89 @@ export default function DeepDiagnosticEditor() {
             <Card className="space-y-4 p-6">
               <h2 className="font-display text-lg">Perguntas ({questions.length})</h2>
               {questions.map((q, idx) => (
-                <div key={q.id} className="space-y-3 rounded-md border border-border/60 p-4">
-                  <div className="flex items-center justify-between">
-                    <Badge variant="outline">Pergunta {idx + 1}</Badge>
-                    <Badge variant="secondary">{q.question_type}</Badge>
-                  </div>
-                  <div>
-                    <Label>Texto da pergunta</Label>
-                    <Textarea
-                      value={q.question_text}
-                      onChange={(e) => updateQuestion(idx, { question_text: e.target.value })}
-                      rows={2}
-                    />
-                  </div>
-                  <div>
-                    <Label>Subtítulo (opcional)</Label>
-                    <Input
-                      value={q.subtitle ?? ""}
-                      onChange={(e) => updateQuestion(idx, { subtitle: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Opções</Label>
-                    {Array.isArray(q.options) && q.options.map((o: any, oi: number) => (
-                      <div key={oi} className="flex gap-2">
+                  <motion.div
+                    key={q.id}
+                    layout
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    className="space-y-6 rounded-[24px] border border-gold/20 bg-card/30 p-6 backdrop-blur-sm"
+                  >
+                    <div className="flex items-center justify-between gap-2 border-b border-gold/10 pb-4">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="rounded-full border-gold/30 text-gold bg-gold/5">Pergunta {idx + 1}</Badge>
+                        <span className="text-[10px] uppercase tracking-widest text-muted-foreground/60 font-bold">Configuração da Etapa</span>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => deleteQuestion(idx)}
+                        className="rounded-full hover:bg-destructive/10 hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/60">Texto da Pergunta</label>
+                      <p className="text-[10px] text-gold/60 italic font-light">Este é o título principal que o lead verá no topo da tela.</p>
+                      <Textarea
+                        value={q.question_text}
+                        onChange={(e) => updateQuestion(idx, { question_text: e.target.value })}
+                        rows={2}
+                        className="rounded-xl border-gold/20 bg-background/40"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/60">Subtítulo / Orientação (Opcional)</label>
+                      <p className="text-[10px] text-gold/60 italic font-light">Um texto menor para ajudar o lead a refletir sobre a resposta.</p>
+                      <Input
+                        value={q.subtitle ?? ""}
+                        onChange={(e) => updateQuestion(idx, { subtitle: e.target.value })}
+                        className="h-12 rounded-xl border-gold/20 bg-background/40"
+                      />
+                    </div>
+
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/60">Mídia de Apoio (URL)</label>
+                        <p className="text-[10px] text-gold/60 italic font-light">Link da imagem ou vídeo que ilustra a pergunta.</p>
                         <Input
-                          value={o.label}
-                          onChange={(e) => {
-                            const newOpts = [...q.options];
-                            newOpts[oi] = { ...o, label: e.target.value };
-                            updateQuestion(idx, { options: newOpts });
-                          }}
+                          placeholder="https://..."
+                          value={q.media_url ?? ""}
+                          onChange={(e) => updateQuestion(idx, { media_url: e.target.value })}
+                          className="h-11 rounded-xl border-gold/20 bg-background/40"
                         />
                       </div>
-                    ))}
-                  </div>
-                  <div className="grid gap-3 md:grid-cols-2">
-                    <div>
-                      <Label>URL de mídia (opcional)</Label>
-                      <Input
-                        placeholder="https://... ou /storage/..."
-                        value={q.media_url ?? ""}
-                        onChange={(e) => updateQuestion(idx, { media_url: e.target.value })}
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/60">Tipo de Mídia</label>
+                        <p className="text-[10px] text-gold/60 italic font-light">Selecione o formato correto do arquivo acima.</p>
+                        <select
+                          className="flex h-11 w-full rounded-xl border border-gold/20 bg-background/40 px-3 py-2 text-xs"
+                          value={q.media_type ?? ""}
+                          onChange={(e) => updateQuestion(idx, { media_type: e.target.value })}
+                        >
+                          <option value="">Sem mídia</option>
+                          <option value="image">Imagem</option>
+                          <option value="video">Vídeo</option>
+                          <option value="audio">Áudio</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between rounded-2xl border border-gold/10 bg-gold/5 p-4">
+                      <div className="space-y-0.5">
+                        <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-gold/80">Trava de Segurança</label>
+                        <p className="text-[10px] text-muted-foreground/60 italic">Impede que o lead responda antes de ver toda a mídia.</p>
+                      </div>
+                      <Switch
+                        checked={!!q.lock_until_media_ends}
+                        onCheckedChange={(v) => updateQuestion(idx, { lock_until_media_ends: v })}
                       />
                     </div>
-                    <div>
-                      <Label>Tipo</Label>
-                      <select
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                        value={q.media_type ?? ""}
-                        onChange={(e) => updateQuestion(idx, { media_type: e.target.value })}
-                      >
-                        <option value="">Sem mídia</option>
-                        <option value="image">Imagem</option>
-                        <option value="video">Vídeo</option>
-                        <option value="audio">Áudio</option>
-                      </select>
-                    </div>
-                  </div>
-                  {q.media_url && (
-                    <div>
-                      <Label>Legenda da mídia</Label>
-                      <Input
-                        value={q.media_caption ?? ""}
-                        onChange={(e) => updateQuestion(idx, { media_caption: e.target.value })}
-                      />
-                    </div>
-                  )}
-                  <div className="flex items-center justify-between rounded-md border p-2">
-                    <span className="text-xs">Travar opções até a mídia terminar</span>
-                    <Switch
-                      checked={!!q.lock_until_media_ends}
-                      onCheckedChange={(v) => updateQuestion(idx, { lock_until_media_ends: v })}
-                    />
-                  </div>
-                </div>
-              ))}
+                  </motion.div>
+                ))}
             </Card>
 
             <Card className="space-y-4 p-6">
@@ -779,17 +786,20 @@ export default function DeepDiagnosticEditor() {
                   </div>
                   {p.is_active !== false && (
                   <>
-                  <div>
-                    <Label>Nome</Label>
-                    <Input value={p.name} onChange={(e) => updateProduct(idx, { name: e.target.value })} />
+                  <div className="space-y-1">
+                    <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/60">Nome do Produto</label>
+                    <p className="text-[10px] text-gold/60 italic font-light">Este nome aparecerá para o lead na tela de resultado.</p>
+                    <Input value={p.name} onChange={(e) => updateProduct(idx, { name: e.target.value })} className="h-12 rounded-xl border-gold/20 bg-background/40" />
                   </div>
-                  <div>
-                    <Label>Descrição</Label>
-                    <Textarea value={p.description ?? ""} onChange={(e) => updateProduct(idx, { description: e.target.value })} rows={2} />
+                  <div className="space-y-1">
+                    <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/60">Descrição / Pitch de Vendas</label>
+                    <p className="text-[10px] text-gold/60 italic font-light">Convença o lead de que este é o produto ideal para ele agora.</p>
+                    <Textarea value={p.description ?? ""} onChange={(e) => updateProduct(idx, { description: e.target.value })} rows={3} className="rounded-xl border-gold/20 bg-background/40" />
                   </div>
-                  <div>
-                    <Label>Preço (texto livre)</Label>
-                    <Input value={p.price_hint ?? ""} onChange={(e) => updateProduct(idx, { price_hint: e.target.value })} />
+                  <div className="space-y-1">
+                    <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/60">Preço ou Condição Especial</label>
+                    <p className="text-[10px] text-gold/60 italic font-light">Ex: R$ 497 à vista ou 12x de R$ 49,70.</p>
+                    <Input value={p.price_hint ?? ""} onChange={(e) => updateProduct(idx, { price_hint: e.target.value })} className="h-12 rounded-xl border-gold/20 bg-background/40" />
                   </div>
                   <div className="grid gap-3 md:grid-cols-2">
                     <div>
@@ -913,53 +923,61 @@ export default function DeepDiagnosticEditor() {
 
                   <div className="rounded-md border border-primary/30 bg-primary/5 p-3 space-y-3">
                     <p className="text-xs font-medium uppercase tracking-wider text-primary">Checkout & Pós-venda</p>
-                    <div>
-                      <Label>Modo do botão no resultado</Label>
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary/80">Modo de Chamada para Ação (CTA)</label>
+                      <p className="text-[10px] text-primary/60 italic font-light">Escolha como o lead deve finalizar a compra.</p>
                       <select
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                        className="flex h-11 w-full rounded-xl border border-primary/20 bg-background/40 px-3 py-2 text-sm"
                         value={p.cta_mode ?? "whatsapp"}
                         onChange={(e) => updateProduct(idx, { cta_mode: e.target.value })}
                       >
                         <option value="whatsapp">Só WhatsApp (atendimento manual)</option>
-                        <option value="checkout">Só checkout (Kiwify/Greenn)</option>
-                        <option value="both">Os dois (Comprar + Tirar dúvida)</option>
+                        <option value="checkout">Só checkout (Venda direta automática)</option>
+                        <option value="both">Híbrido (Comprar + Tirar dúvida)</option>
                       </select>
                     </div>
                     {(p.cta_mode === "checkout" || p.cta_mode === "both") && (
-                      <div>
-                        <Label>URL do checkout (Kiwify, Greenn, etc.)</Label>
+                      <div className="space-y-1">
+                        <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary/80">URL do checkout (Link de Pagamento)</label>
+                        <p className="text-[10px] text-primary/60 italic font-light">Seu link da Kiwify, Greenn, Hotmart, etc.</p>
                         <Input
-                          placeholder="https://pay.kiwify.com.br/..."
+                          placeholder="https://pay..."
                           value={p.checkout_url ?? ""}
                           onChange={(e) => updateProduct(idx, { checkout_url: e.target.value })}
+                          className="h-11 rounded-xl border-primary/20 bg-background/40"
                         />
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          Configure a <strong>URL de obrigado</strong> na Kiwify/Greenn como:{" "}
-                          <code className="rounded bg-muted px-1">https://axtor.space/obrigado/{funnel?.slug}?p={p.id}</code>
+                        <p className="mt-1 text-[9px] text-muted-foreground leading-tight italic">
+                          DICA: Configure o <strong>Pós-venda</strong> na sua plataforma para este link:{" "}
+                          <code className="rounded bg-primary/10 px-1 font-mono">https://axtor.space/obrigado/{funnel?.slug}?p={p.id}</code>
                         </p>
                       </div>
                     )}
-                    <div>
-                      <Label>Texto da tela de obrigado (opcional)</Label>
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/60">Texto da tela de obrigado (opcional)</label>
+                      <p className="text-[10px] text-gold/60 italic font-light">Sobrescreve o texto padrão da tela de agradecimento. Use {"{{nome}}"} para personalizar.</p>
                       <Textarea
                         placeholder="Sobrescreve o fallback do funil. Use {{nome}} pra personalizar."
                         value={p.thankyou_text ?? ""}
                         onChange={(e) => updateProduct(idx, { thankyou_text: e.target.value })}
                         rows={3}
+                        className="rounded-xl border-gold/20 bg-background/40"
                       />
                     </div>
                     <div className="grid gap-3 md:grid-cols-2">
-                      <div>
-                        <Label>Mídia de obrigado (URL)</Label>
+                      <div className="space-y-1">
+                        <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/60">Mídia de obrigado (URL)</label>
+                        <p className="text-[10px] text-gold/60 italic font-light">Vídeo ou imagem de parabéns após a compra.</p>
                         <Input
                           value={p.thankyou_media_url ?? ""}
                           onChange={(e) => updateProduct(idx, { thankyou_media_url: e.target.value })}
+                          className="rounded-xl border-gold/20 bg-background/40"
                         />
                       </div>
-                      <div>
-                        <Label>Tipo</Label>
+                      <div className="space-y-1">
+                        <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/60">Tipo de Mídia</label>
+                        <p className="text-[10px] text-gold/60 italic font-light">Formato da mídia acima.</p>
                         <select
-                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                          className="flex h-10 w-full rounded-xl border border-gold/20 bg-background/40 px-3 py-2 text-xs"
                           value={p.thankyou_media_type ?? ""}
                           onChange={(e) => updateProduct(idx, { thankyou_media_type: e.target.value })}
                         >
@@ -970,13 +988,15 @@ export default function DeepDiagnosticEditor() {
                         </select>
                       </div>
                     </div>
-                    <div>
-                      <Label>Mensagem WhatsApp pós-compra (opcional)</Label>
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/60">Mensagem WhatsApp pós-compra (opcional)</label>
+                      <p className="text-[10px] text-gold/60 italic font-light">Mensagem que o lead envia após finalizar o checkout.</p>
                       <Textarea
                         placeholder="Ex: Oi! Acabei de comprar X, qual o próximo passo?"
                         value={p.thankyou_whatsapp_template ?? ""}
                         onChange={(e) => updateProduct(idx, { thankyou_whatsapp_template: e.target.value })}
                         rows={2}
+                        className="rounded-xl border-gold/20 bg-background/40"
                       />
                     </div>
                   </div>
