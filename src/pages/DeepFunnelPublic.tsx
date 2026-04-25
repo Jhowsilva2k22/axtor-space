@@ -155,150 +155,114 @@ export default function DeepFunnelPublic() {
   const mediaLocked = q?.media_url && (q.lock_until_media_ends || funnel.lock_until_media_ends) && !mediaEnded && skipCountdown > 0;
 
   return (
-    <div className="min-h-screen bg-background">
+  return (
+    <div className="relative min-h-screen grain overflow-x-hidden">
+      <div className="aurora-a opacity-40" />
+      <div className="aurora-b opacity-40" />
+
       <div className="mx-auto flex min-h-screen max-w-2xl flex-col px-4 py-8">
         {step === "welcome" && (
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-          <Card className="space-y-6 p-8">
-            <div className="inline-flex items-center gap-2 self-start rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs uppercase tracking-wider text-primary">
-              <Sparkles className="h-3 w-3" /> Diagnóstico
-            </div>
-            <h1 className="font-display text-3xl leading-tight md:text-4xl">{funnel.name}</h1>
-            {funnel.welcome_media_url && (
-              <motion.div initial={{ scale: 0.97, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.15, duration: 0.4 }} className="overflow-hidden rounded-2xl border">
-                {funnel.welcome_media_type === "video" && <video src={funnel.welcome_media_url} controls className="w-full" />}
-                {funnel.welcome_media_type === "audio" && <audio src={funnel.welcome_media_url} controls className="w-full" />}
-                {funnel.welcome_media_type === "image" && <img src={funnel.welcome_media_url} alt="" className="w-full" />}
-              </motion.div>
-            )}
-            <p className="whitespace-pre-line text-muted-foreground">{funnel.welcome_text}</p>
-            <Button size="lg" className="gap-2 transition-transform hover:scale-[1.02]" onClick={() => setStep("lead")}>
-              Começar <ArrowRight className="h-4 w-4" />
-            </Button>
-          </Card>
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="flex flex-col gap-6">
+            <Card className="relative space-y-6 overflow-hidden rounded-[32px] border-gold/20 bg-card/40 p-10 shadow-2xl backdrop-blur-xl">
+              <div className="inline-flex items-center gap-2 self-start rounded-full border border-gold/30 bg-gold/5 px-3 py-1 text-[10px] uppercase tracking-wider text-gold">
+                <Sparkles className="h-3 w-3" /> Diagnóstico Profissional
+              </div>
+              <h1 className="font-display text-4xl leading-tight md:text-5xl">{funnel.name}</h1>
+              {funnel.welcome_media_url && (
+                <motion.div initial={{ scale: 0.97, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.15, duration: 0.4 }} className="overflow-hidden rounded-[24px] border border-gold/10 shadow-lg">
+                  {funnel.welcome_media_type === "video" && <video src={funnel.welcome_media_url} controls className="w-full" />}
+                  {funnel.welcome_media_type === "audio" && <audio src={funnel.welcome_media_url} controls className="w-full" />}
+                  {funnel.welcome_media_type === "image" && <img src={funnel.welcome_media_url} alt="" className="w-full" />}
+                </motion.div>
+              )}
+              <p className="whitespace-pre-line text-lg leading-relaxed text-muted-foreground/80">{funnel.welcome_text}</p>
+              <Button size="lg" className="btn-luxe h-14 rounded-full px-10 text-xs font-bold uppercase tracking-[0.2em] shadow-lg shadow-gold/10 transition-transform hover:scale-[1.02]" onClick={() => setStep("lead")}>
+                Começar agora <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Card>
           </motion.div>
         )}
 
         {step === "lead" && (
           <motion.div initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.35 }}>
-          <Card className="space-y-6 p-6 md:p-8 border-gold-gradient backdrop-blur">
-            <div>
-              <h2 className="font-display text-4xl leading-tight sm:text-5xl">
-                Onde você quer<br />receber seu <span className="text-gold italic">diagnóstico</span>?
-              </h2>
-              <p className="mt-4 text-muted-foreground">
-                Vamos enviar o relatório completo e seu plano de ação. Sem spam — palavra.
-              </p>
-            </div>
-            
-            <div className="space-y-5">
-              <div>
-                <label className="mb-2 block text-xs uppercase tracking-[0.2em] text-muted-foreground">Nome completo</label>
-                <Input
-                  value={lead.name}
-                  onChange={(e) => setLead({ ...lead, name: e.target.value.replace(/[^a-zA-ZáàâãäéèêëíìîïóòôõöúùûüçÁÀÂÃÄÉÈÊËÍÌÎÏÓÒÔÕÖÚÙÛÜÇ '-]/g, "").slice(0, 80) })}
-                  placeholder="Nome e sobrenome"
-                  autoComplete="name"
-                  className="h-11 rounded-full border-gold bg-input font-light"
-                />
+            <Card className="relative space-y-8 rounded-[32px] border border-gold/20 bg-card/40 p-8 shadow-2xl backdrop-blur-xl md:p-12">
+              <div className="space-y-3">
+                <h2 className="font-display text-4xl leading-tight sm:text-5xl">
+                  Onde enviamos seu <span className="text-gold italic text-shadow-gold">diagnóstico</span>?
+                </h2>
+                <p className="text-muted-foreground/80">
+                  Relatório completo e plano de ação detalhado para o seu negócio.
+                </p>
               </div>
               
-              <div>
-                <label className="mb-2 block text-xs uppercase tracking-[0.2em] text-muted-foreground">Email</label>
-                <Input
-                  type="email"
-                  value={lead.email}
-                  onChange={(e) => setLead({ ...lead, email: e.target.value.replace(/\s/g, "").slice(0, 120) })}
-                  placeholder="voce@exemplo.com"
-                  autoComplete="email"
-                  inputMode="email"
-                  className="h-11 rounded-full border-gold bg-input font-light"
-                />
-                {suggestEmailDomain(lead.email) && (
-                  <button
-                    type="button"
-                    onClick={() => setLead({ ...lead, email: suggestEmailDomain(lead.email) || lead.email })}
-                    className="mt-2 text-xs text-primary underline-offset-2 hover:underline"
-                  >
-                    Quis dizer <span className="font-medium">{suggestEmailDomain(lead.email)}</span>?
-                  </button>
-                )}
-              </div>
-
-              <div>
-                <label className="mb-2 block text-xs uppercase tracking-[0.2em] text-muted-foreground">WhatsApp</label>
-                <div className="flex gap-2">
-                  <Select
-                    value={country}
-                    onValueChange={(v: CountryCode) => {
-                      setCountry(v);
-                      setLead({ ...lead, phone: maskPhone(lead.phone, v) });
-                    }}
-                  >
-                    <SelectTrigger className="h-11 w-[120px] shrink-0 rounded-full border-gold bg-input font-light">
-                      <SelectValue>
-                        <span className="flex items-center gap-1.5">
-                          <span>{COUNTRIES.find((c) => c.code === country)?.flag}</span>
-                          <span>{COUNTRIES.find((c) => c.code === country)?.dial}</span>
-                        </span>
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent className="max-h-72">
-                      {COUNTRIES.map((c) => (
-                        <SelectItem key={c.code} value={c.code}>
-                          <span className="flex items-center gap-2">
-                            <span>{c.flag}</span>
-                            <span className="font-medium">{c.dial}</span>
-                            <span className="text-muted-foreground">{c.name}</span>
-                          </span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/80">Nome completo</label>
                   <Input
-                    type="tel"
-                    value={lead.phone}
-                    onChange={(e) => setLead({ ...lead, phone: maskPhone(e.target.value, country) })}
-                    placeholder={country === "BR" ? "(11) 98765-4321" : "Número"}
-                    autoComplete="tel-national"
-                    inputMode="numeric"
-                    className="h-11 flex-1 rounded-full border-gold bg-input font-light"
+                    value={lead.name}
+                    onChange={(e) => setLead({ ...lead, name: e.target.value.replace(/[^a-zA-ZáàâãäéèêëíìîïóòôõöúùûüçÁÀÂÃÄÉÈÊËÍÌÎÏÓÒÔÕÖÚÙÛÜÇ '-]/g, "").slice(0, 80) })}
+                    placeholder="Stefany Mello"
+                    className="h-14 rounded-full border-gold/20 bg-card/30 px-6 font-light transition-all focus:border-gold/50 focus:shadow-gold/10"
+                  />
+                </div>
+                
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/80">Email profissional</label>
+                    <Input
+                      type="email"
+                      value={lead.email}
+                      onChange={(e) => setLead({ ...lead, email: e.target.value.toLowerCase() })}
+                      placeholder="voce@exemplo.com"
+                      className="h-14 rounded-full border-gold/20 bg-card/30 px-6 font-light transition-all focus:border-gold/50 focus:shadow-gold/10"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/80">WhatsApp</label>
+                    <div className="flex gap-2">
+                      <Select value={country} onValueChange={(v: CountryCode) => setCountry(v)}>
+                        <SelectTrigger className="h-14 w-[110px] rounded-full border-gold/20 bg-card/30 px-4 transition-all focus:border-gold/50">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-2xl border-gold/20 bg-card/90 backdrop-blur-xl">
+                          {COUNTRIES.map((c) => (
+                            <SelectItem key={c.code} value={c.code}>
+                              {c.flag} {c.dial}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Input
+                        type="tel"
+                        value={lead.phone}
+                        onChange={(e) => setLead({ ...lead, phone: maskPhone(e.target.value, country) })}
+                        placeholder="(00) 00000-0000"
+                        className="h-14 flex-1 rounded-full border-gold/20 bg-card/30 px-6 font-light transition-all focus:border-gold/50 focus:shadow-gold/10"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/80">Instagram @ (Opcional)</label>
+                  <Input
+                    value={lead.instagram_handle}
+                    onChange={(e) => setLead({ ...lead, instagram_handle: e.target.value.replace(/[^a-zA-Z0-9._]/g, "").slice(0, 30) })}
+                    placeholder="@seu.perfil"
+                    className="h-14 rounded-full border-gold/20 bg-card/30 px-6 font-light transition-all focus:border-gold/50 focus:shadow-gold/10"
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="mb-2 block text-xs uppercase tracking-[0.2em] text-muted-foreground">@ do Instagram (opcional)</label>
-                <Input
-                  value={lead.instagram_handle}
-                  onChange={(e) => {
-                    let val = e.target.value.trim();
-                    if (val.length > 0 && !val.startsWith('@')) val = '@' + val;
-                    setLead({ ...lead, instagram_handle: val });
-                  }}
-                  placeholder="@seuhandle"
-                  className="h-11 rounded-full border-gold bg-input font-light"
-                />
-              </div>
-            </div>
-            
-            <Button
-              size="lg"
-              className="btn-luxe h-12 w-full gap-2 rounded-full text-sm font-semibold uppercase tracking-[0.15em]"
-              disabled={
-                lead.name.trim().split(/\s+/).length < 2 || 
-                lead.name.trim().length < 5 || 
-                lead.phone.replace(/\D/g, "").length < 10 ||
-                !lead.email.includes("@")
-              }
-              onClick={() => setStep("quiz")}
-            >
-              Gerar meu diagnóstico agora <ArrowRight className="h-4 w-4" />
-            </Button>
-            <p className="text-center text-xs text-muted-foreground">
-              Ao continuar você concorda em receber seu relatório por email/WhatsApp.
-            </p>
-          </Card>
+              <Button 
+                size="lg" 
+                className="btn-luxe h-14 w-full rounded-full text-xs font-bold uppercase tracking-[0.2em] shadow-lg shadow-gold/10 transition-transform hover:scale-[1.02]" 
+                disabled={!lead.name || !lead.email.includes("@") || lead.phone.replace(/\D/g, "").length < 10}
+                onClick={() => setStep("quiz")}
+              >
+                Continuar para o diagnóstico <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Card>
           </motion.div>
         )}
 
@@ -343,7 +307,7 @@ export default function DeepFunnelPublic() {
                     )}
                   </motion.div>
                 )}
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {Array.isArray(q.options) && q.options.map((o: any, oi: number) => (
                     <motion.button
                       key={oi}
@@ -354,9 +318,14 @@ export default function DeepFunnelPublic() {
                       whileTap={{ scale: mediaLocked ? 1 : 0.98 }}
                       disabled={mediaLocked}
                       onClick={() => handleAnswer(q, oi)}
-                      className="w-full rounded-2xl border border-border bg-card p-4 text-left text-sm transition-colors hover:border-primary hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="w-full rounded-full border border-gold/20 bg-card/30 px-6 py-4 text-left text-sm font-light transition-all hover:border-gold/50 hover:bg-gold/5 hover:shadow-gold/10 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      {o.label}
+                      <div className="flex items-center gap-4">
+                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-gold/30 text-[10px] text-gold/60">
+                          {String.fromCharCode(65 + oi)}
+                        </div>
+                        <span className="flex-1">{o.label}</span>
+                      </div>
                     </motion.button>
                   ))}
                 </div>
@@ -367,11 +336,16 @@ export default function DeepFunnelPublic() {
 
         {step === "loading" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-          <Card className="flex flex-col items-center justify-center gap-4 p-16 text-center">
-            <Loader2 className="h-10 w-10 animate-spin text-primary" />
-            <h2 className="font-display text-2xl">Analisando suas respostas...</h2>
-            <p className="text-sm text-muted-foreground">A IA está cruzando seu perfil com o melhor caminho.</p>
-          </Card>
+            <Card className="flex flex-col items-center justify-center gap-6 rounded-[32px] border border-gold/20 bg-card/40 p-16 text-center backdrop-blur-xl">
+              <div className="relative">
+                <div className="absolute inset-0 animate-ping rounded-full bg-gold/20" />
+                <Loader2 className="relative h-12 w-12 animate-spin text-gold" />
+              </div>
+              <div className="space-y-2">
+                <h2 className="font-display text-3xl">IA processando...</h2>
+                <p className="text-sm text-muted-foreground/80">Cruzando seu perfil com o melhor caminho estratégico.</p>
+              </div>
+            </Card>
           </motion.div>
         )}
 

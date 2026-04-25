@@ -281,8 +281,8 @@ const Bio = () => {
                 autoFocus
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Buscar..."
-                className="w-full rounded-sm border border-gold/40 bg-card/40 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/60 focus:border-gold focus:outline-none"
+                placeholder="Buscar links..."
+                className="w-full rounded-full border border-gold/40 bg-card/40 px-6 py-3 text-sm text-foreground placeholder:text-muted-foreground/60 focus:border-gold focus:outline-none focus:shadow-gold/10"
               />
             </div>
           )}
@@ -329,23 +329,23 @@ const BlockCard = ({ block }: { block: Block }) => {
   const hasCustomIcon = !!block.icon_url;
   const onTrack = () =>
     trackBioClick({ id: block.id, kind: block.kind, label: block.label, url: block.url });
-  // Layout fixo "md" para manter consistência visual em todos os cards.
+  // Layout fixo para manter consistência visual em todos os cards.
   const sizeCls = "gap-4 p-4";
-  const iconBoxCls = "h-11 w-11";
-  const iconSvgCls = "h-5 w-5";
-  const customIconCls = "h-7 w-7";
+  const iconBoxCls = "h-12 w-12";
+  const iconSvgCls = "h-6 w-6";
+  const customIconCls = "h-8 w-8";
   const labelCls = "text-sm";
-  const cls = `block-shimmer group relative flex w-full items-center overflow-hidden rounded-sm border transition-all duration-300 hover:-translate-y-0.5 ${sizeCls} ${
+  const cls = `block-shimmer group relative flex w-full items-center overflow-hidden rounded-[24px] border transition-all duration-500 hover:-translate-y-1 ${sizeCls} ${
     block.highlight
-      ? "border-gold bg-gradient-gold-soft shadow-gold hover:shadow-gold-lg"
-      : "border-gold/40 bg-card/60 hover:border-gold hover:bg-card/80"
+      ? "border-gold/60 bg-gradient-to-br from-gold/20 via-gold/5 to-transparent shadow-gold/20 shadow-xl"
+      : "border-gold/20 bg-card/40 backdrop-blur-md hover:border-gold/50 hover:bg-card/60 hover:shadow-gold/10"
   }`;
   const inner = (
     <>
       <div
-        className={`flex shrink-0 items-center justify-center rounded-sm ${iconBoxCls} ${
-          hasCustomIcon ? "bg-background/40" : brand ? "" : block.highlight ? "bg-background/40" : "bg-gradient-gold-soft"
-        }`}
+        className={`flex shrink-0 items-center justify-center rounded-2xl ${iconBoxCls} ${
+          hasCustomIcon ? "bg-background/40" : brand ? "" : block.highlight ? "bg-white/10" : "bg-gradient-gold-soft"
+        } shadow-inner transition-transform group-hover:scale-110`}
         style={!hasCustomIcon && brand ? { background: brand.bg } : undefined}
       >
         {hasCustomIcon ? (
@@ -359,18 +359,20 @@ const BlockCard = ({ block }: { block: Block }) => {
       </div>
       <div className="min-w-0 flex-1 text-left">
         <div className="flex items-center gap-2">
-          <p className={`truncate font-medium uppercase tracking-[0.08em] text-foreground ${labelCls}`}>{block.label}</p>
+          <p className={`truncate font-display font-medium tracking-[0.05em] text-foreground ${labelCls}`}>{block.label}</p>
           {block.badge && (
-            <span className="shrink-0 rounded-sm border border-gold bg-background/40 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.2em] text-primary">
+            <span className="shrink-0 rounded-full border border-gold/40 bg-gold/10 px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.15em] text-gold shadow-sm">
               {block.badge}
             </span>
           )}
         </div>
         {block.description && (
-          <p className="mt-1 truncate text-xs font-light text-muted-foreground">{block.description}</p>
+          <p className="mt-1 truncate text-[11px] font-light text-muted-foreground/80 leading-relaxed">{block.description}</p>
         )}
       </div>
-      <ArrowUpRight className="h-4 w-4 shrink-0 text-primary opacity-60 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100" />
+      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gold/5 text-gold opacity-40 transition-all group-hover:bg-gold/20 group-hover:opacity-100 group-hover:translate-x-1">
+        <ArrowUpRight className="h-4 w-4" />
+      </div>
     </>
   );
   // Sempre abre em nova aba (inclusive rotas internas) para preservar a /bio aberta

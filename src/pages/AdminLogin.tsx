@@ -66,51 +66,53 @@ const AdminLogin = () => {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center px-6 grain">
+    <div className="relative flex min-h-screen items-center justify-center px-6 grain overflow-x-hidden">
       <div className="aurora-a" />
       <div className="aurora-b" />
       <ThemeToggle className="absolute right-5 top-5 z-20" />
-      <form onSubmit={onSubmit} className="relative z-10 w-full max-w-sm rounded-sm border-gold-gradient bg-card/60 p-8 shadow-deep backdrop-blur">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-sm border border-gold bg-gradient-gold-soft">
-          <Lock className="h-5 w-5 text-primary" />
+      <form onSubmit={onSubmit} className="relative z-10 w-full max-w-sm rounded-[32px] border border-gold/20 bg-card/40 p-10 shadow-2xl backdrop-blur-xl">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-gold/30 bg-gradient-gold-soft shadow-gold/20 shadow-lg">
+          <Lock className="h-6 w-6 text-primary" />
         </div>
-        <h1 className="mt-6 text-center font-display text-3xl">Acesso <span className="text-gold italic">restrito</span></h1>
-        <p className="mt-2 text-center text-xs uppercase tracking-[0.25em] text-muted-foreground">painel administrativo</p>
+        <h1 className="mt-8 text-center font-display text-4xl">Acesso <span className="text-gold italic">restrito</span></h1>
+        <p className="mt-3 text-center text-[10px] uppercase tracking-[0.3em] text-muted-foreground/60">painel administrativo</p>
 
-        <div className="mt-8 space-y-4">
-          <div>
-            <label className="mb-2 block text-xs uppercase tracking-[0.2em] text-muted-foreground">Email</label>
-            <Input value={email} onChange={(e) => setEmail(e.target.value)} type="email" autoComplete="email" required className="h-11 rounded-sm border-gold bg-input font-light" />
+        <div className="mt-10 space-y-5">
+          <div className="space-y-2">
+            <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/80">Email</label>
+            <Input value={email} onChange={(e) => setEmail(e.target.value)} type="email" autoComplete="email" required className="h-12 rounded-full border-gold/20 bg-card/30 px-5 font-light transition-all focus:border-gold/50 focus:shadow-gold/10" placeholder="voce@exemplo.com" />
           </div>
-          <div>
-            <label className="mb-2 block text-xs uppercase tracking-[0.2em] text-muted-foreground">Senha</label>
-            <Input value={password} onChange={(e) => setPassword(e.target.value)} type="password" autoComplete="current-password" required className="h-11 rounded-sm border-gold bg-input font-light" />
+          <div className="space-y-2">
+            <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/80">Senha</label>
+            <Input value={password} onChange={(e) => setPassword(e.target.value)} type="password" autoComplete="current-password" required className="h-12 rounded-full border-gold/20 bg-card/30 px-5 font-light transition-all focus:border-gold/50 focus:shadow-gold/10" placeholder="••••••••" />
           </div>
         </div>
 
-        <Button type="submit" disabled={submitting} className="btn-luxe mt-6 h-12 w-full rounded-sm text-sm font-semibold uppercase tracking-[0.15em]">
-          {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Entrar"}
+        <Button type="submit" disabled={submitting} className="btn-luxe mt-10 h-14 w-full rounded-full text-xs font-bold uppercase tracking-[0.2em] shadow-lg shadow-gold/10">
+          {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Entrar"}
         </Button>
-        <div className="mt-3 text-center">
-          <Link to="/forgot-password" className="text-xs uppercase tracking-[0.2em] text-muted-foreground hover:text-primary">
+        
+        <div className="mt-6 text-center">
+          <Link to="/forgot-password" alt="Esqueci minha senha" title="Esqueci minha senha" className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60 hover:text-gold transition-colors">
             esqueci minha senha
           </Link>
         </div>
-        <p className="mt-4 text-center text-xs text-muted-foreground">
-          ainda não tem conta? <Link to="/signup" className="text-primary hover:underline">criar grátis</Link>
+        
+        <p className="mt-6 text-center text-xs text-muted-foreground">
+          Ainda não tem conta? <Link to="/signup" className="font-bold text-gold hover:underline">Criar grátis</Link>
         </p>
 
-        <div className="mt-6 border-t border-border/40 pt-4">
+        <div className="mt-8 border-t border-gold/10 pt-6">
           <button
             type="button"
             onClick={resetSession}
             disabled={resetting}
-            className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-sm border border-border/40 bg-background/30 px-3 text-[10px] uppercase tracking-[0.25em] text-muted-foreground transition-colors hover:border-gold/40 hover:text-primary"
+            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-white/5 bg-white/5 px-5 text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60 transition-all hover:bg-white/10 hover:text-foreground"
           >
-            {resetting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="h-3.5 w-3.5" />}
+            {resetting ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
             reiniciar sessão
           </button>
-          <p className="mt-2 text-center text-[9px] uppercase tracking-[0.2em] text-muted-foreground/60">
+          <p className="mt-3 text-center text-[9px] uppercase tracking-[0.2em] text-muted-foreground/40">
             limpa cookies locais se travar
           </p>
         </div>

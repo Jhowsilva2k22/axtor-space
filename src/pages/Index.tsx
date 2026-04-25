@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { ArrowRight, Sparkles, Lock, CheckCircle2, AlertTriangle, Loader2, Instagram, TrendingUp, Target, Zap, SearchX, Share2, Clock, Check, Crown, MessageCircle } from "lucide-react";
+import { ArrowRight, Sparkles, Lock, CheckCircle2, AlertTriangle, Loader2, Instagram, TrendingUp, Target, Zap, SearchX, Share2, Clock, Check, Crown, MessageCircle, ExternalLink } from "lucide-react";
 import { validateEmail, validateName, validatePhone, maskPhone, suggestEmailDomain, COUNTRIES, type CountryCode } from "@/lib/validators";
 import { trackPageView, trackFunnel } from "@/lib/analytics";
 import { useEffect } from "react";
@@ -372,27 +372,71 @@ const HandleStep = ({ handle, setHandle, onSubmit, bioCfg, tenant }: any) => {
 
       {/* Ponte: do diagnóstico pro link-in-bio */}
       <div className="mt-24 rounded-[32px] border border-gold/20 bg-card/40 p-8 text-left backdrop-blur sm:p-12">
-        <span className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">Bio fraca foi um dos pontos?</span>
+        <span className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">
+          {partnerCtas ? "Canais Oficiais" : "Bio fraca foi um dos pontos?"}
+        </span>
         <h2 className="mt-3 font-display text-3xl leading-tight sm:text-4xl">
-          Crie uma bio <span className="text-gold italic">profissional</span> sem código.
+          {partnerCtas 
+            ? <>Conecte-se com <span className="text-gold italic">{bioName}</span></>
+            : <>Crie uma bio <span className="text-gold italic">profissional</span> sem código.</>
+          }
         </h2>
         <p className="mt-3 max-w-xl text-sm text-muted-foreground sm:text-base">
-          Link-in-bio premium com analytics, campanhas com UTM e visual que converte. Comece grátis,
-          suba pra Pro quando quiser desbloquear tudo.
+          {partnerCtas 
+            ? "Acesse meus links oficiais, agende uma consultoria ou fale diretamente comigo pelo WhatsApp."
+            : "Link-in-bio premium com analytics, campanhas com UTM e visual que converte. Comece grátis, suba pra Pro quando quiser desbloquear tudo."
+          }
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
-          <Link
-            to="/signup"
-            className="btn-luxe inline-flex h-11 items-center gap-2 rounded-full px-5 text-xs font-semibold uppercase tracking-[0.15em]"
-          >
-            Criar minha bio grátis <ArrowRight className="h-4 w-4" />
-          </Link>
-          <Link
-            to="/joanderson"
-            className="inline-flex h-11 items-center gap-2 rounded-full border border-gold bg-card/40 px-5 text-xs uppercase tracking-[0.15em] text-primary transition-all hover:shadow-gold"
-          >
-            Ver exemplo real
-          </Link>
+          {partnerCtas ? (
+            <>
+              {partnerCtas.bio_url && (
+                <a
+                  href={partnerCtas.bio_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-luxe inline-flex h-11 items-center gap-2 rounded-full px-5 text-xs font-semibold uppercase tracking-[0.15em]"
+                >
+                  Ver meus links <ExternalLink className="h-4 w-4" />
+                </a>
+              )}
+              {partnerCtas.whatsapp_number && (
+                <a
+                  href={`https://wa.me/${partnerCtas.whatsapp_number}?text=${encodeURIComponent(partnerCtas.whatsapp_message || "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex h-11 items-center gap-2 rounded-full border border-gold bg-card/40 px-5 text-xs uppercase tracking-[0.15em] text-primary transition-all hover:shadow-gold"
+                >
+                  WhatsApp <MessageCircle className="h-4 w-4" />
+                </a>
+              )}
+              {partnerCtas.extra_cta_text && partnerCtas.extra_cta_url && (
+                <a
+                  href={partnerCtas.extra_cta_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex h-11 items-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 text-xs uppercase tracking-[0.15em] text-foreground transition-all hover:bg-white/10"
+                >
+                  {partnerCtas.extra_cta_text} <ArrowRight className="h-4 w-4" />
+                </a>
+              )}
+            </>
+          ) : (
+            <>
+              <Link
+                to="/signup"
+                className="btn-luxe inline-flex h-11 items-center gap-2 rounded-full px-5 text-xs font-semibold uppercase tracking-[0.15em]"
+              >
+                Criar minha bio grátis <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link
+                to="/joanderson"
+                className="inline-flex h-11 items-center gap-2 rounded-full border border-gold bg-card/40 px-5 text-xs uppercase tracking-[0.15em] text-primary transition-all hover:shadow-gold"
+              >
+                Ver exemplo real
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </div>
