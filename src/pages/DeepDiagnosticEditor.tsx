@@ -57,11 +57,22 @@ export default function DeepDiagnosticEditor() {
   const [products, setProducts] = useState<any[]>([]);
   const [funnel, setFunnel] = useState<any>(null);
 
+  const [isDirty, setIsDirty] = useState(false);
+
   useEffect(() => {
     if (!loading && hasAddon === false) {
       navigate("/admin/deep-diagnostic/demo", { replace: true });
     }
   }, [hasAddon, loading, navigate]);
+
+  // Monitora alterações para evitar recarregamento automático
+  useEffect(() => {
+    const hasBriefingData = Object.values(briefing).some(v => v.trim().length > 0);
+    const hasProductData = briefingProducts.some(p => p.name.trim().length > 0);
+    if (hasBriefingData || hasProductData) {
+      setIsDirty(true);
+    }
+  }, [briefing, briefingProducts]);
 
   const loadFunnel = async (id: string) => {
     setActiveFunnelId(id);

@@ -223,10 +223,14 @@ const Admin = () => {
   };
 
   useEffect(() => {
-    if (!authLoading && !tenantLoading && user) {
+    // PROTEÇÃO: Se houver alterações não salvas (dirty), não recarrega automaticamente
+    // para não sobrescrever o que o usuário está digitando ao voltar de outra aba.
+    const hasUnsavedChanges = dirtyBlocks.size > 0 || cfgDirty;
+    
+    if (!authLoading && !tenantLoading && user && !hasUnsavedChanges) {
       void load();
     }
-  }, [authLoading, tenantLoading, user, currentTenant?.id]);
+  }, [authLoading, tenantLoading, user, currentTenant?.id]); // dirtyBlocks e cfgDirty propositalmente fora das dependências para não disparar load() quando o usuário digita
 
   if (authLoading || tenantLoading) {
     return (
