@@ -14,7 +14,7 @@ type Props = {
   tenantId: string;
 };
 
-type PartnerRow = { utm_source: string; is_active: boolean };
+type PartnerRow = { utm_source: string; is_active: boolean; note?: string | null };
 
 const ORIGIN = typeof window !== "undefined" ? window.location.origin : "https://axtor.space";
 

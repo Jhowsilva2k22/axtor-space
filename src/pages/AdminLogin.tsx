@@ -93,7 +93,7 @@ const AdminLogin = () => {
         </Button>
         
         <div className="mt-6 text-center">
-          <Link to="/forgot-password" alt="Esqueci minha senha" title="Esqueci minha senha" className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60 hover:text-gold transition-colors">
+          <Link to="/forgot-password" title="Esqueci minha senha" className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60 hover:text-gold transition-colors">
             esqueci minha senha
           </Link>
         </div>

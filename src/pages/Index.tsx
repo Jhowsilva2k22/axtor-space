@@ -236,7 +236,7 @@ const Index = () => {
       </header>
 
       <main className="relative z-10 mx-auto max-w-4xl px-6 pb-24 pt-12 sm:pt-20 py-[40px]">
-        {step === "handle" && <HandleStep handle={handle} setHandle={setHandle} onSubmit={handleSubmitHandle} bioCfg={bioCfg} tenant={tenant} />}
+        {step === "handle" && <HandleStep handle={handle} setHandle={setHandle} onSubmit={handleSubmitHandle} bioCfg={bioCfg} tenant={tenant} partnerCtas={partnerCtas} />}
         {step === "lead" && (
           <LeadStep
             handle={handle}
@@ -265,7 +265,7 @@ const Index = () => {
 
 /* ---------- STEPS ---------- */
 
-const HandleStep = ({ handle, setHandle, onSubmit, bioCfg, tenant }: any) => {
+const HandleStep = ({ handle, setHandle, onSubmit, bioCfg, tenant, partnerCtas }: any) => {
   const bioPhoto = bioCfg?.avatar_url || "https://axtor.space/wp-content/uploads/2024/04/stefany-perfil.jpg";
   const bioName = bioCfg?.display_name || "Stefany Mello";
   
@@ -377,7 +377,7 @@ const HandleStep = ({ handle, setHandle, onSubmit, bioCfg, tenant }: any) => {
         </span>
         <h2 className="mt-3 font-display text-3xl leading-tight sm:text-4xl">
           {partnerCtas 
-            ? <>Conecte-se com <span className="text-gold italic">{bioName}</span></>
+            ? <>Conecte-se com <span className="text-gold italic">{partnerCtas.display_name}</span></>
             : <>Crie uma bio <span className="text-gold italic">profissional</span> sem código.</>
           }
         </h2>
@@ -410,14 +410,14 @@ const HandleStep = ({ handle, setHandle, onSubmit, bioCfg, tenant }: any) => {
                   WhatsApp <MessageCircle className="h-4 w-4" />
                 </a>
               )}
-              {partnerCtas.extra_cta_text && partnerCtas.extra_cta_url && (
+              {partnerCtas.secondary_cta_label && partnerCtas.secondary_cta_url && (
                 <a
-                  href={partnerCtas.extra_cta_url}
+                  href={partnerCtas.secondary_cta_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex h-11 items-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 text-xs uppercase tracking-[0.15em] text-foreground transition-all hover:bg-white/10"
                 >
-                  {partnerCtas.extra_cta_text} <ArrowRight className="h-4 w-4" />
+                  {partnerCtas.secondary_cta_label} <ArrowRight className="h-4 w-4" />
                 </a>
               )}
             </>
