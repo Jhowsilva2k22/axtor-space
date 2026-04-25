@@ -329,6 +329,7 @@ const PartnerRowItem = ({ partner: p, onToggleActive, onCopy, onRemove, onSaveCt
           <div className="grid gap-6 md:grid-cols-2">
             <div className="md:col-span-2 space-y-2">
               <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/60">URL da Bio / Site Principal</label>
+              <p className="text-[10px] text-gold/60 italic font-light">Este link abre quando o lead clica em "Ver meus links" na página inicial.</p>
               <Input
                 value={form.bio_url}
                 onChange={(e) => setForm((f) => ({ ...f, bio_url: e.target.value }))}
@@ -338,6 +339,7 @@ const PartnerRowItem = ({ partner: p, onToggleActive, onCopy, onRemove, onSaveCt
             </div>
             <div className="space-y-2">
               <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/60">@ Instagram</label>
+              <p className="text-[10px] text-gold/60 italic font-light">Define o link do ícone de Instagram no rodapé da sua página.</p>
               <Input
                 value={form.instagram_handle}
                 onChange={(e) => setForm((f) => ({ ...f, instagram_handle: e.target.value }))}
@@ -347,6 +349,7 @@ const PartnerRowItem = ({ partner: p, onToggleActive, onCopy, onRemove, onSaveCt
             </div>
             <div className="space-y-2">
               <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/60">WhatsApp (DDI+DDD+Número)</label>
+              <p className="text-[10px] text-gold/60 italic font-light">Número que receberá as mensagens (Use 55 + DDD + Número).</p>
               <Input
                 value={form.whatsapp_number}
                 onChange={(e) => setForm((f) => ({ ...f, whatsapp_number: e.target.value }))}
@@ -356,6 +359,7 @@ const PartnerRowItem = ({ partner: p, onToggleActive, onCopy, onRemove, onSaveCt
             </div>
             <div className="md:col-span-2 space-y-2">
               <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/60">Mensagem Inicial do WhatsApp</label>
+              <p className="text-[10px] text-gold/60 italic font-light">O lead já chegará com este texto pronto no WhatsApp dele para te enviar.</p>
               <Textarea
                 value={form.whatsapp_message}
                 onChange={(e) => setForm((f) => ({ ...f, whatsapp_message: e.target.value }))}
@@ -366,6 +370,7 @@ const PartnerRowItem = ({ partner: p, onToggleActive, onCopy, onRemove, onSaveCt
             </div>
             <div className="space-y-2">
               <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-gold/80">Botão Extra (Título)</label>
+              <p className="text-[10px] text-gold/60 italic font-light">Nome do 3º botão (Ex: Agendar Call). Aparecerá abaixo do WhatsApp.</p>
               <Input
                 value={form.secondary_cta_label}
                 onChange={(e) => setForm((f) => ({ ...f, secondary_cta_label: e.target.value }))}
@@ -375,6 +380,7 @@ const PartnerRowItem = ({ partner: p, onToggleActive, onCopy, onRemove, onSaveCt
             </div>
             <div className="space-y-2">
               <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-gold/80">Botão Extra (URL/Link)</label>
+              <p className="text-[10px] text-gold/60 italic font-light">Destino do 3º botão (Ex: Link do Calendly ou Página de Checkout).</p>
               <Input
                 value={form.secondary_cta_url}
                 onChange={(e) => setForm((f) => ({ ...f, secondary_cta_url: e.target.value }))}

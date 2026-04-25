@@ -810,11 +810,13 @@ export default function DeepDiagnosticEditor() {
                     </div>
                   </div>
                   <div>
-                    <Label>Mensagem de WhatsApp pronta</Label>
+                    <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/60">Mensagem de WhatsApp (Contexto do Produto)</label>
+                    <p className="text-[10px] text-gold/60 italic font-light mb-1.5">Esta mensagem aparecerá pronta para o lead enviar quando for qualificado para este produto. Use {"{{nome}}"} para o primeiro nome dele.</p>
                     <Textarea
                       value={p.whatsapp_template ?? ""}
                       onChange={(e) => updateProduct(idx, { whatsapp_template: e.target.value })}
                       rows={3}
+                      placeholder="Ex: Olá! Acabei de fazer o diagnóstico e quero saber mais sobre a mentoria..."
                     />
                   </div>
                   <div>
