@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useDeepDiagnostic } from "@/hooks/useDeepDiagnostic";
 import { toast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
+import { ImageUploadWithCrop } from "@/components/ImageUploadWithCrop";
 
 type Step = "list" | "briefing" | "generating" | "review";
 
@@ -176,7 +177,15 @@ export default function DeepDiagnosticEditor() {
         thankyou_media_url: funnel?.thankyou_media_url,
         thankyou_media_type: funnel?.thankyou_media_type,
         thankyou_media_caption: funnel?.thankyou_media_caption,
+        briefing: funnel?.briefing,
       }).eq("id", activeFunnelId);
+
+      // Sincronização Global: Atualizar bio_config do Tenant apenas se a chave estiver ligada
+      if (tenantId && funnel.briefing?.use_global_bio && funnel.briefing?.bio_image_url) {
+        await supabase.from("bio_config").update({
+          avatar_url: funnel.briefing.bio_image_url
+        }).eq("tenant_id", tenantId);
+      }
 
       for (const q of questions) {
         await supabase.from("deep_funnel_questions").update({
@@ -512,36 +521,95 @@ export default function DeepDiagnosticEditor() {
                     rows={2}
                   />
                 </div>
-                <div className="flex items-center justify-between rounded-md border p-3">
-                  <div>
-                    <p className="text-sm font-medium">Travar opções até o vídeo/áudio terminar</p>
-                    <p className="text-xs text-muted-foreground">Aplica-se a perguntas com mídia</p>
+                  <div className="flex items-center justify-between rounded-md border p-3">
+                    <div>
+                      <p className="text-sm font-medium">Travar opções até o vídeo/áudio terminar</p>
+                      <p className="text-xs text-muted-foreground">Aplica-se a perguntas com mídia</p>
+                    </div>
+                    <Switch
+                      checked={!!funnel.lock_until_media_ends}
+                      onCheckedChange={(v) => setFunnel({ ...funnel, lock_until_media_ends: v })}
+                    />
                   </div>
-                  <Switch
-                    checked={!!funnel.lock_until_media_ends}
-                    onCheckedChange={(v) => setFunnel({ ...funnel, lock_until_media_ends: v })}
-                  />
-                </div>
-                  <Input
-                    type="number"
-                    min={0}
-                    value={funnel.allow_skip_after_seconds ?? 5}
-                    onChange={(e) => setFunnel({ ...funnel, allow_skip_after_seconds: parseInt(e.target.value) || 0 })}
-                  />
+                  <div>
+                    <Label>Permitir pular após (segundos)</Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      value={funnel.allow_skip_after_seconds ?? 5}
+                      onChange={(e) => setFunnel({ ...funnel, allow_skip_after_seconds: parseInt(e.target.value) || 0 })}
+                    />
+                  </div>
                 </div>
 
-                <div className="rounded-md border border-gold/30 bg-gold/5 p-3 space-y-3">
-                  <p className="text-xs font-medium uppercase tracking-wider text-gold">Identidade de Autoridade (Bio)</p>
-                  <div>
-                    <Label>URL da Foto (Quem é...)</Label>
-                    <Input
-                      placeholder="Cole o link da foto de perfil para a bio do final do diagnóstico"
-                      value={funnel.briefing?.bio_image_url ?? ""}
-                      onChange={(e) => setFunnel({ 
-                        ...funnel, 
-                        briefing: { ...funnel.briefing, bio_image_url: e.target.value } 
-                      })}
-                    />
+                <div className="rounded-md border border-gold/30 bg-gold/5 p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-wider text-gold">Identidade de Autoridade</p>
+                      <p className="text-[10px] text-gold/60">Configurações para o funil: <span className="font-bold">{funnel.name}</span></p>
+                    </div>
+                    <div className="flex flex-col items-end gap-1">
+                      <div className="flex items-center gap-2">
+                        <Label className="text-[10px] uppercase tracking-wider">Sincronizar Global</Label>
+                        <Switch
+                          checked={!!funnel.briefing?.use_global_bio}
+                          onCheckedChange={(v) => setFunnel({ 
+                            ...funnel, 
+                            briefing: { ...funnel.briefing, use_global_bio: v } 
+                          })}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4 pt-2 border-t border-gold/10">
+                    {funnel.briefing?.use_global_bio ? (
+                      <div className="rounded bg-gold/10 p-3 text-center">
+                        <p className="text-xs text-gold/80 italic">
+                          ✨ Sincronização Ativa: Este funil está usando a foto e os dados da sua marca global (Bio).
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <div className="bg-gold/20 border border-gold/30 p-2.5 rounded-md mb-2">
+                          <p className="text-[10px] text-gold font-bold uppercase tracking-wider flex items-center gap-2">
+                            <span className="h-2 w-2 rounded-full bg-gold animate-pulse" />
+                            Modo Exclusivo Ativo
+                          </p>
+                          <p className="text-[9px] text-gold/80 mt-1 leading-relaxed">
+                            As alterações abaixo afetam <strong>apenas este diagnóstico</strong>. Para usar uma foto diferente em outro funil, basta abrir o editor dele e repetir este processo.
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="mb-2 block font-medium">Foto de Autoridade Exclusiva</Label>
+                          <ImageUploadWithCrop
+                            value={funnel.briefing?.bio_image_url ?? ""}
+                            onChange={(url) => setFunnel({ 
+                              ...funnel, 
+                              briefing: { ...funnel.briefing, bio_image_url: url } 
+                            })}
+                            folder={`funnels/${activeFunnelId}`}
+                          />
+                        </div>
+                      </div>
+                    )}
+                    <div className="mt-4 border-t border-gold/5 pt-4">
+                      <div className="flex items-center justify-between mb-1">
+                        <Label>Texto da Bio (Quem é você...)</Label>
+                        <span className="text-[9px] uppercase bg-gold/10 px-2 py-0.5 rounded text-gold/80">Exclusivo deste Funil</span>
+                      </div>
+                      <Textarea
+                        placeholder="Stefany Mello é estrategista de posicionamento..."
+                        value={funnel.briefing?.bio_text ?? ""}
+                        onChange={(e) => setFunnel({ 
+                          ...funnel, 
+                          briefing: { ...funnel.briefing, bio_text: e.target.value } 
+                        })}
+                        rows={5}
+                        className="mt-1"
+                      />
+                    </div>
+                    <p className="text-[10px] text-muted-foreground mt-2">Este conteúdo aparece na seção de autoridade antes da oferta principal.</p>
                   </div>
                 </div>
 
@@ -580,7 +648,6 @@ export default function DeepDiagnosticEditor() {
                     </div>
                   </div>
                 </div>
-              </div>
             </Card>
 
             <Card className="space-y-4 p-6">

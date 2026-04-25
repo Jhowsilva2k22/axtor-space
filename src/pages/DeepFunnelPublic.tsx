@@ -38,13 +38,14 @@ export default function DeepFunnelPublic() {
       if (!slug) return;
       const { data: f } = await supabase.from("deep_funnels").select("*").eq("slug", slug).eq("is_published", true).maybeSingle();
       if (!f) { setLoading(false); return; }
-      const [{ data: qs }, { data: t }] = await Promise.all([
+      const [{ data: qs }, { data: t }, { data: bioCfg }] = await Promise.all([
         supabase.from("deep_funnel_questions").select("*").eq("funnel_id", f.id).order("position"),
         supabase.from("tenants").select("display_name, whatsapp_number").eq("id", f.tenant_id).maybeSingle(),
+        supabase.from("bio_config").select("avatar_url").eq("tenant_id", f.tenant_id).maybeSingle(),
       ]);
       setFunnel(f);
       setQuestions(qs ?? []);
-      setTenant(t);
+      setTenant({ ...t, global_avatar_url: bioCfg?.avatar_url });
       setLoading(false);
       // Herda tema da bio do dono — funil fica visualmente coerente com a marca
       void applyTenantTheme(f.tenant_id);
@@ -404,8 +405,12 @@ export default function DeepFunnelPublic() {
                 )}
 
                 <div className="mt-8 flex justify-center">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-4 py-1.5 text-xs uppercase tracking-widest text-primary">
-                    <Sparkles className="h-3.5 w-3.5" /> Dor principal: {result?.pain_detected ?? "Não identificada"}
+                  <div className="inline-flex items-center gap-2 rounded-full px-6 py-2.5 text-xs font-bold uppercase tracking-[0.2em] text-[#4a3705] shadow-gold animate-pulse-soft" style={{
+                    background: 'linear-gradient(110deg, #8B6E28 0%, #D4AF37 30%, #FFF2CC 50%, #D4AF37 70%, #8B6E28 100%)',
+                    backgroundSize: '200% auto',
+                    animation: 'gold-bar-shine 3s linear infinite'
+                  }}>
+                    <Sparkles className="h-3.5 w-3.5" /> Dor Principal: {result?.pain_detected ?? "Não identificada"}
                   </div>
                 </div>
 
@@ -446,7 +451,12 @@ export default function DeepFunnelPublic() {
               
               // Lógica de Oferta Exclusiva (Prioriza o que vier do banco, fallback para isPrimary)
               const isExclusive = isObj ? (rawBenefits as any).is_exclusive : isPrimary;
-              const originalPrice = isObj ? (rawBenefits as any).original_price : (isPrimary ? "R$ 694,00" : "");
+              let originalPrice = isObj ? (rawBenefits as any).original_price : "";
+              
+              const currentPriceHint = product.price_hint?.toLowerCase() || "";
+              if (currentPriceHint.includes("a partir") || currentPriceHint.includes("consulta")) {
+                originalPrice = "";
+              }
               const guaranteeDays = isObj ? ((rawBenefits as any).guarantee_days || 7) : 7;
               const bioImage = funnel?.briefing?.bio_image_url || "https://axtor.space/wp-content/uploads/2024/04/stefany-perfil.jpg";
               
@@ -461,15 +471,15 @@ export default function DeepFunnelPublic() {
                   <div
                     className={
                       isExclusive
-                        ? "relative overflow-hidden space-y-8 rounded-[40px] border border-gold/50 bg-gradient-to-br from-background via-background to-primary/10 p-8 transition-all duration-500 hover:border-gold hover:shadow-[0_0_40px_-10px_rgba(212,175,55,0.3)] shadow-2xl"
-                        : "space-y-6 rounded-[32px] border border-border/60 bg-card/40 p-8 transition-all duration-500 hover:border-primary/40 hover:bg-card/60"
+                        ? "relative overflow-hidden space-y-8 rounded-[32px] border border-gold/50 bg-gradient-to-br from-background via-background to-primary/10 p-8 transition-all duration-500 hover:border-gold hover:shadow-[0_0_40px_-10px_rgba(212,175,55,0.3)] shadow-2xl"
+                        : "space-y-6 rounded-[24px] border border-border/60 bg-card/40 p-8 transition-all duration-500 hover:border-primary/40 hover:bg-card/60"
                     }
                   >
                     {isExclusive && (
                       <>
                         <div className="pointer-events-none absolute right-0 top-0 h-64 w-64 -translate-y-1/2 translate-x-1/2 rounded-full bg-gold/10 blur-[80px]" />
                         <div className="absolute top-0 right-0 p-4">
-                          <div className="rounded-full bg-gold px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-black shadow-lg">
+                          <div className="rounded-full border border-gold/40 bg-background/60 backdrop-blur-sm px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-gold shadow-lg">
                             Oferta Exclusiva
                           </div>
                         </div>
@@ -514,12 +524,12 @@ export default function DeepFunnelPublic() {
                     {isExclusive && (
                       <div className="grid grid-cols-2 gap-4 py-4 border-y border-border/30">
                         <div className="text-center border-r border-border/30">
-                          <p className="text-2xl font-display text-gold">+20M</p>
-                          <p className="text-[10px] uppercase tracking-tighter text-muted-foreground">Seguidores Gerados</p>
+                          <p className="text-2xl font-display text-gold">+28%</p>
+                          <p className="text-[10px] uppercase tracking-tighter text-muted-foreground">Percepção de Autoridade</p>
                         </div>
                         <div className="text-center">
-                          <p className="text-2xl font-display text-gold">+300K</p>
-                          <p className="text-[10px] uppercase tracking-tighter text-muted-foreground">Clientes Conquistados</p>
+                          <p className="text-2xl font-display text-gold">+22%</p>
+                          <p className="text-[10px] uppercase tracking-tighter text-muted-foreground">Retenção de Audiência</p>
                         </div>
                       </div>
                     )}
@@ -527,12 +537,16 @@ export default function DeepFunnelPublic() {
                     <div className="pt-4 space-y-4 relative z-10">
                       {isExclusive && (
                         <div className="flex flex-col items-center gap-1">
-                          <span className="text-xs text-muted-foreground line-through opacity-60">Valor Total: {originalPrice}</span>
+                          {originalPrice && (
+                            <span className="text-xs text-muted-foreground line-through opacity-60">Valor Total: {originalPrice}</span>
+                          )}
                           <div className="flex items-baseline gap-2">
                             <span className="text-xs font-bold uppercase text-gold">Por apenas:</span>
                             <span className="text-4xl font-display text-foreground">{product.price_hint}</span>
                           </div>
-                          <span className="text-[10px] font-bold text-green-500 uppercase tracking-widest animate-pulse">Economia Real Detectada</span>
+                          {originalPrice && (
+                            <span className="text-[10px] font-bold text-green-500 uppercase tracking-widest animate-pulse">Economia Real Detectada</span>
+                          )}
                         </div>
                       )}
                       
@@ -576,7 +590,7 @@ export default function DeepFunnelPublic() {
                       </div>
 
                       {isExclusive && (
-                        <div className="mt-6 rounded-3xl bg-green-500/5 border border-green-500/20 p-4 flex gap-4 items-center text-left">
+                        <div className="mt-6 rounded-2xl bg-green-500/5 border border-green-500/20 p-4 flex gap-4 items-center text-left">
                           <div className="h-10 w-10 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
                             <ShieldCheck className="h-6 w-6 text-green-500" />
                           </div>
@@ -600,24 +614,30 @@ export default function DeepFunnelPublic() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
-              className="mt-20 relative overflow-hidden rounded-[40px] bg-card/30 border border-border/40 p-8 md:p-12 text-left"
+              className="mt-20 relative overflow-hidden rounded-[32px] bg-card/30 border border-border/40 p-8 md:p-12 text-left"
             >
               <div className="grid md:grid-cols-2 gap-12 items-center">
                 <div className="space-y-6 order-2 md:order-1">
                   <h3 className="font-display text-4xl leading-tight">
                     Quem é <span className="text-gold italic">{funnel?.tenant?.display_name || "Stefany Mello"}</span>?
                   </h3>
-                  <div className="space-y-4 text-sm leading-relaxed text-muted-foreground/90">
-                    <p>
-                      {funnel?.tenant?.display_name || "Stefany Mello"} é estrategista de posicionamento e gestão digital para negócios premium.
-                    </p>
-                    <p>
-                      Com visão estratégica e execução orientada a resultado, desenvolve e gerencia estratégias digitais que transformam a presença online de negócios em um ativo comercial real capaz de gerar autoridade, atrair o cliente certo e justificar o preço cobrado.
-                    </p>
-                    <p>
-                      Sua metodologia une posicionamento estratégico, gestão de conteúdo e inteligência editorial para construir uma presença digital consistente, intencional e alinhada ao nível do negócio que representa.
-                    </p>
-                    <p className="text-foreground font-medium italic">
+                  <div className="space-y-4 text-sm leading-relaxed text-muted-foreground/90 whitespace-pre-line">
+                    {funnel?.briefing?.bio_text ? (
+                      funnel.briefing.bio_text
+                    ) : (
+                      <>
+                        <p>
+                          {funnel?.tenant?.display_name || "Stefany Mello"} é estrategista de posicionamento e gestão digital para negócios premium.
+                        </p>
+                        <p>
+                          Com visão estratégica e execução orientada a resultado, desenvolve e gerencia estratégias digitais que transformam a presença online de negócios em um ativo comercial real capaz de gerar autoridade, atrair o cliente certo e justificar o preço cobrado.
+                        </p>
+                        <p>
+                          Sua metodologia une posicionamento estratégico, gestão de conteúdo e inteligência editorial para construir uma presença digital consistente, intencional e alinhada ao nível do negócio que representa.
+                        </p>
+                      </>
+                    )}
+                    <p className="text-foreground font-medium italic pt-2">
                       "Para quem entendeu que presença digital não é sobre estar online. É sobre ser escolhido."
                     </p>
                   </div>
@@ -631,11 +651,11 @@ export default function DeepFunnelPublic() {
                 <div className="relative order-1 md:order-2 flex justify-center">
                   <div className="relative w-full aspect-[4/5] max-w-[320px] rounded-[32px] overflow-hidden shadow-2xl border border-gold/20">
                     <img 
-                      src={funnel?.briefing?.bio_image_url || "https://axtor.space/wp-content/uploads/2024/04/stefany-perfil.jpg"} 
-                      alt={funnel?.tenant?.display_name || "Stefany Mello"} 
+                      src={`${(funnel?.briefing?.use_global_bio ? tenant?.global_avatar_url : funnel?.briefing?.bio_image_url) || "https://axtor.space/wp-content/uploads/2024/04/stefany-perfil.jpg"}?t=${Date.now()}`} 
+                      alt={tenant?.display_name || "Stefany Mello"} 
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=800";
+                        (e.target as HTMLImageElement).src = `https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=800&t=${Date.now()}`;
                       }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />

@@ -73,14 +73,27 @@ const Index = () => {
   const [loadingMsg, setLoadingMsg] = useState(LOADING_STEPS[0]);
   const [data, setData] = useState<DiagnosisData | null>(null);
   const [partnerCtas, setPartnerCtas] = useState<PartnerCtas | null>(null);
+  const [tenant, setTenant] = useState<any>(null);
+  const [bioCfg, setBioCfg] = useState<any>(null);
 
   useEffect(() => {
     trackPageView("/");
     trackFunnel("diag_landing_view");
     const params = new URLSearchParams(window.location.search);
     const utm = params.get("utm_source") || params.get("ref");
-    if (!utm) return;
+    
     (async () => {
+      // Fetch tenant and bio_config
+      const slug = utm || "joanderson";
+      const { data: t } = await supabase.from("tenants").select("*").eq("slug", slug).maybeSingle();
+      
+      // Se não achar o tenant (RLS), busca a bio_config pelo display_name da Stefany como plano B
+      const { data: bc } = await supabase.from("bio_config").select("*").eq("display_name", "Stefany Mello").maybeSingle();
+      
+      if (t) setTenant(t);
+      if (bc) setBioCfg(bc);
+
+      if (!utm) return;
       const { data: rows } = await (supabase as any).rpc("get_landing_partner_ctas", { _utm_source: utm });
       const row = Array.isArray(rows) ? rows[0] : null;
       if (row) setPartnerCtas(row as PartnerCtas);
@@ -215,7 +228,7 @@ const Index = () => {
       </header>
 
       <main className="relative z-10 mx-auto max-w-4xl px-6 pb-24 pt-12 sm:pt-20 py-[40px]">
-        {step === "handle" && <HandleStep handle={handle} setHandle={setHandle} onSubmit={handleSubmitHandle} />}
+        {step === "handle" && <HandleStep handle={handle} setHandle={setHandle} onSubmit={handleSubmitHandle} bioCfg={bioCfg} tenant={tenant} />}
         {step === "lead" && (
           <LeadStep
             handle={handle}
@@ -244,118 +257,124 @@ const Index = () => {
 
 /* ---------- STEPS ---------- */
 
-const HandleStep = ({ handle, setHandle, onSubmit }: any) => (
-  <div className="animate-fade-up text-center">
-    <span className="sheen inline-flex items-center gap-2 rounded-full border border-gold bg-gradient-gold-soft px-5 py-2 text-xs uppercase tracking-[0.3em] text-primary backdrop-blur">
-      <span>análise real · não é vitrine</span>
-    </span>
-    <h1 className="mt-8 font-display text-5xl leading-[1.05] sm:text-7xl">
-      Descubra <span className="text-gold italic">exatamente</span><br />o que está travando<br />seu Instagram.
-    </h1>
-    <p className="mx-auto mt-6 max-w-xl text-base text-muted-foreground sm:text-lg">
-      Informe seu @ e nosso sistema te entregará um diagnóstico real do seu perfil, comparado com o seu nicho, em 30 segundos.
-    </p>
+const HandleStep = ({ handle, setHandle, onSubmit, bioCfg, tenant }: any) => {
+  const bioPhoto = bioCfg?.avatar_url || "https://axtor.space/wp-content/uploads/2024/04/stefany-perfil.jpg";
+  const bioName = bioCfg?.display_name || "Stefany Mello";
+  const bioText = bioCfg?.headline || "Estrategista de posicionamento e gestão digital para negócios premium. Diretora da Axtor, Stefany lidera uma operação que une estratégia de marca, produção de conteúdo premium e inteligência artificial aplicada ao marketing.";
+  
+  return (
+    <div className="animate-fade-up text-center">
+      <span className="sheen inline-flex items-center gap-2 rounded-full border border-gold bg-gradient-gold-soft px-5 py-2 text-xs uppercase tracking-[0.3em] text-primary backdrop-blur">
+        <span>análise real · não é vitrine</span>
+      </span>
+      <h1 className="mt-8 font-display text-5xl leading-[1.05] sm:text-7xl">
+        Descubra <span className="text-gold italic">exatamente</span><br />o que está travando<br />seu Instagram.
+      </h1>
+      <p className="mx-auto mt-6 max-w-xl text-base text-muted-foreground sm:text-lg">
+        Informe seu @ e nosso sistema te entregará um diagnóstico real do seu perfil, comparado com o seu nicho, em 30 segundos.
+      </p>
 
-    {/* Seção de Autoridade: Quem é Stefany Mello */}
-    <div className="mt-16 mb-16 relative overflow-hidden rounded-[40px] bg-card/30 border border-gold/20 p-6 md:p-10 text-left">
-      <div className="grid md:grid-cols-2 gap-8 items-center">
-        <div className="relative flex justify-center">
-          <div className="relative w-full aspect-square max-w-[240px] rounded-[32px] overflow-hidden shadow-2xl border border-gold/20">
-            <img 
-              src="https://axtor.space/wp-content/uploads/2024/04/stefany-perfil.jpg" 
-              alt="Stefany Mello" 
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=800";
-              }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+      {/* Seção de Autoridade Dinâmica */}
+      <div className="mt-16 mb-16 relative overflow-hidden rounded-[32px] bg-card/30 border border-gold/20 p-6 md:p-10 text-left">
+        <div className="grid md:grid-cols-2 gap-8 items-center">
+          <div className="relative flex justify-center">
+            <div className="relative w-full aspect-square max-w-[240px] rounded-[32px] overflow-hidden shadow-2xl border border-gold/20">
+              <img 
+                src={`${bioPhoto}?t=${Date.now()}`} 
+                alt={bioName} 
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = `https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=800&t=${Date.now()}`;
+                }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+            </div>
+          </div>
+          <div className="space-y-4">
+            <h3 className="font-display text-3xl leading-tight">
+              Quem é <span className="text-gold italic">{bioName}</span>?
+            </h3>
+            <p className="text-sm leading-relaxed text-muted-foreground/90">
+              {bioText}
+            </p>
+            <p className="text-xs font-medium italic text-foreground/80">
+              "Para quem entendeu que presença digital não é sobre estar online. É sobre ser escolhido."
+            </p>
           </div>
         </div>
-        <div className="space-y-4">
-          <h3 className="font-display text-3xl leading-tight">
-            Quem é <span className="text-gold italic">Stefany Mello</span>?
-          </h3>
-          <p className="text-sm leading-relaxed text-muted-foreground/90">
-            Estrategista de posicionamento e gestão digital para negócios premium. Diretora da Axtor, Stefany lidera uma operação que une estratégia de marca, produção de conteúdo premium e inteligência artificial aplicada ao marketing.
-          </p>
-          <p className="text-xs font-medium italic text-foreground/80">
-            "Para quem entendeu que presença digital não é sobre estar online. É sobre ser escolhido."
-          </p>
+      </div>
+
+      <form onSubmit={onSubmit} className="mx-auto mt-12 max-w-xl">
+        <div className="group relative flex items-center overflow-hidden rounded-full border-gold-gradient backdrop-blur transition-all focus-within:shadow-gold-lg">
+          <span className="pl-5 text-2xl font-display text-primary">@</span>
+          <Input
+            value={handle}
+            onChange={(e) =>
+              setHandle(
+                e.target.value
+                  .replace(/^@+/, "")
+                  .toLowerCase()
+                  .replace(/[^a-z0-9._]/g, "")
+                  .slice(0, 30),
+              )
+            }
+            placeholder="seu_perfil"
+            className="h-14 border-0 bg-transparent text-base font-light placeholder:text-muted-foreground/40 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none"
+            autoFocus
+          />
+          <Button type="submit" size="lg" className="btn-luxe m-1.5 h-11 shrink-0 gap-1.5 rounded-full px-4 text-xs font-semibold uppercase tracking-[0.1em] sm:px-6 sm:text-sm sm:tracking-[0.15em]">
+            Analisar <ArrowRight className="h-4 w-4" />
+          </Button>
         </div>
-      </div>
-    </div>
+        <p className="mt-3 text-xs text-muted-foreground">
+          100% gratuito · não pedimos sua senha · seu perfil precisa estar público
+        </p>
+      </form>
 
-    <form onSubmit={onSubmit} className="mx-auto mt-12 max-w-xl">
-      <div className="group relative flex items-center overflow-hidden rounded-full border-gold-gradient backdrop-blur transition-all focus-within:shadow-gold-lg">
-        <span className="pl-5 text-2xl font-display text-primary">@</span>
-        <Input
-          value={handle}
-          onChange={(e) =>
-            setHandle(
-              e.target.value
-                .replace(/^@+/, "")
-                .toLowerCase()
-                .replace(/[^a-z0-9._]/g, "")
-                .slice(0, 30),
-            )
-          }
-          placeholder="seu_perfil"
-          className="h-14 border-0 bg-transparent text-base font-light placeholder:text-muted-foreground/40 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none"
-          autoFocus
-        />
-        <Button type="submit" size="lg" className="btn-luxe m-1.5 h-11 shrink-0 gap-1.5 rounded-full px-4 text-xs font-semibold uppercase tracking-[0.1em] sm:px-6 sm:text-sm sm:tracking-[0.15em]">
-          Analisar <ArrowRight className="h-4 w-4" />
-        </Button>
-      </div>
-      <p className="mt-3 text-xs text-muted-foreground">
-        100% gratuito · não pedimos sua senha · seu perfil precisa estar público
-      </p>
-    </form>
-
-    <div className="mt-20 grid gap-6 sm:grid-cols-3">
-      {[
-        { icon: Target, title: "Posicionamento", desc: "Seu @ está atraindo o público certo?" },
-        { icon: TrendingUp, title: "Conversão", desc: "Quanto você está deixando na mesa." },
-        { icon: Zap, title: "Plano de ação", desc: "5 movimentos prioritários para você." },
-      ].map((it) => (
-        <div key={it.title} className="group rounded-[32px] border border-gold/20 bg-card/40 p-8 text-left backdrop-blur transition-all hover:-translate-y-1 hover:shadow-gold">
-          <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-gradient-gold-soft">
-            <it.icon className="h-5 w-5 text-primary" />
+      <div className="mt-20 grid gap-6 sm:grid-cols-3">
+        {[
+          { icon: Target, title: "Posicionamento", desc: "Seu @ está atraindo o público certo?" },
+          { icon: TrendingUp, title: "Conversão", desc: "Quanto você está deixando na mesa." },
+          { icon: Zap, title: "Plano de ação", desc: "5 movimentos prioritários para você." },
+        ].map((it) => (
+          <div key={it.title} className="group rounded-[32px] border border-gold/20 bg-card/40 p-8 text-left backdrop-blur transition-all hover:-translate-y-1 hover:shadow-gold">
+            <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-gradient-gold-soft">
+              <it.icon className="h-5 w-5 text-primary" />
+            </div>
+            <h3 className="mt-6 font-display text-2xl text-card-foreground">{it.title}</h3>
+            <p className="mt-2 text-sm font-light text-muted-foreground">{it.desc}</p>
           </div>
-          <h3 className="mt-6 font-display text-2xl text-card-foreground">{it.title}</h3>
-          <p className="mt-2 text-sm font-light text-muted-foreground">{it.desc}</p>
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
 
-    {/* Ponte: do diagnóstico pro link-in-bio */}
-    <div className="mt-24 rounded-[40px] border border-gold/20 bg-card/40 p-8 text-left backdrop-blur sm:p-12">
-      <span className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">Bio fraca foi um dos pontos?</span>
-      <h2 className="mt-3 font-display text-3xl leading-tight sm:text-4xl">
-        Crie uma bio <span className="text-gold italic">profissional</span> sem código.
-      </h2>
-      <p className="mt-3 max-w-xl text-sm text-muted-foreground sm:text-base">
-        Link-in-bio premium com analytics, campanhas com UTM e visual que converte. Comece grátis,
-        suba pra Pro quando quiser desbloquear tudo.
-      </p>
-      <div className="mt-6 flex flex-wrap gap-3">
-        <Link
-          to="/signup"
-          className="btn-luxe inline-flex h-11 items-center gap-2 rounded-full px-5 text-xs font-semibold uppercase tracking-[0.15em]"
-        >
-          Criar minha bio grátis <ArrowRight className="h-4 w-4" />
-        </Link>
-        <Link
-          to="/joanderson"
-          className="inline-flex h-11 items-center gap-2 rounded-full border border-gold bg-card/40 px-5 text-xs uppercase tracking-[0.15em] text-primary transition-all hover:shadow-gold"
-        >
-          Ver exemplo real
-        </Link>
+      {/* Ponte: do diagnóstico pro link-in-bio */}
+      <div className="mt-24 rounded-[32px] border border-gold/20 bg-card/40 p-8 text-left backdrop-blur sm:p-12">
+        <span className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">Bio fraca foi um dos pontos?</span>
+        <h2 className="mt-3 font-display text-3xl leading-tight sm:text-4xl">
+          Crie uma bio <span className="text-gold italic">profissional</span> sem código.
+        </h2>
+        <p className="mt-3 max-w-xl text-sm text-muted-foreground sm:text-base">
+          Link-in-bio premium com analytics, campanhas com UTM e visual que converte. Comece grátis,
+          suba pra Pro quando quiser desbloquear tudo.
+        </p>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link
+            to="/signup"
+            className="btn-luxe inline-flex h-11 items-center gap-2 rounded-full px-5 text-xs font-semibold uppercase tracking-[0.15em]"
+          >
+            Criar minha bio grátis <ArrowRight className="h-4 w-4" />
+          </Link>
+          <Link
+            to="/joanderson"
+            className="inline-flex h-11 items-center gap-2 rounded-full border border-gold bg-card/40 px-5 text-xs uppercase tracking-[0.15em] text-primary transition-all hover:shadow-gold"
+          >
+            Ver exemplo real
+          </Link>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 const LeadStep = ({ handle, email, setEmail, phone, setPhone, country, setCountry, name, setName, onSubmit, onBack }: any) => {
   const emailSuggestion = email ? suggestEmailDomain(email) : null;
@@ -485,7 +504,7 @@ const PrivateStep = ({ data, onRetry }: { data: DiagnosisData; onRetry: () => vo
     <p className="mt-4 text-muted-foreground">
       Já salvamos seus dados — vamos te avisar assim que rodarmos a análise. Para gerar o diagnóstico real <strong>agora</strong>, abra seu perfil temporariamente:
     </p>
-    <div className="mt-8 rounded-full border-gold-gradient p-6 text-left text-sm font-light">
+    <div className="mt-8 rounded-[32px] border-gold-gradient p-6 text-left text-sm font-light">
       <ol className="space-y-3 text-muted-foreground">
         <li><span className="text-primary">1.</span> Abra o app do Instagram → Configurações</li>
         <li><span className="text-primary">2.</span> Privacidade → desmarque "Conta privada"</li>
@@ -510,7 +529,7 @@ const NotFoundStep = ({ handle, onRetry }: { handle: string; onRetry: () => void
     <p className="mt-4 text-muted-foreground">
       Esse perfil não existe ou está indisponível no Instagram. Verifique se o @ está escrito corretamente — sem espaços, acentos ou caracteres especiais.
     </p>
-    <div className="mt-8 rounded-full border-gold-gradient p-6 text-left text-sm font-light">
+    <div className="mt-8 rounded-[32px] border-gold-gradient p-6 text-left text-sm font-light">
       <ol className="space-y-3 text-muted-foreground">
         <li><span className="text-primary">1.</span> Abra o Instagram e copie seu @ exato</li>
         <li><span className="text-primary">2.</span> Confira se o perfil está público</li>
@@ -542,7 +561,7 @@ const BlockedStep = ({ data }: { data: DiagnosisData }) => {
         {data.message ||
           "Pra manter a qualidade da análise (e não te dar o mesmo diagnóstico em loop), liberamos no máximo 3 análises por semana pelo mesmo @."}
       </p>
-      <div className="mt-8 rounded-full border-gold-gradient p-6 text-left text-sm font-light">
+      <div className="mt-8 rounded-[32px] border-gold-gradient p-6 text-left text-sm font-light">
         <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Próxima liberação</p>
         <p className="mt-2 font-display text-2xl text-gold">{fmt}</p>
       </div>
@@ -662,7 +681,7 @@ const ResultStep = ({ data, onRestart, partnerCtas }: { data: DiagnosisData; onR
       </div>
 
       {/* Score hero */}
-      <div className="relative overflow-hidden rounded-full border-gold-gradient p-10 text-center shadow-deep">
+      <div className="relative overflow-hidden rounded-[32px] border-gold-gradient p-10 text-center shadow-deep">
         <div className="pointer-events-none absolute inset-0 bg-gradient-gold-soft opacity-60" />
         <div className="pointer-events-none absolute -top-24 left-1/2 h-48 w-96 -translate-x-1/2 rounded-full bg-primary/20 blur-3xl" />
         <div className="relative">
@@ -692,7 +711,7 @@ const ResultStep = ({ data, onRestart, partnerCtas }: { data: DiagnosisData; onR
       </div>
 
       {/* Plano de ação */}
-      <div className="rounded-[40px] border border-gold/20 bg-card/30 p-8">
+      <div className="rounded-[32px] border border-gold/20 bg-card/30 p-8">
         <h3 className="font-display text-2xl">Seu plano de ação <span className="text-gold">priorizado</span></h3>
         <ol className="mt-6 space-y-4">
           {d.plano_acao?.map((step, i) => (
@@ -705,7 +724,7 @@ const ResultStep = ({ data, onRestart, partnerCtas }: { data: DiagnosisData; onR
       </div>
 
       {/* CTA final — funil topo→fundo */}
-      <div className="relative overflow-hidden rounded-[40px] border border-gold/20 bg-card/30 p-8 text-center sm:p-10">
+      <div className="relative overflow-hidden rounded-[32px] border border-gold/20 bg-card/30 p-8 text-center sm:p-10">
         <div className="pointer-events-none absolute inset-0 bg-gradient-gold-soft" />
         <div className="relative">
           <span className="inline-flex items-center gap-2 rounded-full border border-gold bg-background/40 px-4 py-1.5 text-[10px] uppercase tracking-[0.3em] text-primary">
@@ -763,7 +782,7 @@ const ResultStep = ({ data, onRestart, partnerCtas }: { data: DiagnosisData; onR
             do topo ao fundo de funil · você acabou de viver
           </p>
 
-          <div className="mx-auto mt-8 flex max-w-md items-center gap-4 rounded-full border border-gold/40 bg-card/40 p-4 text-left">
+          <div className="mx-auto mt-8 flex max-w-md items-center gap-4 rounded-2xl border border-gold/40 bg-card/40 p-4 text-left">
             <Instagram className="h-6 w-6 shrink-0 text-primary" />
             <div className="flex-1 text-sm">
               <p className="font-medium text-foreground">Curtiu o diagnóstico?</p>
@@ -813,7 +832,7 @@ const ScoreBar = ({ label, value }: { label: string; value: number }) => (
 );
 
 const Card = ({ title, icon: Icon, items, accent }: any) => (
-  <div className="rounded-full border border-gold bg-card/60 p-6">
+  <div className="rounded-[32px] border border-gold/20 bg-card/60 p-8">
     <div className="flex items-center gap-2">
       <Icon className={`h-5 w-5 ${accent}`} />
       <h3 className="font-display text-xl">{title}</h3>
