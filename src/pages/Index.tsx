@@ -268,7 +268,6 @@ const Index = () => {
 const HandleStep = ({ handle, setHandle, onSubmit, bioCfg, tenant }: any) => {
   const bioPhoto = bioCfg?.avatar_url || "https://axtor.space/wp-content/uploads/2024/04/stefany-perfil.jpg";
   const bioName = bioCfg?.display_name || "Stefany Mello";
-  const bioText = bioCfg?.headline || "Estrategista de posicionamento e gestão digital para negócios premium. Diretora da Axtor, Stefany lidera uma operação que une estratégia de marca, produção de conteúdo premium e inteligência artificial aplicada ao marketing.";
   
   return (
     <div className="animate-fade-up text-center">
@@ -284,9 +283,9 @@ const HandleStep = ({ handle, setHandle, onSubmit, bioCfg, tenant }: any) => {
 
       {/* Seção de Autoridade Dinâmica */}
       <div className="mt-16 mb-16 relative overflow-hidden rounded-[32px] bg-card/30 border border-gold/20 p-6 md:p-10 text-left">
-        <div className="grid md:grid-cols-2 gap-8 items-center">
+        <div className="grid md:grid-cols-[280px_1fr] gap-8 items-center">
           <div className="relative flex justify-center">
-            <div className="relative w-full aspect-square max-w-[240px] rounded-[32px] overflow-hidden shadow-2xl border border-gold/20">
+            <div className="relative w-full aspect-[4/5] rounded-[32px] overflow-hidden shadow-2xl border border-gold/20">
               <img 
                 src={bioPhoto} 
                 alt={bioName} 
@@ -298,16 +297,32 @@ const HandleStep = ({ handle, setHandle, onSubmit, bioCfg, tenant }: any) => {
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
             </div>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-6">
             <h3 className="font-display text-3xl leading-tight">
               Quem é <span className="text-gold italic">{bioName}</span>?
             </h3>
-            <p className="text-sm leading-relaxed text-muted-foreground/90">
-              {bioText}
-            </p>
-            <p className="text-xs font-medium italic text-foreground/80">
-              "Para quem entendeu que presença digital não é sobre estar online. É sobre ser escolhido."
-            </p>
+            <div className="prose prose-invert prose-sm max-w-none">
+              <div className="space-y-4 text-sm leading-relaxed text-muted-foreground/90">
+                <p>
+                  <span className="text-foreground font-medium">Stefany Mello</span> é estrategista de posicionamento e gestão digital para negócios premium.
+                </p>
+                <p>
+                  Com visão estratégica e execução orientada a resultado, desenvolve e gerencia estratégias digitais que transformam a presença online de negócios em um ativo comercial real capaz de gerar autoridade, atrair o cliente certo e justificar o preço cobrado.
+                </p>
+                <p>
+                  Sua metodologia une posicionamento estratégico, gestão de conteúdo e inteligência editorial para construir uma presença digital consistente, intencional e alinhada ao nível do negócio que representa.
+                </p>
+                <p>
+                  Diretora da Axtor, braço de produção e tecnologia do ecossistema, Stefany lidera uma operação que une estratégia de marca, produção de conteúdo premium, cobertura de eventos e soluções com inteligência artificial aplicada ao marketing.
+                </p>
+              </div>
+            </div>
+            <div className="pt-2 border-t border-gold/10">
+              <p className="text-xs font-medium italic text-foreground/80 leading-relaxed">
+                "Para quem entendeu que presença digital não é sobre estar online.<br />
+                <span className="text-gold">É sobre ser escolhido.</span>"
+              </p>
+            </div>
           </div>
         </div>
       </div>
