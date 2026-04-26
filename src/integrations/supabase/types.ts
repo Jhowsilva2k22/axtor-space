@@ -1551,6 +1551,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_tenant_active: { Args: { _tenant_id: string }; Returns: boolean }
       is_tenant_owner: { Args: { _tenant_id: string }; Returns: boolean }
       move_to_dlq: {
         Args: {
