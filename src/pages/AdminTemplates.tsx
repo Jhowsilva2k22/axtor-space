@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { type ThemeTokens } from "@/components/ThemeProvider";
 import { useAdminLockedTheme } from "@/components/ThemeToggle";
 import { TenantSelector } from "@/components/TenantSelector";
+import { useCurrentTenant } from "@/hooks/useCurrentTenant";
 import { toast } from "sonner";
 import {
   Loader2,
@@ -29,6 +30,8 @@ type ThemeRow = {
 const AdminTemplates = () => {
   const { user, loading: authLoading } = useAuth();
   useAdminLockedTheme();
+  const { current: currentTenant, loading: tenantLoading } = useCurrentTenant();
+  const currentTenantId = currentTenant?.id ?? null;
   const [themes, setThemes] = useState<ThemeRow[]>([]);
   const [activeDb, setActiveDb] = useState<string>("gold-noir");
   const [loading, setLoading] = useState(true);
@@ -37,9 +40,11 @@ const AdminTemplates = () => {
   const [device, setDevice] = useState<"mobile" | "desktop">("mobile");
 
   const refresh = async () => {
+    if (!currentTenantId) return;
+    setLoading(true);
     const [{ data: t }, { data: cfg }] = await Promise.all([
       supabase.from("bio_themes").select("*").order("is_default", { ascending: false }).order("name"),
-      supabase.from("bio_config").select("active_theme_slug").eq("singleton", true).maybeSingle(),
+      supabase.from("bio_config").select("active_theme_slug").eq("tenant_id", currentTenantId).maybeSingle(),
     ]);
     setThemes((t as any) ?? []);
     setActiveDb(((cfg as any)?.active_theme_slug as string) ?? "gold-noir");
@@ -47,8 +52,11 @@ const AdminTemplates = () => {
   };
 
   useEffect(() => {
+    if (!currentTenantId) return;
     refresh();
-  }, []);
+    setSelectedSlug(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentTenantId]);
 
   useEffect(() => {
     if (!selectedSlug && themes.length > 0) {
@@ -60,11 +68,15 @@ const AdminTemplates = () => {
   if (!user) return <Navigate to="/admin/login" replace />;
 
   const setActive = async (slug: string) => {
+    if (!currentTenantId) {
+      toast.error("Selecione um tenant antes de aplicar o tema");
+      return;
+    }
     setSaving(slug);
     const { error } = await supabase
       .from("bio_config")
       .update({ active_theme_slug: slug })
-      .eq("singleton", true);
+      .eq("tenant_id", currentTenantId);
     setSaving(null);
     if (error) {
       toast.error("Erro ao definir tema ativo");
@@ -115,7 +127,16 @@ const AdminTemplates = () => {
           </div>
         </div>
 
-        {loading ? (
+        {tenantLoading ? (
+          <FullLoader />
+        ) : !currentTenantId ? (
+          <div className="flex min-h-[300px] flex-col items-center justify-center gap-3 rounded-sm border-gold-gradient bg-card/40 p-8 text-center">
+            <p className="font-display text-xl text-foreground">Selecione um tenant</p>
+            <p className="max-w-md text-sm text-muted-foreground">
+              Escolha um tenant no seletor acima pra gerenciar os templates da bio dele.
+            </p>
+          </div>
+        ) : loading ? (
           <FullLoader />
         ) : (
           <div className="grid gap-6 lg:grid-cols-[380px_1fr]">
