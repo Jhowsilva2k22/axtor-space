@@ -175,6 +175,19 @@ export default function DeepDiagnosticEditor() {
     toast({ title: "Produto removido" });
   };
 
+  const deleteQuestion = async (idx: number) => {
+    const q = questions[idx];
+    if (!q?.id) return;
+    if (!confirm("Excluir essa pergunta? Essa ação não pode ser desfeita.")) return;
+    const { error } = await supabase.from("deep_funnel_questions").delete().eq("id", q.id);
+    if (error) {
+      toast({ title: "Erro ao excluir pergunta", description: error.message, variant: "destructive" });
+      return;
+    }
+    setQuestions((prev) => prev.filter((_, i) => i !== idx));
+    toast({ title: "Pergunta removida" });
+  };
+
   const saveAll = async (publish: boolean) => {
     if (!activeFunnelId) return;
     try {
