@@ -93,12 +93,19 @@ const Index = () => {
       // 2. Buscar atualização em segundo plano
       const slug = utm || "joanderson";
       const { data: t } = await supabase.from("tenants").select("*").eq("slug", slug).maybeSingle();
-      const { data: bc } = await supabase.from("bio_config").select("*").eq("display_name", "Stefany Mello").maybeSingle();
-      
-      if (t) setTenant(t);
-      if (bc) {
-        setBioCfg(bc);
-        sessionStorage.setItem(cacheKey, JSON.stringify(bc));
+
+      if (t) {
+        setTenant(t);
+        const { data: bc } = await supabase
+          .from("bio_config")
+          .select("*")
+          .eq("tenant_id", t.id)
+          .maybeSingle();
+
+        if (bc) {
+          setBioCfg(bc);
+          sessionStorage.setItem(cacheKey, JSON.stringify(bc));
+        }
       }
 
       if (!utm) return;
@@ -303,18 +310,31 @@ const HandleStep = ({ handle, setHandle, onSubmit, bioCfg, tenant, partnerCtas }
             </h3>
             <div className="prose prose-invert prose-sm max-w-none">
               <div className="space-y-4 text-sm leading-relaxed text-muted-foreground/90">
-                <p>
-                  <span className="text-foreground font-medium">Stefany Mello</span> é estrategista de posicionamento e gestão digital para negócios premium.
-                </p>
-                <p>
-                  Com visão estratégica e execução orientada a resultado, desenvolve e gerencia estratégias digitais que transformam a presença online de negócios em um ativo comercial real capaz de gerar autoridade, atrair o cliente certo e justificar o preço cobrado.
-                </p>
-                <p>
-                  Sua metodologia une posicionamento estratégico, gestão de conteúdo e inteligência editorial para construir uma presença digital consistente, intencional e alinhada ao nível do negócio que representa.
-                </p>
-                <p>
-                  Diretora da Axtor, braço de produção e tecnologia do ecossistema, Stefany lidera uma operação que une estratégia de marca, produção de conteúdo premium, cobertura de eventos e soluções com inteligência artificial aplicada ao marketing.
-                </p>
+                {bioCfg?.headline ? (
+                  <>
+                    <p>
+                      <span className="text-foreground font-medium">{bioCfg.display_name}</span> {bioCfg.headline}
+                    </p>
+                    {bioCfg?.sub_headline?.split(/\n\s*\n/).map((paragraph: string, i: number) => (
+                      <p key={i}>{paragraph}</p>
+                    ))}
+                  </>
+                ) : (
+                  <>
+                    <p>
+                      <span className="text-foreground font-medium">Stefany Mello</span> é estrategista de posicionamento e gestão digital para negócios premium.
+                    </p>
+                    <p>
+                      Com visão estratégica e execução orientada a resultado, desenvolve e gerencia estratégias digitais que transformam a presença online de negócios em um ativo comercial real capaz de gerar autoridade, atrair o cliente certo e justificar o preço cobrado.
+                    </p>
+                    <p>
+                      Sua metodologia une posicionamento estratégico, gestão de conteúdo e inteligência editorial para construir uma presença digital consistente, intencional e alinhada ao nível do negócio que representa.
+                    </p>
+                    <p>
+                      Diretora da Axtor, braço de produção e tecnologia do ecossistema, Stefany lidera uma operação que une estratégia de marca, produção de conteúdo premium, cobertura de eventos e soluções com inteligência artificial aplicada ao marketing.
+                    </p>
+                  </>
+                )}
               </div>
             </div>
             <div className="pt-2 border-t border-gold/10">
