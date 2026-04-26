@@ -313,7 +313,7 @@ const HandleStep = ({ handle, setHandle, onSubmit, bioCfg, tenant, partnerCtas }
                 {bioCfg?.headline ? (
                   <>
                     <p>
-                      <span className="text-foreground font-medium">{bioCfg.headline}
+                      <span className="text-foreground font-medium">{bioCfg.display_name}</span> {bioCfg.headline}
                     </p>
                     {bioCfg?.sub_headline?.split(/\n\s*\n/).map((paragraph: string, i: number) => (
                       <p key={i}>{paragraph}</p>
