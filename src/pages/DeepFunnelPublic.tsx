@@ -201,7 +201,7 @@ export default function DeepFunnelPublic() {
                     value={lead.name}
                     onChange={(e) => setLead({ ...lead, name: e.target.value.replace(/[^a-zA-ZáàâãäéèêëíìîïóòôõöúùûüçÁÀÂÃÄÉÈÊËÍÌÎÏÓÒÔÕÖÚÙÛÜÇ '-]/g, "").slice(0, 80) })}
                     placeholder="Stefany Mello"
-                    className="h-14 rounded-full border-gold/20 bg-card/30 px-6 font-light transition-all focus:border-gold/50 focus:shadow-gold/10"
+                    className="h-11 rounded-full border-gold/20 bg-card/30 px-5 font-light transition-all focus:border-gold/50 focus:shadow-gold/10"
                   />
                 </div>
                 
@@ -213,14 +213,14 @@ export default function DeepFunnelPublic() {
                       value={lead.email}
                       onChange={(e) => setLead({ ...lead, email: e.target.value.toLowerCase() })}
                       placeholder="voce@exemplo.com"
-                      className="h-14 rounded-full border-gold/20 bg-card/30 px-6 font-light transition-all focus:border-gold/50 focus:shadow-gold/10"
+                      className="h-11 rounded-full border-gold/20 bg-card/30 px-5 font-light transition-all focus:border-gold/50 focus:shadow-gold/10"
                     />
                   </div>
                   <div className="space-y-2">
                     <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/80">WhatsApp</label>
                     <div className="flex gap-2">
                       <Select value={country} onValueChange={(v: CountryCode) => setCountry(v)}>
-                        <SelectTrigger className="h-14 w-[110px] rounded-full border-gold/20 bg-card/30 px-4 transition-all focus:border-gold/50">
+                        <SelectTrigger className="h-11 w-[88px] rounded-full border-gold/20 bg-card/30 px-3 transition-all focus:border-gold/50">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent className="rounded-2xl border-gold/20 bg-card/90 backdrop-blur-xl">
@@ -236,7 +236,7 @@ export default function DeepFunnelPublic() {
                         value={lead.phone}
                         onChange={(e) => setLead({ ...lead, phone: maskPhone(e.target.value, country) })}
                         placeholder="(00) 00000-0000"
-                        className="h-14 flex-1 rounded-full border-gold/20 bg-card/30 px-6 font-light transition-all focus:border-gold/50 focus:shadow-gold/10"
+                        className="h-11 flex-1 rounded-full border-gold/20 bg-card/30 px-5 font-light transition-all focus:border-gold/50 focus:shadow-gold/10"
                       />
                     </div>
                   </div>
@@ -248,7 +248,7 @@ export default function DeepFunnelPublic() {
                     value={lead.instagram_handle}
                     onChange={(e) => setLead({ ...lead, instagram_handle: e.target.value.replace(/[^a-zA-Z0-9._]/g, "").slice(0, 30) })}
                     placeholder="@seu.perfil"
-                    className="h-14 rounded-full border-gold/20 bg-card/30 px-6 font-light transition-all focus:border-gold/50 focus:shadow-gold/10"
+                    className="h-11 rounded-full border-gold/20 bg-card/30 px-5 font-light transition-all focus:border-gold/50 focus:shadow-gold/10"
                   />
                 </div>
               </div>
