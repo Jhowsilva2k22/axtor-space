@@ -241,7 +241,7 @@ const Index = () => {
 
       <header className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
         <div className="flex items-center gap-2">
-          <span className="font-display text-xl tracking-wide">Diagnóstico Premium</span>
+          <span className="font-display text-xl tracking-wide">Diagnóstico Premium · TESTE</span>
         </div>
         <Link
           to="/admin/login"
