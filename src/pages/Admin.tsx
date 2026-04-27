@@ -36,6 +36,7 @@ import { OnboardingChecklist } from "@/components/OnboardingChecklist";
 import { DeepDiagnosticCard } from "@/components/DeepDiagnosticCard";
 import { BioTemplatePicker } from "@/components/BioTemplatePicker";
 import { BioHeaderEditor } from "@/components/bio/BioHeaderEditor";
+import { BioBlocksManager } from "@/components/bio/BioBlocksManager";
 import { QRCodeDialog } from "@/components/QRCodeDialog";
 import { MyLinksCard } from "@/components/MyLinksCard";
 import { PartnerCtasEditor } from "@/components/PartnerCtasEditor";
@@ -52,22 +53,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  DndContext,
-  closestCenter,
   PointerSensor,
   KeyboardSensor,
   useSensor,
   useSensors,
   type DragEndEvent,
 } from "@dnd-kit/core";
-import {
-  SortableContext,
-  arrayMove,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
+import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 
 type BioConfig = {
   id: string;
@@ -98,20 +90,7 @@ type Block = {
   has_draft: boolean;
 };
 
-const KINDS = [
-  { v: "instagram", l: "Instagram", icon: "Instagram" },
-  { v: "site", l: "Site", icon: "Globe" },
-  { v: "whatsapp", l: "WhatsApp", icon: "MessageCircle" },
-  { v: "agenda", l: "Agenda", icon: "Calendar" },
-  { v: "product", l: "Produto próprio", icon: "ShoppingBag" },
-  { v: "ebook", l: "E-book", icon: "BookOpen" },
-  { v: "service", l: "Serviço", icon: "Briefcase" },
-  { v: "affiliate", l: "Afiliado", icon: "Tag" },
-  { v: "partner", l: "Parceiro", icon: "Handshake" },
-  { v: "cta_diagnostico", l: "CTA Diagnóstico", icon: "Sparkles" },
-  { v: "cta_ferramenta", l: "CTA Ferramenta", icon: "Crown" },
-  { v: "link", l: "Link genérico", icon: "Link2" },
-];
+// KINDS movido pra src/components/bio/blockKinds.ts (Onda 3 v2 PR2 refactor).
 
 const Admin = () => {
   const { user, isAdmin, loading: authLoading, signOut } = useAuth();
@@ -928,80 +907,27 @@ const Admin = () => {
             onRemoveCover={removeCover}
           />
 
-          {/* Blocos */}
-          <section id="admin-blocks-section">
-            <div className="mb-6 flex items-center justify-between">
-              <h2 className="font-display text-2xl">Blocos da bio</h2>
-              <div className="flex items-center gap-2">
-                {blocks.length === 0 && plan.canAddBlock && (
-                  <BioTemplatePicker tenantId={currentTenant?.id ?? ""} variant="ghost" onApplied={() => void load()} />
-                )}
-                {plan.canAddBlock ? (
-                  <Button onClick={addBlock} className="btn-luxe h-11 rounded-sm px-5 text-xs uppercase tracking-[0.2em]">
-                    <Plus className="h-4 w-4" /> Novo bloco
-                  </Button>
-                ) : (
-                  <UpgradeModal feature="blocks">
-                    <Button type="button" className="h-11 rounded-sm border border-gold/40 bg-card/40 px-5 text-xs uppercase tracking-[0.2em] text-muted-foreground hover:bg-gradient-gold-soft hover:text-primary">
-                      <Lock className="h-3.5 w-3.5" /> Limite Free atingido ({plan.limits.max_blocks})
-                    </Button>
-                  </UpgradeModal>
-                )}
-              </div>
-            </div>
-            <div>
-              <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragEnd={handleDragEnd}
-              >
-                <SortableContext
-                  items={blocks.map((b) => b.id)}
-                  strategy={verticalListSortingStrategy}
-                >
-                  <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                    {blocks.map((b, i) => (
-                      <BlockEditor
-                      key={b.id}
-                      block={viewBlock(b)}
-                      hasDraft={b.has_draft}
-                      isPublishing={publishingId === b.id}
-                      categories={categories}
-                      isFirst={i === 0}
-                      isLast={i === blocks.length - 1}
-                      onChange={(p) => updateBlock(b.id, p)}
-                      onSave={() => saveBlock(b)}
-                      onPublish={() => publishBlock(viewBlock(b))}
-                      onDiscardDraft={() => discardDraft(b)}
-                      onDelete={() => deleteBlock(b.id)}
-                      onDuplicate={() => duplicateBlock(viewBlock(b))}
-                      onMoveUp={() => move(i, -1)}
-                      onMoveDown={() => move(i, 1)}
-                      />
-                    ))}
-                  </div>
-                </SortableContext>
-              </DndContext>
-              {blocks.length === 0 && (
-                <div className="rounded-sm border-gold-gradient bg-card/30 p-10 text-center">
-                  <p className="font-display text-xl">Comece com um <span className="text-gold italic">template</span></p>
-                  <p className="mx-auto mt-2 max-w-md text-sm font-light text-muted-foreground">
-                    Escolha um nicho e ganhe categorias + 5 blocos prontos. Você ajusta as URLs e ativa um por um.
-                  </p>
-                  <div className="mt-5 flex justify-center gap-2">
-                    <BioTemplatePicker tenantId={currentTenant?.id ?? ""} onApplied={() => void load()} />
-                    <Button
-                      onClick={addBlock}
-                      type="button"
-                      className="h-11 rounded-sm border border-gold/40 bg-card/40 px-5 text-xs uppercase tracking-[0.2em] text-muted-foreground hover:border-gold hover:text-primary"
-                    >
-                      ou criar do zero
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </section>
+          {/* Blocos (extraído pra <BioBlocksManager /> reutilizável — Onda 3 v2 PR2) */}
+          <BioBlocksManager
+            blocks={blocks}
+            categories={categories}
+            tenantId={currentTenant?.id ?? ""}
+            canAddBlock={plan.canAddBlock}
+            maxBlocks={plan.limits.max_blocks}
+            publishingId={publishingId}
+            sensors={sensors}
+            viewBlock={viewBlock}
+            onAddBlock={addBlock}
+            onTemplateApplied={() => void load()}
+            onChangeBlock={updateBlock}
+            onSaveBlock={saveBlock}
+            onPublishBlock={publishBlock}
+            onDiscardDraft={discardDraft}
+            onDeleteBlock={deleteBlock}
+            onDuplicateBlock={duplicateBlock}
+            onMoveBlock={move}
+            onDragEnd={handleDragEnd}
+          />
 
           {currentTenant && <CategoriesManager tenantId={currentTenant.id} />}
         </main>
@@ -1056,263 +982,6 @@ const Admin = () => {
           await uploadCover(blob);
         }}
       />
-    </div>
-  );
-};
-
-const Field = ({ label, children, full }: { label: string; children: React.ReactNode; full?: boolean }) => (
-  <div className={full ? "md:col-span-2" : ""}>
-    <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">{label}</label>
-    {children}
-  </div>
-);
-
-const ToggleChip = ({
-  icon, label, checked, onChange,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  checked: boolean;
-  onChange: (v: boolean) => void;
-}) => (
-  <label
-    className={`flex min-h-[40px] w-full cursor-pointer items-center justify-between gap-2 rounded-sm border px-3 py-1.5 transition-colors ${
-      checked ? "border-gold/60 bg-card/60 text-primary" : "border-border bg-card/20 text-muted-foreground hover:border-gold/30"
-    }`}
-  >
-    <span className="flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.15em] leading-tight">
-      <span className="shrink-0">{icon}</span>
-      <span>{label}</span>
-    </span>
-    <Switch checked={checked} onCheckedChange={onChange} />
-  </label>
-);
-
-const BlockEditor = ({
-  block, hasDraft, isPublishing, categories, onChange, onSave, onPublish, onDiscardDraft, onDelete, onDuplicate, onMoveUp, onMoveDown, isFirst, isLast,
-}: {
-  block: Block;
-  hasDraft: boolean;
-  isPublishing: boolean;
-  categories: Category[];
-  onChange: (p: Partial<Block>) => void;
-  onSave: () => void;
-  onPublish: () => void;
-  onDiscardDraft: () => void;
-  onDelete: () => void;
-  onDuplicate: () => void;
-  onMoveUp: () => void;
-  onMoveDown: () => void;
-  isFirst: boolean;
-  isLast: boolean;
-}) => {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: block.id });
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.6 : 1,
-    zIndex: isDragging ? 20 : "auto" as const,
-  };
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={`min-w-0 overflow-hidden rounded-sm border p-3 sm:p-4 transition-all ${
-        hasDraft
-          ? "border-yellow-500/70 bg-yellow-500/[0.04]"
-          : block.is_active
-            ? "border-gold bg-card/60"
-            : "border-border bg-card/30 opacity-60"
-      } ${isDragging ? "shadow-2xl" : ""}`}
-    >
-      {hasDraft && (
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-sm border border-yellow-500/40 bg-yellow-500/5 px-3 py-2">
-          <span className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.2em] text-yellow-500">
-            <FileEdit className="h-3 w-3" /> rascunho não publicado
-          </span>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={onDiscardDraft}
-              className="inline-flex h-8 items-center gap-1.5 rounded-sm border border-border px-3 text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-primary"
-            >
-              <Undo2 className="h-3 w-3" /> Descartar
-            </button>
-            <Button
-              type="button"
-              onClick={onPublish}
-              disabled={isPublishing}
-              className="btn-luxe h-8 rounded-sm px-3 text-[10px] uppercase tracking-[0.2em]"
-            >
-              {isPublishing ? <Loader2 className="h-3 w-3 animate-spin" /> : <><Send className="h-3 w-3" /> Publicar</>}
-            </Button>
-          </div>
-        </div>
-      )}
-      {/* Linha 1: reordenação + posição + menu de ações */}
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          {...attributes}
-          {...listeners}
-          className="hidden cursor-grab touch-none rounded-sm border border-border p-1.5 text-muted-foreground hover:text-primary active:cursor-grabbing md:inline-flex"
-          title="Arraste para reordenar"
-        >
-          <GripVertical className="h-3.5 w-3.5" />
-        </button>
-        <button onClick={onMoveUp} disabled={isFirst} className="rounded-sm border border-border p-1.5 text-muted-foreground hover:text-primary disabled:opacity-30" title="Subir">
-          <ArrowUp className="h-3.5 w-3.5" />
-        </button>
-        <button onClick={onMoveDown} disabled={isLast} className="rounded-sm border border-border p-1.5 text-muted-foreground hover:text-primary disabled:opacity-30" title="Descer">
-          <ArrowDown className="h-3.5 w-3.5" />
-        </button>
-        <span className="ml-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">#{block.position}</span>
-
-        <div className="ml-auto flex items-center gap-2">
-          <span className={`hidden sm:inline-flex h-7 items-center gap-1.5 rounded-sm border px-2 text-[10px] uppercase tracking-[0.2em] transition-all ${block.is_active ? "border-gold/40 text-primary animate-pulse-soft" : "border-border text-muted-foreground"}`}>
-            {block.is_active && <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-gold" />}
-            {block.is_active ? "ativo" : "oculto"}
-          </span>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                aria-label="Mais ações"
-                className="inline-flex h-8 w-8 items-center justify-center rounded-sm border border-border text-muted-foreground hover:border-gold hover:text-primary"
-              >
-                <MoreVertical className="h-4 w-4" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-44">
-              <DropdownMenuItem onClick={onDuplicate} className="gap-2 text-xs uppercase tracking-[0.18em]">
-                <Copy className="h-3.5 w-3.5" /> Duplicar
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={onDelete} className="gap-2 text-xs uppercase tracking-[0.18em] text-destructive focus:text-destructive">
-                <Trash2 className="h-3.5 w-3.5" /> Excluir
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-
-      {/* Linha 2: métricas em barra cheia (clica → analytics do bloco) */}
-      <div className="mt-3">
-        <BlockMetricsBadge blockId={block.id} />
-      </div>
-
-      {/* Linha 3: chips de toggles (Ativo / Destaque / Cor original) */}
-      <div className="mt-3 flex flex-wrap gap-2">
-        <div className="flex-1 min-w-[125px]">
-          <ToggleChip
-            icon={block.is_active ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
-            label={block.is_active ? "Ativo" : "Oculto"}
-            checked={block.is_active}
-            onChange={(v) => onChange({ is_active: v })}
-          />
-        </div>
-        <div className="flex-1 min-w-[125px]">
-          <ToggleChip
-            icon={<Sparkles className="h-3.5 w-3.5" />}
-            label="Destaque"
-            checked={block.highlight}
-            onChange={(v) => onChange({ highlight: v })}
-          />
-        </div>
-        <div className="flex-1 min-w-[125px]">
-          <ToggleChip
-            icon={<Droplet className="h-3.5 w-3.5" />}
-            label="Cor original"
-            checked={block.use_brand_color}
-            onChange={(v) => onChange({ use_brand_color: v })}
-          />
-        </div>
-      </div>
-
-      <div className="mt-4 grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-        <Field label="Tipo">
-          <p className="mb-2 text-[10px] text-gold/60 italic font-light">Define o comportamento do bloco (Link, WhatsApp, Vídeo, etc.).</p>
-          <Select
-            value={block.kind}
-            onValueChange={(v) => {
-              const k = KINDS.find((x) => x.v === v);
-              onChange({ kind: v, icon: block.icon || k?.icon || "Link2" });
-            }}
-          >
-            <SelectTrigger className="h-9 rounded-sm border-gold bg-input"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {KINDS.map((k) => <SelectItem key={k.v} value={k.v}>{k.l}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </Field>
-        <Field label="Ícone (lucide)">
-          <IconPicker
-            value={block.icon}
-            onChange={(name) => onChange({ icon: name })}
-            iconUrl={block.icon_url}
-            onIconUrlChange={(url) => onChange({ icon_url: url })}
-            blockId={block.id}
-            generationsUsed={block.icon_generations_count ?? 0}
-            onGenerationsUsedChange={(n) => onChange({ icon_generations_count: n })}
-          />
-        </Field>
-        <Field label="Label">
-          <p className="mb-2 text-[10px] text-gold/60 italic font-light">O título que aparecerá dentro do botão.</p>
-          <Input value={block.label} onChange={(e) => onChange({ label: e.target.value })} className="h-9 rounded-sm border-gold bg-input" />
-        </Field>
-        <Field label="Badge (opcional)">
-          <Combobox
-            value={block.badge ?? ""}
-            onChange={(v) => onChange({ badge: v || null })}
-            presets={["NOVO", "OFERTA", "EM BREVE", "ESGOTADO", "POPULAR", "GRÁTIS", "LIMITADO", "EXCLUSIVO"]}
-            placeholder="Sem badge"
-            customLabel="Usar badge personalizada"
-          />
-          {block.badge && (
-            <div className="mt-2 inline-flex items-center gap-2 rounded-sm border border-gold/40 bg-card/40 px-2 py-1">
-              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">prévia:</span>
-              <span className="rounded-sm border border-gold bg-background/40 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">
-                {block.badge}
-              </span>
-            </div>
-          )}
-        </Field>
-        <Field label="Categoria">
-          <Select
-            value={block.category_id ?? "__none__"}
-            onValueChange={(v) => onChange({ category_id: v === "__none__" ? null : v })}
-          >
-            <SelectTrigger className="h-9 rounded-sm border-gold bg-input"><SelectValue placeholder="Sem categoria" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__none__">Sem categoria</SelectItem>
-              {categories.filter((c) => c.is_active).map((c) => (
-                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <p className="mt-1 text-[11px] text-muted-foreground">
-            Não está aqui?{" "}
-            <a href="#categorias" className="text-primary underline-offset-2 hover:underline">
-              Gerencie a lista no card Categorias
-            </a>
-            .
-          </p>
-        </Field>
-        <Field label="URL" full>
-          <p className="mb-2 text-[10px] text-gold/60 italic font-light">O destino do clique. Pode ser um link externo ou uma rota interna.</p>
-          <Input value={block.url} onChange={(e) => onChange({ url: e.target.value })} placeholder="https:// ou /rota interna" className="h-9 rounded-sm border-gold bg-input" />
-        </Field>
-        <Field label="Descrição (opcional)" full>
-          <Input value={block.description ?? ""} onChange={(e) => onChange({ description: e.target.value })} className="h-9 rounded-sm border-gold bg-input" />
-        </Field>
-      </div>
-
-      <div className="mt-4 flex justify-end">
-        <Button onClick={onSave} className="btn-luxe h-10 w-full sm:w-auto rounded-sm px-5 text-[11px] font-semibold uppercase tracking-[0.18em]">
-          <Save className="h-3.5 w-3.5" /> Salvar bloco
-        </Button>
-      </div>
-      <CampaignManager blockId={block.id} blockLabel={block.label} />
     </div>
   );
 };
