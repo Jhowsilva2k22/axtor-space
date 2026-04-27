@@ -341,7 +341,7 @@ export default function DeepFunnelPublic() {
                 <Loader2 className="relative h-12 w-12 animate-spin text-gold" />
               </div>
               <div className="space-y-2">
-                <h2 className="font-display text-3xl">IA processando...</h2>
+                <h2 className="font-display text-3xl">Estamos preparando seu diagnóstico...</h2>
                 <p className="text-sm text-muted-foreground/80">Cruzando seu perfil com o melhor caminho estratégico.</p>
               </div>
             </Card>
