@@ -176,7 +176,7 @@ export default function DeepFunnelPublic() {
                 </motion.div>
               )}
               <p className="whitespace-pre-line text-lg leading-relaxed text-muted-foreground/80">{funnel.welcome_text}</p>
-              <Button size="lg" className="btn-luxe h-14 rounded-full px-10 text-xs font-bold uppercase tracking-[0.2em] shadow-lg shadow-gold/10 transition-transform hover:scale-[1.02]" onClick={() => setStep("lead")}>
+              <Button size="lg" className="btn-luxe h-14 rounded-full px-10 text-xs font-bold uppercase tracking-[0.2em] transition-transform hover:scale-[1.02] animate-gold-pulse" onClick={() => setStep("lead")}>
                 Começar agora <ArrowRight className="h-4 w-4" />
               </Button>
             </Card>

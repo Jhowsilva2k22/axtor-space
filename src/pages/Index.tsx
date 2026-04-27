@@ -558,7 +558,7 @@ const LeadStep = ({ handle, email, setEmail, phone, setPhone, country, setCountr
         </div>
       </div>
 
-      <Button type="submit" size="lg" className="btn-luxe h-12 w-full gap-2 rounded-full text-sm font-semibold uppercase tracking-[0.15em]">
+      <Button type="submit" size="lg" className="btn-luxe h-12 w-full gap-2 rounded-full text-sm font-semibold uppercase tracking-[0.15em] animate-gold-pulse">
         Gerar meu diagnóstico agora <ArrowRight className="h-4 w-4" />
       </Button>
       <p className="text-center text-xs text-muted-foreground">
@@ -842,7 +842,7 @@ const ResultStep = ({ data, onRestart, partnerCtas, tenant, bioCfg }: { data: Di
           <div className="mx-auto mt-10 flex max-w-xl flex-col items-stretch gap-4">
             <Button
               size="lg"
-              className="btn-luxe h-16 w-full gap-3 rounded-full text-xs font-bold uppercase tracking-[0.2em] shadow-lg shadow-gold/20"
+              className="btn-luxe h-16 w-full gap-3 rounded-full text-xs font-bold uppercase tracking-[0.2em] animate-gold-pulse"
               asChild
             >
               <Link to={`/d/funnel/stefany-mello-3bnv`}>

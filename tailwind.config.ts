@@ -91,11 +91,22 @@ export default {
               "0 0 0 12px rgba(212, 175, 55, 0), 0 8px 24px 0 rgba(212, 175, 55, 0.32)",
           },
         },
+        "green-pulse": {
+          "0%, 100%": {
+            boxShadow:
+              "0 0 0 0 rgba(37, 211, 102, 0.45), 0 4px 14px 0 rgba(37, 211, 102, 0.18)",
+          },
+          "50%": {
+            boxShadow:
+              "0 0 0 12px rgba(37, 211, 102, 0), 0 8px 24px 0 rgba(37, 211, 102, 0.32)",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "gold-pulse": "gold-pulse 2.8s ease-in-out infinite",
+        "green-pulse": "green-pulse 2.8s ease-in-out infinite",
       },
     },
   },
