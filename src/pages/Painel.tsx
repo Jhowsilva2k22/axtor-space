@@ -115,10 +115,7 @@ export default function Painel() {
 
           <TabsContent value="imersivo" className="mt-6">
             {accessImersivo.canAccess ? (
-              <PlaceholderTab
-                title="Diagnóstico Imersivo"
-                description="Funil profundo: perguntas, produtos, pain_tags, CTAs. Em breve: editor completo."
-              />
+              <DeepDiagnosticBridgeCard />
             ) : (
               <UpgradeBlock title="Diagnóstico Imersivo" />
             )}
@@ -246,6 +243,30 @@ const BioBridgeCard = () => (
     </p>
     <a
       href="/admin"
+      className="mt-6 inline-flex items-center justify-center gap-2 rounded-md bg-gold px-5 py-2.5 text-sm font-medium text-black transition hover:opacity-90"
+    >
+      Abrir editor completo →
+    </a>
+  </Card>
+);
+
+/**
+ * Bridge temporário pra aba Diagnóstico Imersivo: leva pro editor maduro do
+ * Deep Funnel em /admin/deep-diagnostic enquanto consolidamos no Painel novo.
+ */
+const DeepDiagnosticBridgeCard = () => (
+  <Card className="p-12 text-center">
+    <span className="mb-4 inline-block rounded-full border border-gold/40 bg-gold/5 px-3 py-1 text-[10px] uppercase tracking-widest text-gold">
+      Em consolidação
+    </span>
+    <h2 className="mb-3 font-display text-2xl">Editor do Diagnóstico Imersivo</h2>
+    <p className="mx-auto max-w-lg text-sm text-muted-foreground">
+      Funil profundo com perguntas, produtos, pain tags e CTAs. O editor
+      completo está no painel anterior; vamos consolidar aqui em ondas futuras
+      sem quebrar o que já funciona.
+    </p>
+    <a
+      href="/admin/deep-diagnostic"
       className="mt-6 inline-flex items-center justify-center gap-2 rounded-md bg-gold px-5 py-2.5 text-sm font-medium text-black transition hover:opacity-90"
     >
       Abrir editor completo →
