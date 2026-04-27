@@ -9,6 +9,7 @@ import { useCurrentTenant } from "@/hooks/useCurrentTenant";
 import { useCanAccessTab } from "@/hooks/useCanAccessTab";
 import { CaptureConfigForm } from "@/components/CaptureConfigForm";
 import { PainelHeaderActions } from "@/components/PainelHeaderActions";
+import { BioContentEditor } from "@/components/BioContentEditor";
 
 const PLAN_LABELS: Record<string, string> = {
   free: "Free",
@@ -111,10 +112,7 @@ export default function Painel() {
 
           <TabsContent value="bio" className="mt-6">
             {accessBio.canAccess ? (
-              <PlaceholderTab
-                title="Link na Bio"
-                description="Personalização do link-in-bio: blocos, ordem, cores, foto, links. Em breve: tudo que já existe hoje organizado aqui."
-              />
+              <BioContentEditor tenantId={current.id} slug={current.slug} />
             ) : (
               <UpgradeBlock title="Link na Bio" />
             )}
