@@ -10,6 +10,7 @@ import { useCanAccessTab } from "@/hooks/useCanAccessTab";
 import { CaptureConfigForm } from "@/components/CaptureConfigForm";
 import { PainelHeaderActions } from "@/components/PainelHeaderActions";
 import { BioHeaderEditorStandalone } from "@/components/bio/BioHeaderEditorStandalone";
+import { BioBlocksManagerStandalone } from "@/components/bio/BioBlocksManagerStandalone";
 
 const PLAN_LABELS: Record<string, string> = {
   free: "Free",
@@ -118,7 +119,8 @@ export default function Painel() {
                   slug={current.slug}
                   displayName={current.display_name}
                 />
-                <BioPendingSectionsCard />
+                <BioBlocksManagerStandalone tenantId={current.id} />
+                <BioRemainingSectionsCard />
               </>
             ) : (
               <UpgradeBlock title="Link na Bio" />
@@ -237,21 +239,19 @@ const UpgradeBlock = ({
 );
 
 /**
- * Aba Bio do Painel novo — informativo das seções ainda pendentes.
- * Cabeçalho já foi consolidado (BioHeaderEditorStandalone). As próximas
- * seções (Blocos, Categorias, Drafts, Métricas inline, Campanhas) entram
- * em PRs seguintes da Onda 3.5 (refactor de Admin.tsx em componentes).
+ * Aba Bio — informativo das seções ainda em consolidação.
+ * Cabeçalho e Blocos já foram consolidados. Categorias e Tema entram
+ * nos próximos PRs da Onda 3.5 (refactor de Admin.tsx + AdminTemplates).
  */
-const BioPendingSectionsCard = () => (
+const BioRemainingSectionsCard = () => (
   <Card className="p-8">
     <span className="mb-3 inline-block rounded-full border border-gold/40 bg-gold/5 px-3 py-1 text-[10px] uppercase tracking-widest text-gold">
       Em consolidação · próximos PRs
     </span>
-    <h3 className="font-display text-lg">Blocos, categorias, métricas inline, campanhas</h3>
+    <h3 className="font-display text-lg">Categorias e Tema visual</h3>
     <p className="mt-2 text-sm text-muted-foreground">
-      Essas seções estão sendo extraídas do painel anterior em pequenos PRs cirúrgicos.
-      Cada PR adiciona uma seção aqui, sem quebrar nada do que já existe.
-      Acompanhe o progresso no GitHub.
+      Faltam categorias (agrupar blocos em seções) e a escolha de tema/template (Pro+).
+      Estão sendo extraídas do painel anterior em PRs separados pra evitar regressão.
     </p>
   </Card>
 );
