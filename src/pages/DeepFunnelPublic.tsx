@@ -12,6 +12,7 @@ import { applyTenantTheme } from "@/lib/applyTenantTheme";
 import { motion, AnimatePresence } from "framer-motion";
 import { COUNTRIES, maskPhone, type CountryCode, suggestEmailDomain } from "@/lib/validators";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
 
 type Funnel = any;
 type Question = any;
@@ -253,11 +254,24 @@ export default function DeepFunnelPublic() {
                 </div>
               </div>
 
-              <Button 
-                size="lg" 
-                className="btn-luxe h-14 w-full rounded-full text-xs font-bold uppercase tracking-[0.2em] shadow-lg shadow-gold/10 transition-transform hover:scale-[1.02]" 
-                disabled={!lead.name || !lead.email.includes("@") || lead.phone.replace(/\D/g, "").length < 10}
-                onClick={() => setStep("quiz")}
+              <Button
+                size="lg"
+                className="btn-luxe h-14 w-full rounded-full text-xs font-bold uppercase tracking-[0.2em] transition-transform hover:scale-[1.02] animate-gold-pulse"
+                onClick={() => {
+                  if (!lead.name?.trim()) {
+                    toast.error("Preencha seu nome antes de continuar.");
+                    return;
+                  }
+                  if (!lead.email.includes("@")) {
+                    toast.error("Digite um email válido.");
+                    return;
+                  }
+                  if (lead.phone.replace(/\D/g, "").length < 10) {
+                    toast.error("Confira o número do WhatsApp.");
+                    return;
+                  }
+                  setStep("quiz");
+                }}
               >
                 Continuar para o diagnóstico <ArrowRight className="h-4 w-4" />
               </Button>
