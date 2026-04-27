@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - name: Instalar postgresql-client (pg_dump 17, casa com Supabase server)
+      - name: Instalar postgresql-client 17 e priorizar no PATH
         run: |
           sudo apt-get update
           sudo apt-get install -y wget ca-certificates lsb-release gnupg
@@ -23,6 +23,13 @@ jobs:
             | sudo tee /etc/apt/sources.list.d/pgdg.list
           sudo apt-get update
           sudo apt-get install -y postgresql-client-17
+          # Garante que o pg_dump 17 vem antes do 16 do sistema no PATH
+          echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
+
+      - name: Verificar versão do pg_dump (sanity check)
+        run: |
+          which pg_dump
+          pg_dump --version
 
       - name: Dump produção
         env:
@@ -34,7 +41,7 @@ jobs:
           fi
           mkdir -p backups
           STAMP=$(date -u +%Y%m%d-%H%M%S)
-          pg_dump --no-owner --no-privileges --format=custom \
+          /usr/lib/postgresql/17/bin/pg_dump --no-owner --no-privileges --format=custom \
             --file="backups/prod-${STAMP}.dump" \
             "$PROD_DB_URL"
           ls -lh backups/
@@ -49,7 +56,7 @@ jobs:
           fi
           mkdir -p backups
           STAMP=$(date -u +%Y%m%d-%H%M%S)
-          pg_dump --no-owner --no-privileges --format=custom \
+          /usr/lib/postgresql/17/bin/pg_dump --no-owner --no-privileges --format=custom \
             --file="backups/staging-${STAMP}.dump" \
             "$STAGING_DB_URL"
           ls -lh backups/
