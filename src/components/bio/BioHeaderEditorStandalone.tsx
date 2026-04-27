@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { BioHeaderEditor, type BioHeaderConfig } from "@/components/bio/BioHeaderEditor";
+import ImageCropDialog from "@/components/ImageCropDialog";
 
 /**
  * Onda 3 v2 Fase 3 — wrapper standalone do BioHeaderEditor.
@@ -42,6 +43,9 @@ export const BioHeaderEditorStandalone = ({
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
+  // Crop pendente: arquivo escolhido aguardando ajuste antes do upload.
+  const [pendingAvatarFile, setPendingAvatarFile] = useState<File | null>(null);
+  const [pendingCoverFile, setPendingCoverFile] = useState<File | null>(null);
 
   const tenant: Tenant = { id: tenantId, slug, display_name: displayName };
 
@@ -121,17 +125,20 @@ export const BioHeaderEditorStandalone = ({
     else toast.success("Cabeçalho salvo.");
   };
 
-  const handleUploadAvatar = async (file: File) => {
-    if (file.size > 5 * 1024 * 1024) {
+  // Upload do blob já cortado pra Storage. Recebe Blob (do crop) ou File (raw).
+  const uploadAvatarBlob = async (blob: Blob) => {
+    if (blob.size > 5 * 1024 * 1024) {
       toast.error("Imagem maior que 5MB.");
       return;
     }
     setUploadingAvatar(true);
     try {
-      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-      const path = `bio/avatar-${Date.now()}.${ext}`;
+      const path = `bio/avatar-${Date.now()}.jpg`;
+      const file = new File([blob], `avatar-${Date.now()}.jpg`, {
+        type: blob.type || "image/jpeg",
+      });
       const { error: upErr } = await supabase.storage.from("avatars").upload(path, file, {
-        contentType: file.type || "image/jpeg",
+        contentType: file.type,
         upsert: false,
       });
       if (upErr) throw upErr;
@@ -145,17 +152,19 @@ export const BioHeaderEditorStandalone = ({
     }
   };
 
-  const handleUploadCover = async (file: File) => {
-    if (file.size > 8 * 1024 * 1024) {
+  const uploadCoverBlob = async (blob: Blob) => {
+    if (blob.size > 8 * 1024 * 1024) {
       toast.error("Imagem maior que 8MB.");
       return;
     }
     setUploadingCover(true);
     try {
-      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-      const path = `bio/cover-${Date.now()}.${ext}`;
+      const path = `bio/cover-${Date.now()}.jpg`;
+      const file = new File([blob], `cover-${Date.now()}.jpg`, {
+        type: blob.type || "image/jpeg",
+      });
       const { error: upErr } = await supabase.storage.from("bio-covers").upload(path, file, {
-        contentType: file.type || "image/jpeg",
+        contentType: file.type,
         upsert: false,
       });
       if (upErr) throw upErr;
@@ -184,17 +193,45 @@ export const BioHeaderEditorStandalone = ({
   };
 
   return (
-    <BioHeaderEditor
-      cfg={cfg}
-      currentTenant={tenant}
-      saving={saving}
-      uploadingAvatar={uploadingAvatar}
-      uploadingCover={uploadingCover}
-      onUpdate={handleUpdate}
-      onSave={handleSave}
-      onPickAvatarFile={handleUploadAvatar}
-      onPickCoverFile={handleUploadCover}
-      onRemoveCover={handleRemoveCover}
-    />
+    <>
+      <BioHeaderEditor
+        cfg={cfg}
+        currentTenant={tenant}
+        saving={saving}
+        uploadingAvatar={uploadingAvatar}
+        uploadingCover={uploadingCover}
+        onUpdate={handleUpdate}
+        onSave={handleSave}
+        onPickAvatarFile={(f) => setPendingAvatarFile(f)}
+        onPickCoverFile={(f) => setPendingCoverFile(f)}
+        onRemoveCover={handleRemoveCover}
+      />
+
+      {/* Crop do avatar — quadrado, máscara redonda */}
+      <ImageCropDialog
+        file={pendingAvatarFile}
+        aspect={1}
+        cropShape="round"
+        title="Ajustar foto de perfil"
+        onConfirm={async (blob) => {
+          setPendingAvatarFile(null);
+          await uploadAvatarBlob(blob);
+        }}
+        onCancel={() => setPendingAvatarFile(null)}
+      />
+
+      {/* Crop da capa — proporção paisagem 16:9 */}
+      <ImageCropDialog
+        file={pendingCoverFile}
+        aspect={16 / 9}
+        cropShape="rect"
+        title="Ajustar capa de fundo"
+        onConfirm={async (blob) => {
+          setPendingCoverFile(null);
+          await uploadCoverBlob(blob);
+        }}
+        onCancel={() => setPendingCoverFile(null)}
+      />
+    </>
   );
 };
