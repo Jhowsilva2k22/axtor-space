@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - name: Instalar postgresql-client (pg_dump 16)
+      - name: Instalar postgresql-client (pg_dump 17, casa com Supabase server)
         run: |
           sudo apt-get update
           sudo apt-get install -y wget ca-certificates lsb-release gnupg
@@ -22,7 +22,7 @@ jobs:
           echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
             | sudo tee /etc/apt/sources.list.d/pgdg.list
           sudo apt-get update
-          sudo apt-get install -y postgresql-client-16
+          sudo apt-get install -y postgresql-client-17
 
       - name: Dump produção
         env:
