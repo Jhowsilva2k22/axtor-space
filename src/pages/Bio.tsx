@@ -83,11 +83,17 @@ const Bio = () => {
     if (!tenant) return;
     
     (async () => {
-      // 1. Carregamento instantâneo do Cache
+      // 1. Carregamento instantâneo do Cache (TTL 60s pra invalidar dado velho)
       const cacheKey = `bio-cfg-${tenant.id}`;
+      const CACHE_TTL_MS = 60 * 1000;
       const cached = sessionStorage.getItem(cacheKey);
       if (cached) {
-        setCfg(JSON.parse(cached));
+        try {
+          const parsed = JSON.parse(cached);
+          if (parsed?.timestamp && Date.now() - parsed.timestamp < CACHE_TTL_MS && parsed.data) {
+            setCfg(parsed.data);
+          }
+        } catch {} // cache corrompido ou formato antigo, ignora
       }
 
       // 2. Busca atualização em background
@@ -99,7 +105,7 @@ const Bio = () => {
       
       if (c) {
         setCfg(c as any);
-        sessionStorage.setItem(cacheKey, JSON.stringify(c));
+        sessionStorage.setItem(cacheKey, JSON.stringify({ data: c, timestamp: Date.now() }));
       }
       setBlocks((b as any) ?? []);
       setCategories((cats as any) ?? []);

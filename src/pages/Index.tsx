@@ -83,11 +83,17 @@ const Index = () => {
     const utm = params.get("utm_source") || params.get("ref");
     
     (async () => {
-      // 1. Tentar carregar do Cache Local (Instantâneo)
+      // 1. Tentar carregar do Cache Local (Instantâneo, TTL 60s pra invalidar dado velho)
       const cacheKey = `bio-cache-${utm || "global"}`;
+      const CACHE_TTL_MS = 60 * 1000;
       const cached = sessionStorage.getItem(cacheKey);
       if (cached) {
-        setBioCfg(JSON.parse(cached));
+        try {
+          const parsed = JSON.parse(cached);
+          if (parsed?.timestamp && Date.now() - parsed.timestamp < CACHE_TTL_MS && parsed.data) {
+            setBioCfg(parsed.data);
+          }
+        } catch {} // cache corrompido ou formato antigo, ignora e busca fresh
       }
 
       // 2. Buscar atualização em segundo plano
@@ -107,7 +113,7 @@ const Index = () => {
 
         if (bc) {
           setBioCfg(bc);
-          sessionStorage.setItem(cacheKey, JSON.stringify(bc));
+          sessionStorage.setItem(cacheKey, JSON.stringify({ data: bc, timestamp: Date.now() }));
         }
       }
 
