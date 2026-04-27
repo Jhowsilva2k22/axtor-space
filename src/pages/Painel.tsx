@@ -7,6 +7,7 @@ import { TenantSelector } from "@/components/TenantSelector";
 import { useAuth } from "@/hooks/useAuth";
 import { useCurrentTenant } from "@/hooks/useCurrentTenant";
 import { useCanAccessTab } from "@/hooks/useCanAccessTab";
+import { CaptureConfigForm } from "@/components/CaptureConfigForm";
 
 const PLAN_LABELS: Record<string, string> = {
   free: "Free",
@@ -88,10 +89,7 @@ export default function Painel() {
           {/* Aba 1 — Captura (BUILD AGORA) com sub-bloco Integrações (ESTRUTURA AGORA) pendurado embaixo */}
           <TabsContent value="captura" className="mt-6 space-y-4">
             {accessCaptura.canAccess ? (
-              <PlaceholderTab
-                title="Captura"
-                description="Controle do diagnóstico inicial de Instagram. Em breve: nome dos botões, links de destino, estilo do CTA, destino dos leads."
-              />
+              <CaptureConfigForm tenantId={current.id} />
             ) : (
               <UpgradeBlock title="Captura" />
             )}
