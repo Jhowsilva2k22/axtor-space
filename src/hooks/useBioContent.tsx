@@ -16,6 +16,7 @@ export type BioConfig = {
   headline: string | null;
   sub_headline: string | null;
   avatar_url: string | null;
+  cover_url: string | null;
 };
 
 export type BioBlock = {
@@ -42,7 +43,7 @@ export const useBioContent = (tenantId: string | null) => {
       const [{ data: c, error: cErr }, { data: b, error: bErr }] = await Promise.all([
         supabase
           .from("bio_config")
-          .select("tenant_id, display_name, headline, sub_headline, avatar_url")
+          .select("tenant_id, display_name, headline, sub_headline, avatar_url, cover_url")
           .eq("tenant_id", tenantId)
           .maybeSingle(),
         supabase
@@ -93,6 +94,24 @@ export const useBioContent = (tenantId: string | null) => {
       });
       if (upErr) throw upErr;
       const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
+      return pub.publicUrl;
+    },
+  });
+
+  /** Upload pro bucket `bio-covers/`. Capa de fundo da bio. */
+  const uploadCover = useMutation({
+    mutationFn: async (file: File): Promise<string> => {
+      if (file.size > 8 * 1024 * 1024) {
+        throw new Error("Imagem maior que 8MB.");
+      }
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `bio/cover-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("bio-covers").upload(path, file, {
+        contentType: file.type || "image/jpeg",
+        upsert: false,
+      });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("bio-covers").getPublicUrl(path);
       return pub.publicUrl;
     },
   });

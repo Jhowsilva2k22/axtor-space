@@ -9,7 +9,6 @@ import { useCurrentTenant } from "@/hooks/useCurrentTenant";
 import { useCanAccessTab } from "@/hooks/useCanAccessTab";
 import { CaptureConfigForm } from "@/components/CaptureConfigForm";
 import { PainelHeaderActions } from "@/components/PainelHeaderActions";
-import { BioContentEditor } from "@/components/BioContentEditor";
 
 const PLAN_LABELS: Record<string, string> = {
   free: "Free",
@@ -111,11 +110,7 @@ export default function Painel() {
           </TabsContent>
 
           <TabsContent value="bio" className="mt-6">
-            {accessBio.canAccess ? (
-              <BioContentEditor tenantId={current.id} slug={current.slug} />
-            ) : (
-              <UpgradeBlock title="Link na Bio" />
-            )}
+            {accessBio.canAccess ? <BioBridgeCard /> : <UpgradeBlock title="Link na Bio" />}
           </TabsContent>
 
           <TabsContent value="imersivo" className="mt-6">
@@ -229,5 +224,31 @@ const UpgradeBlock = ({
     <p className="mt-6 text-[10px] uppercase tracking-widest text-gold">
       Upgrade em breve
     </p>
+  </Card>
+);
+
+/**
+ * Bridge temporário pra aba Bio: enquanto o editor não está consolidado dentro
+ * do Painel novo, mantém o link pro editor maduro do /admin antigo. Será
+ * substituído pelo editor inline em ondas futuras (extraindo Admin.tsx em
+ * componentes reutilizáveis).
+ */
+const BioBridgeCard = () => (
+  <Card className="p-12 text-center">
+    <span className="mb-4 inline-block rounded-full border border-gold/40 bg-gold/5 px-3 py-1 text-[10px] uppercase tracking-widest text-gold">
+      Em consolidação
+    </span>
+    <h2 className="mb-3 font-display text-2xl">Editor da Bio</h2>
+    <p className="mx-auto max-w-lg text-sm text-muted-foreground">
+      O editor completo (cabeçalho, blocos, categorias, ícones inteligentes,
+      drafts e métricas inline) ainda vive no painel anterior. Estamos
+      consolidando aqui no Painel novo gradualmente, sem retrabalho.
+    </p>
+    <a
+      href="/admin"
+      className="mt-6 inline-flex items-center justify-center gap-2 rounded-md bg-gold px-5 py-2.5 text-sm font-medium text-black transition hover:opacity-90"
+    >
+      Abrir editor completo →
+    </a>
   </Card>
 );
