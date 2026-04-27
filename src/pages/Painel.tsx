@@ -9,6 +9,7 @@ import { useCurrentTenant } from "@/hooks/useCurrentTenant";
 import { useCanAccessTab } from "@/hooks/useCanAccessTab";
 import { CaptureConfigForm } from "@/components/CaptureConfigForm";
 import { PainelHeaderActions } from "@/components/PainelHeaderActions";
+import { BioHeaderEditorStandalone } from "@/components/bio/BioHeaderEditorStandalone";
 
 const PLAN_LABELS: Record<string, string> = {
   free: "Free",
@@ -109,8 +110,19 @@ export default function Painel() {
             )}
           </TabsContent>
 
-          <TabsContent value="bio" className="mt-6">
-            {accessBio.canAccess ? <BioBridgeCard /> : <UpgradeBlock title="Link na Bio" />}
+          <TabsContent value="bio" className="mt-6 space-y-6">
+            {accessBio.canAccess ? (
+              <>
+                <BioHeaderEditorStandalone
+                  tenantId={current.id}
+                  slug={current.slug}
+                  displayName={current.display_name}
+                />
+                <BioPendingSectionsCard />
+              </>
+            ) : (
+              <UpgradeBlock title="Link na Bio" />
+            )}
           </TabsContent>
 
           <TabsContent value="imersivo" className="mt-6">
@@ -225,28 +237,22 @@ const UpgradeBlock = ({
 );
 
 /**
- * Bridge temporário pra aba Bio: enquanto o editor não está consolidado dentro
- * do Painel novo, mantém o link pro editor maduro do /admin antigo. Será
- * substituído pelo editor inline em ondas futuras (extraindo Admin.tsx em
- * componentes reutilizáveis).
+ * Aba Bio do Painel novo — informativo das seções ainda pendentes.
+ * Cabeçalho já foi consolidado (BioHeaderEditorStandalone). As próximas
+ * seções (Blocos, Categorias, Drafts, Métricas inline, Campanhas) entram
+ * em PRs seguintes da Onda 3.5 (refactor de Admin.tsx em componentes).
  */
-const BioBridgeCard = () => (
-  <Card className="p-12 text-center">
-    <span className="mb-4 inline-block rounded-full border border-gold/40 bg-gold/5 px-3 py-1 text-[10px] uppercase tracking-widest text-gold">
-      Em consolidação
+const BioPendingSectionsCard = () => (
+  <Card className="p-8">
+    <span className="mb-3 inline-block rounded-full border border-gold/40 bg-gold/5 px-3 py-1 text-[10px] uppercase tracking-widest text-gold">
+      Em consolidação · próximos PRs
     </span>
-    <h2 className="mb-3 font-display text-2xl">Editor da Bio</h2>
-    <p className="mx-auto max-w-lg text-sm text-muted-foreground">
-      O editor completo (cabeçalho, blocos, categorias, ícones inteligentes,
-      drafts e métricas inline) ainda vive no painel anterior. Estamos
-      consolidando aqui no Painel novo gradualmente, sem retrabalho.
+    <h3 className="font-display text-lg">Blocos, categorias, métricas inline, campanhas</h3>
+    <p className="mt-2 text-sm text-muted-foreground">
+      Essas seções estão sendo extraídas do painel anterior em pequenos PRs cirúrgicos.
+      Cada PR adiciona uma seção aqui, sem quebrar nada do que já existe.
+      Acompanhe o progresso no GitHub.
     </p>
-    <a
-      href="/admin"
-      className="mt-6 inline-flex items-center justify-center gap-2 rounded-md bg-gold px-5 py-2.5 text-sm font-medium text-black transition hover:opacity-90"
-    >
-      Abrir editor completo →
-    </a>
   </Card>
 );
 
