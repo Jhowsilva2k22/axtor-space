@@ -526,7 +526,7 @@ const LeadStep = ({ handle, email, setEmail, phone, setPhone, country, setCountr
               setPhone(maskPhone(phone, v));
             }}
           >
-            <SelectTrigger className="h-11 w-[120px] shrink-0 rounded-full border-gold bg-input font-light">
+            <SelectTrigger className="h-11 w-[88px] shrink-0 rounded-full border-gold bg-input px-3 font-light">
               <SelectValue>
                 <span className="flex items-center gap-1.5">
                   <span>{selected.flag}</span>
