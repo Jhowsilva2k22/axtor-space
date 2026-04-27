@@ -77,10 +77,16 @@ export default function Painel() {
             <TabsTrigger value="metricas">Métricas</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="captura" className="mt-6">
+          {/* Aba 1 — Captura (BUILD AGORA) com sub-bloco Integrações (ESTRUTURA AGORA) pendurado embaixo */}
+          <TabsContent value="captura" className="mt-6 space-y-4">
             <PlaceholderTab
               title="Captura"
               description="Controle do diagnóstico inicial de Instagram. Em breve: nome dos botões, links de destino, estilo do CTA, destino dos leads."
+            />
+            <PlaceholderTab
+              title="Integrações"
+              description="Conexão com agentes externos: WhatsApp Business, OpenAI, n8n, Zapier, ManyChat, CRMs. Schema do banco já reservado; UI dos formulários entra em ondas futuras."
+              etiqueta="estrutura"
             />
           </TabsContent>
 
@@ -104,14 +110,43 @@ export default function Painel() {
               description="Banco de imagens do tenant. Em breve: upload, organização, escolha por peça."
             />
           </TabsContent>
+
+          {/* Aba 5 — Métricas (ESTRUTURA AGORA): vai entrar com 1-2 números-chave; funil etapa-por-etapa fica pra v2 do produto */}
+          <TabsContent value="metricas" className="mt-6">
+            <PlaceholderTab
+              title="Métricas"
+              description="Resumo de leads e clientes do tenant. Versão MVP entra com 1–2 números-chave (total leads, total clientes); funil etapa-por-etapa vem na v2 do produto."
+              etiqueta="estrutura"
+            />
+          </TabsContent>
         </Tabs>
       </div>
     </div>
   );
 }
 
-const PlaceholderTab = ({ title, description }: { title: string; description: string }) => (
+type Etiqueta = "estrutura" | "referencia";
+
+const ETIQUETA_LABEL: Record<Etiqueta, string> = {
+  estrutura: "Estrutura agora · UI depois",
+  referencia: "Referência · futuro",
+};
+
+const PlaceholderTab = ({
+  title,
+  description,
+  etiqueta,
+}: {
+  title: string;
+  description: string;
+  etiqueta?: Etiqueta;
+}) => (
   <Card className="p-12 text-center">
+    {etiqueta && (
+      <span className="mb-4 inline-block rounded-full border border-gold/40 bg-gold/5 px-3 py-1 text-[10px] uppercase tracking-widest text-gold">
+        {ETIQUETA_LABEL[etiqueta]}
+      </span>
+    )}
     <h2 className="mb-3 font-display text-2xl">{title}</h2>
     <p className="mx-auto max-w-lg text-sm text-muted-foreground">{description}</p>
     <p className="mt-6 text-[10px] uppercase tracking-widest text-muted-foreground/60">
