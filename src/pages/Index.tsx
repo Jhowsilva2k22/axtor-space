@@ -92,7 +92,10 @@ const Index = () => {
 
       // 2. Buscar atualização em segundo plano
       const slug = utm || "joanderson";
-      const { data: t } = await supabase.from("tenants").select("*").eq("slug", slug).maybeSingle();
+      // Usar RPC SECURITY DEFINER pra que anon consiga resolver tenant pelo slug
+      // (RLS direta em tenants bloqueia leitura anônima)
+      const { data: tenantRows } = await (supabase as any).rpc("resolve_tenant_by_slug", { _slug: slug });
+      const t = Array.isArray(tenantRows) && tenantRows.length > 0 ? tenantRows[0] : null;
 
       if (t) {
         setTenant(t);
