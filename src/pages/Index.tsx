@@ -296,10 +296,10 @@ const HandleStep = ({ handle, setHandle, onSubmit, bioCfg, tenant, partnerCtas }
         <div className="grid md:grid-cols-[280px_1fr] gap-8 items-center">
           <div className="relative flex justify-center">
             <div className="relative w-full aspect-[4/5] rounded-[32px] overflow-hidden shadow-2xl border border-gold/20">
-              <img 
-                src={bioPhoto} 
-                alt={bioName} 
-                className="w-full h-full object-cover"
+              <img
+                src={bioPhoto}
+                alt={bioName}
+                className="w-full h-full object-cover object-top"
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=800";
                 }}
