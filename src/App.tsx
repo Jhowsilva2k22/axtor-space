@@ -39,6 +39,7 @@ const DeepDiagnosticDemo = lazy(() => import("./pages/DeepDiagnosticDemo.tsx"));
 const DeepDiagnosticEditor = lazy(() => import("./pages/DeepDiagnosticEditor.tsx"));
 const DeepFunnelPublic = lazy(() => import("./pages/DeepFunnelPublic.tsx"));
 const DeepFunnelThankYou = lazy(() => import("./pages/DeepFunnelThankYou.tsx"));
+const Painel = lazy(() => import("./pages/Painel.tsx"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -88,6 +89,7 @@ const App = () => (
             <Route path="/admin/diagnostics" element={<AdminDiagnostics />} />
             <Route path="/admin/deep-diagnostic" element={<DeepDiagnosticEditor />} />
             <Route path="/admin/deep-diagnostic/demo" element={<DeepDiagnosticDemo />} />
+            <Route path="/painel" element={<Painel />} />
             <Route path="/d/funnel/:slug" element={<DeepFunnelPublic />} />
             <Route path="/obrigado/:slug" element={<DeepFunnelThankYou />} />
             <Route path="/unsubscribe" element={<Unsubscribe />} />

@@ -1,0 +1,63 @@
+name: Backup diário Supabase
+
+on:
+  schedule:
+    # 03:00 UTC = 00:00 BRT — janela de baixíssimo tráfego.
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+    # Permite disparar manualmente pelo GitHub UI.
+
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Instalar postgresql-client (pg_dump 16)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget ca-certificates lsb-release gnupg
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo wget --quiet -O /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc \
+            https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
+            | sudo tee /etc/apt/sources.list.d/pgdg.list
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client-16
+
+      - name: Dump produção
+        env:
+          PROD_DB_URL: ${{ secrets.SUPABASE_PROD_DB_URL }}
+        run: |
+          if [ -z "$PROD_DB_URL" ]; then
+            echo "SUPABASE_PROD_DB_URL não configurado — pulando dump produção."
+            exit 0
+          fi
+          mkdir -p backups
+          STAMP=$(date -u +%Y%m%d-%H%M%S)
+          pg_dump --no-owner --no-privileges --format=custom \
+            --file="backups/prod-${STAMP}.dump" \
+            "$PROD_DB_URL"
+          ls -lh backups/
+
+      - name: Dump staging
+        env:
+          STAGING_DB_URL: ${{ secrets.SUPABASE_STAGING_DB_URL }}
+        run: |
+          if [ -z "$STAGING_DB_URL" ]; then
+            echo "SUPABASE_STAGING_DB_URL não configurado — pulando dump staging."
+            exit 0
+          fi
+          mkdir -p backups
+          STAMP=$(date -u +%Y%m%d-%H%M%S)
+          pg_dump --no-owner --no-privileges --format=custom \
+            --file="backups/staging-${STAMP}.dump" \
+            "$STAGING_DB_URL"
+          ls -lh backups/
+
+      - name: Upload artifact (90 dias retenção free)
+        uses: actions/upload-artifact@v4
+        with:
+          name: supabase-backups-${{ github.run_id }}
+          path: backups/
+          retention-days: 90
+          if-no-files-found: error
