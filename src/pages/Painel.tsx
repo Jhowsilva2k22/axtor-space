@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCurrentTenant } from "@/hooks/useCurrentTenant";
 import { useCanAccessTab } from "@/hooks/useCanAccessTab";
 import { CaptureConfigForm } from "@/components/CaptureConfigForm";
+import { PainelHeaderActions } from "@/components/PainelHeaderActions";
 
 const PLAN_LABELS: Record<string, string> = {
   free: "Free",
@@ -74,7 +75,10 @@ export default function Painel() {
               </span>
             </div>
           </div>
-          <TenantSelector />
+          <div className="flex flex-wrap items-center gap-3">
+            <PainelHeaderActions slug={current.slug} />
+            <TenantSelector />
+          </div>
         </header>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
