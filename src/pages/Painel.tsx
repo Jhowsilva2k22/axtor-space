@@ -14,6 +14,7 @@ import { BioBlocksManagerStandalone } from "@/components/bio/BioBlocksManagerSta
 import { CategoriesManager } from "@/components/CategoriesManager";
 import { BioFullPreview } from "@/components/bio/BioFullPreview";
 import { BioThemePickerStandalone } from "@/components/bio/BioThemePickerStandalone";
+import { MediaGallery } from "@/components/bio/MediaGallery";
 
 const PLAN_LABELS: Record<string, string> = {
   free: "Free",
@@ -132,10 +133,7 @@ export default function Painel() {
 
           <TabsContent value="imagens" className="mt-6">
             {accessImagens.canAccess ? (
-              <PlaceholderTab
-                title="Imagens"
-                description="Banco de imagens do tenant. Em breve: upload, organização, escolha por peça."
-              />
+              <MediaGallery tenantId={current.id} />
             ) : (
               <UpgradeBlock title="Imagens" />
             )}
