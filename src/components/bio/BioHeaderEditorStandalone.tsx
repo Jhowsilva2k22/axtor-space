@@ -84,6 +84,21 @@ export const BioHeaderEditorStandalone = ({
     };
   }, [tenantId]);
 
+  // Notifica state local pro preview ao vivo (após o setState comprometer).
+  // ATENÇÃO: hook fica antes de QUALQUER early return pra manter ordem estável (React #310).
+  useEffect(() => {
+    if (!row || !onCfgChange) return;
+    onCfgChange({
+      display_name: row.display_name ?? "",
+      headline: row.headline ?? "",
+      sub_headline: row.sub_headline,
+      avatar_url: row.avatar_url,
+      cover_url: row.cover_url,
+      footer_text: row.footer_text,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [row]);
+
   if (loading) {
     return (
       <Card className="flex items-center justify-center p-12">
@@ -115,20 +130,6 @@ export const BioHeaderEditorStandalone = ({
   const handleUpdate = (patch: Partial<BioHeaderConfig>) => {
     setRow((r) => (r ? { ...r, ...patch } : r));
   };
-
-  // Notifica state local pro preview ao vivo (após o setState comprometer).
-  useEffect(() => {
-    if (!row || !onCfgChange) return;
-    onCfgChange({
-      display_name: row.display_name ?? "",
-      headline: row.headline ?? "",
-      sub_headline: row.sub_headline,
-      avatar_url: row.avatar_url,
-      cover_url: row.cover_url,
-      footer_text: row.footer_text,
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [row]);
 
   const handleSave = async () => {
     if (!row) return;
