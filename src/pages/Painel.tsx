@@ -12,6 +12,7 @@ import { PainelHeaderActions } from "@/components/PainelHeaderActions";
 import { BioHeaderEditorStandalone } from "@/components/bio/BioHeaderEditorStandalone";
 import { BioBlocksManagerStandalone } from "@/components/bio/BioBlocksManagerStandalone";
 import { CategoriesManager } from "@/components/CategoriesManager";
+import { BioFullPreview } from "@/components/bio/BioFullPreview";
 
 const PLAN_LABELS: Record<string, string> = {
   free: "Free",
@@ -112,18 +113,23 @@ export default function Painel() {
             )}
           </TabsContent>
 
-          <TabsContent value="bio" className="mt-6 space-y-6">
+          <TabsContent value="bio" className="mt-6">
             {accessBio.canAccess ? (
-              <>
-                <BioHeaderEditorStandalone
-                  tenantId={current.id}
-                  slug={current.slug}
-                  displayName={current.display_name}
-                />
-                <BioBlocksManagerStandalone tenantId={current.id} />
-                <CategoriesManager tenantId={current.id} />
-                <BioRemainingSectionsCard />
-              </>
+              <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_400px]">
+                <div className="min-w-0 space-y-6">
+                  <BioHeaderEditorStandalone
+                    tenantId={current.id}
+                    slug={current.slug}
+                    displayName={current.display_name}
+                  />
+                  <BioBlocksManagerStandalone tenantId={current.id} />
+                  <CategoriesManager tenantId={current.id} />
+                  <BioRemainingSectionsCard />
+                </div>
+                <aside className="xl:sticky xl:top-6 xl:self-start">
+                  <BioFullPreview tenantId={current.id} slug={current.slug} />
+                </aside>
+              </div>
             ) : (
               <UpgradeBlock title="Link na Bio" />
             )}
