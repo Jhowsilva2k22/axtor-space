@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Loader2,
   FileEdit,
@@ -14,6 +15,8 @@ import {
   Save,
   Copy,
   Trash2,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -83,6 +86,11 @@ export const BlockEditor = ({
   isFirst,
   isLast,
 }: BlockEditorProps) => {
+  // Cards colapsam por padrão pra não tomar tela toda. Auto-expandem se há
+  // rascunho não publicado (user precisa ver o que está editando).
+  const [expanded, setExpanded] = useState(false);
+  const isExpanded = expanded || hasDraft;
+
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: block.id });
   const style = {
@@ -164,7 +172,29 @@ export const BlockEditor = ({
           #{block.position}
         </span>
 
+        {/* Label inline (visível mesmo colapsado) */}
+        <span
+          className={`ml-2 truncate text-sm font-medium ${
+            block.is_active ? "text-foreground" : "text-muted-foreground"
+          }`}
+          title={block.label}
+        >
+          {block.label || <em className="text-muted-foreground">sem título</em>}
+        </span>
+
         <div className="ml-auto flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setExpanded((v) => !v)}
+            aria-label={isExpanded ? "Recolher bloco" : "Expandir bloco"}
+            className="inline-flex h-8 w-8 items-center justify-center rounded-sm border border-border text-muted-foreground hover:border-gold hover:text-primary"
+          >
+            {isExpanded ? (
+              <ChevronUp className="h-4 w-4" />
+            ) : (
+              <ChevronDown className="h-4 w-4" />
+            )}
+          </button>
           <span
             className={`hidden sm:inline-flex h-7 items-center gap-1.5 rounded-sm border px-2 text-[10px] uppercase tracking-[0.2em] transition-all ${
               block.is_active
@@ -206,6 +236,9 @@ export const BlockEditor = ({
         </div>
       </div>
 
+      {/* Conteúdo detalhado: só renderiza quando expandido (ou hasDraft) — mantém lista compacta. */}
+      {!isExpanded ? null : (
+        <>
       {/* Linha 2: métricas em barra cheia (clica → analytics do bloco) */}
       <div className="mt-3">
         <BlockMetricsBadge blockId={block.id} />
@@ -379,6 +412,8 @@ export const BlockEditor = ({
         </Button>
       </div>
       <CampaignManager blockId={block.id} blockLabel={block.label} />
+        </>
+      )}
     </div>
   );
 };
