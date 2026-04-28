@@ -15,6 +15,7 @@ import { CategoriesManager } from "@/components/CategoriesManager";
 import { BioFullPreview } from "@/components/bio/BioFullPreview";
 import { BioThemePickerStandalone } from "@/components/bio/BioThemePickerStandalone";
 import { MediaGallery } from "@/components/bio/MediaGallery";
+import { MetricsDashboard } from "@/components/bio/MetricsDashboard";
 
 const PLAN_LABELS: Record<string, string> = {
   free: "Free",
@@ -139,14 +140,10 @@ export default function Painel() {
             )}
           </TabsContent>
 
-          {/* Aba 5 — Métricas (ESTRUTURA AGORA): vai entrar com 1-2 números-chave; funil etapa-por-etapa fica pra v2 do produto */}
+          {/* Aba 5 — Métricas (Onda 3 v2 Fase 6): MVP com números-chave; funil etapa-por-etapa pra v2 */}
           <TabsContent value="metricas" className="mt-6">
             {accessMetricas.canAccess ? (
-              <PlaceholderTab
-                title="Métricas"
-                description="Resumo de leads e clientes do tenant. Versão MVP entra com 1–2 números-chave (total leads, total clientes); funil etapa-por-etapa vem na v2 do produto."
-                etiqueta="estrutura"
-              />
+              <MetricsDashboard tenantId={current.id} />
             ) : (
               <UpgradeBlock title="Métricas" />
             )}
