@@ -13,6 +13,7 @@ import { BioHeaderEditorStandalone } from "@/components/bio/BioHeaderEditorStand
 import { BioBlocksManagerStandalone } from "@/components/bio/BioBlocksManagerStandalone";
 import { CategoriesManager } from "@/components/CategoriesManager";
 import { BioFullPreview } from "@/components/bio/BioFullPreview";
+import { BioThemePickerStandalone } from "@/components/bio/BioThemePickerStandalone";
 
 const PLAN_LABELS: Record<string, string> = {
   free: "Free",
@@ -319,7 +320,7 @@ const BioTabPanel = ({
           onBlocksChange={handleBlocksChange}
         />
         <CategoriesManager tenantId={tenantId} />
-        <BioRemainingSectionsCard />
+        <BioThemePickerStandalone tenantId={tenantId} />
       </div>
       <aside className="xl:sticky xl:top-6 xl:self-start">
         <BioFullPreview
