@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Loader2, Save, Send } from "lucide-react";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
@@ -17,6 +18,7 @@ import { usePlanLimits } from "@/hooks/usePlanLimits";
 import type { Category } from "@/components/CategoriesManager";
 import type { Block } from "@/components/bio/types";
 import { BioBlocksManager } from "@/components/bio/BioBlocksManager";
+import { useBioPreviewQueryKey } from "@/components/bio/BioFullPreview";
 
 /**
  * Onda 3 v2 Fase 3 (refactor PR2B) — wrapper standalone do BioBlocksManager.
@@ -42,6 +44,7 @@ const DRAFT_FIELDS: (keyof Block)[] = [
 ];
 
 export const BioBlocksManagerStandalone = ({ tenantId }: { tenantId: string }) => {
+  const queryClient = useQueryClient();
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,6 +55,10 @@ export const BioBlocksManagerStandalone = ({ tenantId }: { tenantId: string }) =
 
   const activeBlocksCount = blocks.filter((b) => b.is_active).length;
   const plan = usePlanLimits(activeBlocksCount);
+
+  const invalidatePreview = () => {
+    queryClient.invalidateQueries({ queryKey: useBioPreviewQueryKey(tenantId) });
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -160,6 +167,7 @@ export const BioBlocksManagerStandalone = ({ tenantId }: { tenantId: string }) =
       n.delete(b.id);
       return n;
     });
+    invalidatePreview();
   };
 
   const publishBlock = async (b: Block) => {
@@ -183,6 +191,7 @@ export const BioBlocksManagerStandalone = ({ tenantId }: { tenantId: string }) =
       n.delete(b.id);
       return n;
     });
+    invalidatePreview();
     toast.success("Rascunho descartado");
   };
 
