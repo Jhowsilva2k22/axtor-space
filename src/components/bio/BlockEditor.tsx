@@ -103,7 +103,7 @@ export const BlockEditor = ({
     <div
       ref={setNodeRef}
       style={style}
-      className={`min-w-0 overflow-hidden rounded-sm border p-3 sm:p-4 transition-all ${
+      className={`min-w-0 overflow-hidden rounded-sm border p-2 sm:p-2.5 transition-all ${
         hasDraft
           ? "border-yellow-500/70 bg-yellow-500/[0.04]"
           : block.is_active
@@ -141,34 +141,34 @@ export const BlockEditor = ({
           </div>
         </div>
       )}
-      {/* Linha 1: reordenação + posição + menu de ações */}
-      <div className="flex items-center gap-2">
+      {/* Linha 1: reordenação + posição + menu de ações (compacto) */}
+      <div className="flex items-center gap-1">
         <button
           type="button"
           {...attributes}
           {...listeners}
-          className="hidden cursor-grab touch-none rounded-sm border border-border p-1.5 text-muted-foreground hover:text-primary active:cursor-grabbing md:inline-flex"
+          className="hidden cursor-grab touch-none rounded-sm border border-border p-1 text-muted-foreground hover:text-primary active:cursor-grabbing md:inline-flex"
           title="Arraste para reordenar"
         >
-          <GripVertical className="h-3.5 w-3.5" />
+          <GripVertical className="h-3 w-3" />
         </button>
         <button
           onClick={onMoveUp}
           disabled={isFirst}
-          className="rounded-sm border border-border p-1.5 text-muted-foreground hover:text-primary disabled:opacity-30"
+          className="rounded-sm border border-border p-1 text-muted-foreground hover:text-primary disabled:opacity-30"
           title="Subir"
         >
-          <ArrowUp className="h-3.5 w-3.5" />
+          <ArrowUp className="h-3 w-3" />
         </button>
         <button
           onClick={onMoveDown}
           disabled={isLast}
-          className="rounded-sm border border-border p-1.5 text-muted-foreground hover:text-primary disabled:opacity-30"
+          className="rounded-sm border border-border p-1 text-muted-foreground hover:text-primary disabled:opacity-30"
           title="Descer"
         >
-          <ArrowDown className="h-3.5 w-3.5" />
+          <ArrowDown className="h-3 w-3" />
         </button>
-        <span className="ml-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+        <span className="ml-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
           #{block.position}
         </span>
 
@@ -182,28 +182,28 @@ export const BlockEditor = ({
           {block.label || <em className="text-muted-foreground">sem título</em>}
         </span>
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-1">
           <button
             type="button"
             onClick={() => setExpanded((v) => !v)}
             aria-label={isExpanded ? "Recolher bloco" : "Expandir bloco"}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-sm border border-border text-muted-foreground hover:border-gold hover:text-primary"
+            className="inline-flex h-7 w-7 items-center justify-center rounded-sm border border-border text-muted-foreground hover:border-gold hover:text-primary"
           >
             {isExpanded ? (
-              <ChevronUp className="h-4 w-4" />
+              <ChevronUp className="h-3.5 w-3.5" />
             ) : (
-              <ChevronDown className="h-4 w-4" />
+              <ChevronDown className="h-3.5 w-3.5" />
             )}
           </button>
           <span
-            className={`hidden sm:inline-flex h-7 items-center gap-1.5 rounded-sm border px-2 text-[10px] uppercase tracking-[0.2em] transition-all ${
+            className={`hidden sm:inline-flex h-6 items-center gap-1.5 rounded-sm border px-2 text-[9px] uppercase tracking-[0.2em] transition-all ${
               block.is_active
                 ? "border-gold/40 text-primary animate-pulse-soft"
                 : "border-border text-muted-foreground"
             }`}
           >
             {block.is_active && (
-              <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-gold" />
+              <span className="h-1 w-1 rounded-full bg-primary shadow-gold" />
             )}
             {block.is_active ? "ativo" : "oculto"}
           </span>
@@ -212,9 +212,9 @@ export const BlockEditor = ({
               <button
                 type="button"
                 aria-label="Mais ações"
-                className="inline-flex h-8 w-8 items-center justify-center rounded-sm border border-border text-muted-foreground hover:border-gold hover:text-primary"
+                className="inline-flex h-7 w-7 items-center justify-center rounded-sm border border-border text-muted-foreground hover:border-gold hover:text-primary"
               >
-                <MoreVertical className="h-4 w-4" />
+                <MoreVertical className="h-3.5 w-3.5" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-44">

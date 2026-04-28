@@ -1,4 +1,5 @@
-import { Loader2, Save, Trash2, Upload } from "lucide-react";
+import { useState } from "react";
+import { ChevronDown, ChevronUp, Loader2, Save, Trash2, Upload } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -49,11 +50,30 @@ export const BioHeaderEditor = ({
   onPickCoverFile,
   onRemoveCover,
 }: BioHeaderEditorProps) => {
+  // Cabeçalho colapsa por padrão (igual aos blocos) — abre quando user clica.
+  const [expanded, setExpanded] = useState(false);
   return (
-    <section id="admin-header-section" className="rounded-sm border-gold-gradient p-6">
-      <h2 className="font-display text-2xl">
-        Cabeçalho da <span className="text-gold italic">bio</span>
-      </h2>
+    <section id="admin-header-section" className="rounded-sm border-gold-gradient p-4">
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        className="flex w-full items-center justify-between gap-2 text-left"
+        aria-expanded={expanded}
+      >
+        <h2 className="font-display text-xl">
+          Cabeçalho da <span className="text-gold italic">bio</span>
+        </h2>
+        <span className="inline-flex h-7 w-7 items-center justify-center rounded-sm border border-border text-muted-foreground">
+          {expanded ? (
+            <ChevronUp className="h-3.5 w-3.5" />
+          ) : (
+            <ChevronDown className="h-3.5 w-3.5" />
+          )}
+        </span>
+      </button>
+
+      {!expanded ? null : (
+        <>
       <div className="mt-6 grid gap-4 md:grid-cols-2">
         <Field label="Nome de exibição">
           <p className="mb-2 text-[10px] text-gold/60 italic font-light">
@@ -233,6 +253,8 @@ export const BioHeaderEditor = ({
           )}
         </Button>
       </div>
+        </>
+      )}
     </section>
   );
 };

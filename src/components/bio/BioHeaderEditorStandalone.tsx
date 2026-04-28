@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { BioHeaderEditor, type BioHeaderConfig } from "@/components/bio/BioHeaderEditor";
 import ImageCropDialog from "@/components/ImageCropDialog";
+import { useBioPreviewQueryKey } from "@/components/bio/BioFullPreview";
 
 /**
  * Onda 3 v2 Fase 3 — wrapper standalone do BioHeaderEditor.
@@ -38,6 +40,7 @@ export const BioHeaderEditorStandalone = ({
   slug: string;
   displayName: string;
 }) => {
+  const queryClient = useQueryClient();
   const [row, setRow] = useState<DbBioConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -48,6 +51,10 @@ export const BioHeaderEditorStandalone = ({
   const [pendingCoverFile, setPendingCoverFile] = useState<File | null>(null);
 
   const tenant: Tenant = { id: tenantId, slug, display_name: displayName };
+
+  const invalidatePreview = () => {
+    queryClient.invalidateQueries({ queryKey: useBioPreviewQueryKey(tenantId) });
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -121,8 +128,12 @@ export const BioHeaderEditorStandalone = ({
       })
       .eq("id", row.id);
     setSaving(false);
-    if (error) toast.error(error.message);
-    else toast.success("Cabeçalho salvo.");
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    invalidatePreview();
+    toast.success("Cabeçalho salvo.");
   };
 
   // Upload do blob já cortado pra Storage. Recebe Blob (do crop) ou File (raw).
@@ -189,6 +200,7 @@ export const BioHeaderEditorStandalone = ({
       return;
     }
     handleUpdate({ cover_url: null });
+    invalidatePreview();
     toast.success("Capa removida.");
   };
 
