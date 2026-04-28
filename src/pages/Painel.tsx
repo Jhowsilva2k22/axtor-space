@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Navigate } from "react-router-dom";
 import { Loader2, Lock } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -115,21 +115,7 @@ export default function Painel() {
 
           <TabsContent value="bio" className="mt-6">
             {accessBio.canAccess ? (
-              <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_400px]">
-                <div className="min-w-0 space-y-6">
-                  <BioHeaderEditorStandalone
-                    tenantId={current.id}
-                    slug={current.slug}
-                    displayName={current.display_name}
-                  />
-                  <BioBlocksManagerStandalone tenantId={current.id} />
-                  <CategoriesManager tenantId={current.id} />
-                  <BioRemainingSectionsCard />
-                </div>
-                <aside className="xl:sticky xl:top-6 xl:self-start">
-                  <BioFullPreview tenantId={current.id} slug={current.slug} />
-                </aside>
-              </div>
+              <BioTabPanel tenantId={current.id} slug={current.slug} displayName={current.display_name} />
             ) : (
               <UpgradeBlock title="Link na Bio" />
             )}
@@ -245,6 +231,118 @@ const UpgradeBlock = ({
     </p>
   </Card>
 );
+
+/**
+ * Painel da aba Bio — orquestra editor (Header, Blocks, Categorias) + Preview ao vivo.
+ * State live (cfg + blocks) é levantado aqui pra o preview refletir mudanças
+ * antes mesmo do user salvar.
+ */
+const BioTabPanel = ({
+  tenantId,
+  slug,
+  displayName,
+}: {
+  tenantId: string;
+  slug: string;
+  displayName: string;
+}) => {
+  const [liveCfg, setLiveCfg] = useState<{
+    display_name?: string | null;
+    headline?: string | null;
+    sub_headline?: string | null;
+    avatar_url?: string | null;
+    cover_url?: string | null;
+  } | null>(null);
+  const [liveBlocks, setLiveBlocks] = useState<
+    | Array<{
+        id: string;
+        label: string;
+        url: string;
+        icon: string | null;
+        badge: string | null;
+        is_active: boolean;
+        position: number;
+        highlight: boolean;
+        category_id: string | null;
+      }>
+    | null
+  >(null);
+
+  const handleCfgChange = useCallback(
+    (cfg: {
+      display_name: string;
+      headline: string;
+      sub_headline: string | null;
+      avatar_url: string | null;
+      cover_url: string | null;
+    }) => {
+      setLiveCfg({
+        display_name: cfg.display_name,
+        headline: cfg.headline,
+        sub_headline: cfg.sub_headline,
+        avatar_url: cfg.avatar_url,
+        cover_url: cfg.cover_url,
+      });
+    },
+    [],
+  );
+
+  const handleBlocksChange = useCallback(
+    (blocks: Array<{
+      id: string;
+      label: string;
+      url: string;
+      icon: string | null;
+      badge: string | null;
+      is_active: boolean;
+      position: number;
+      highlight: boolean;
+      category_id: string | null;
+    }>) => {
+      // Aplicar viewBlock-equivalent: se há draft, usar o draft (Painel novo
+      // mostra o draft em editing pra preview ser fiel ao que o user vê).
+      setLiveBlocks(blocks.map((b) => ({
+        id: b.id,
+        label: b.label,
+        url: b.url,
+        icon: b.icon,
+        badge: b.badge,
+        is_active: b.is_active,
+        position: b.position,
+        highlight: b.highlight,
+        category_id: b.category_id,
+      })));
+    },
+    [],
+  );
+
+  return (
+    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_400px]">
+      <div className="min-w-0 space-y-6">
+        <BioHeaderEditorStandalone
+          tenantId={tenantId}
+          slug={slug}
+          displayName={displayName}
+          onCfgChange={handleCfgChange}
+        />
+        <BioBlocksManagerStandalone
+          tenantId={tenantId}
+          onBlocksChange={handleBlocksChange as never}
+        />
+        <CategoriesManager tenantId={tenantId} />
+        <BioRemainingSectionsCard />
+      </div>
+      <aside className="xl:sticky xl:top-6 xl:self-start">
+        <BioFullPreview
+          tenantId={tenantId}
+          slug={slug}
+          liveConfig={liveCfg ?? undefined}
+          liveBlocks={liveBlocks ?? undefined}
+        />
+      </aside>
+    </div>
+  );
+};
 
 /**
  * Aba Bio — informativo das seções ainda em consolidação.
