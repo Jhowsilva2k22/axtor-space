@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { toast } from "sonner";
-import { Loader2, Plus, Trash2, FolderOpen, ArrowUp, ArrowDown, Sparkles, Settings2, Check } from "lucide-react";
+import { Loader2, Plus, Trash2, FolderOpen, ArrowUp, ArrowDown, Sparkles, Settings2, Check, ChevronDown, ChevronUp } from "lucide-react";
 import { IconPicker } from "@/components/IconPicker";
 
 export type Category = {
@@ -54,6 +54,7 @@ export const CategoriesManager = ({ tenantId }: { tenantId: string }) => {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState<Record<string, boolean>>({});
+  const [expanded, setExpanded] = useState(false);
 
   const load = async () => {
     if (!tenantId) return;
@@ -160,11 +161,29 @@ export const CategoriesManager = ({ tenantId }: { tenantId: string }) => {
   return (
     <TooltipProvider delayDuration={150}>
       <section id="categorias" className="rounded-sm border-gold-gradient p-4 scroll-mt-24">
-        <div className="mb-2 flex items-center justify-between gap-3">
-          <h2 className="font-display text-xl">
-            <FolderOpen className="mr-2 inline-block h-4 w-4 text-primary" />
-            Categorias
-          </h2>
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="flex w-full items-center justify-between gap-3 text-left"
+          aria-expanded={expanded}
+        >
+          <div className="flex items-center gap-2">
+            <FolderOpen className="h-4 w-4 text-primary" />
+            <h2 className="font-display text-xl">Categorias</h2>
+            {items.length > 0 && (
+              <span className="rounded-sm border border-gold/40 bg-card/40 px-2 py-0.5 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                {items.filter((c) => c.is_active).length}/{items.length} ativas
+              </span>
+            )}
+          </div>
+          <span className="inline-flex h-7 w-7 items-center justify-center rounded-sm border border-border text-muted-foreground">
+            {expanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+          </span>
+        </button>
+
+        {!expanded ? null : (
+        <>
+        <div className="mt-3 mb-3 flex items-center justify-end">
           <Button onClick={create} disabled={creating} className="btn-luxe h-8 rounded-sm px-3 text-[10px] uppercase tracking-[0.2em]">
             {creating ? <Loader2 className="h-3 w-3 animate-spin" /> : <><Plus className="h-3 w-3" /> Nova</>}
           </Button>
@@ -291,6 +310,8 @@ export const CategoriesManager = ({ tenantId }: { tenantId: string }) => {
             })}
           </div>
         </div>
+        </>
+        )}
       </section>
     </TooltipProvider>
   );
