@@ -18,11 +18,17 @@ Use o vocabulário, nicho e tom do briefing. Linguagem em PT-BR direta, persuasi
 Tipos permitidos de pergunta: 'single' (1 escolha), 'multi' (várias), 'scale' (1-5).
 Para 'single' e 'multi': 4-5 opções. Para 'scale': use 5 opções de 1 a 5 com labels descritivos.
 
-REGRA DE PRODUTOS:
-- O dono SEMPRE define nome, preço, duração da sessão e duração do plano. Você NUNCA inventa esses 4 campos.
-- Se o briefing trouxer "products" (lista de produtos reais do dono), use EXATAMENTE esses produtos: copie nome, price_hint, session_duration e plan_duration LITERAIS do briefing — não traduza, não arredonde, não substitua. Distribua-os entre as 5 dores (marketing, gestao, vendas, ia, estrutura). Se houver menos de 5, repita os mais versáteis. Se houver mais de 5, escolha os 5 melhores.
-- Se NÃO houver produtos no briefing, deixe price_hint, session_duration e plan_duration COMO STRING VAZIA "" pra que o dono preencha depois no painel. Você ainda inventa nome e descrição persuasiva.
-- Em todos os casos, gere um template de WhatsApp pronto pra cada produto, usando {{nome}} como placeholder do nome do lead.
+REGRA DE PRODUTOS (rígida — viola e o funil não consegue entregar):
+- O dono SEMPRE define os produtos no briefing. Você NUNCA inventa nada — nem nome, nem preço, nem duração, nem features. Não invente sequer "sugestões genéricas".
+- O briefing TRAZ "products" (lista de produtos reais do dono). Use EXATAMENTE esses produtos: copie name, description, price_hint, session_duration, plan_duration e link LITERAIS do briefing — não traduza, não arredonde, não substitua, não infira nada que não tá lá.
+- Distribua os produtos do briefing entre as 5 dores (marketing, gestao, vendas, ia, estrutura) baseado em qual dor cada produto melhor resolve. Se houver menos de 5 produtos, repita os mais versáteis cobrindo dores adicionais. Se houver mais de 5, escolha os 5 mais estratégicos.
+- Use os campos extras de cada produto pra gerar copy MAIS CIRÚRGICA (não pra inventar dados):
+  * tipo_entrega → influencia o tom do cta_label (ex: "Quero agendar minha mentoria" pra 1:1, "Quero entrar na próxima turma" pra grupo, "Quero acessar o curso" pra produto digital, "Quero contratar a consultoria" pra serviço pontual).
+  * publico_alvo → vai literalmente no campo who_for (não reescreva — use as palavras do dono).
+  * diferencial → entra como um dos benefits, posicionado como o bullet de destaque que justifica preço/escolha.
+  * bonus_garantia → entra como urgency_text OU como benefit dedicado, dependendo de qual encaixa melhor no contexto da dor.
+- Para CADA produto, gere um template de WhatsApp pronto, usando {{nome}} como placeholder do nome do lead.
+- Se ALGUM campo do briefing estiver vazio (ex: dono não preencheu "diferencial"), mantenha vazio no output ou simplesmente não use no copy. NUNCA preencha com placeholder genérico ("Diferencial exclusivo", "Bônus surpresa" etc).
 
 PARA CADA PRODUTO, preencha OBRIGATORIAMENTE os campos de copy estruturada:
 - who_for: 1 frase descrevendo PRA QUEM É (perfil específico, momento, dor)
@@ -116,8 +122,10 @@ Deno.serve(async (req) => {
 
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+    // Onda 4 — usa Gemini direto (Google AI Studio) em vez do Lovable AI Gateway.
+    // Independência do Lovable + free tier do Gemini cobre o volume previsível.
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY not configured");
 
     const userClient = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_ANON_KEY")!, {
       global: { headers: { Authorization: authHeader } },
@@ -139,6 +147,29 @@ Deno.serve(async (req) => {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // Onda 4 — proibido gerar funil sem produtos do dono.
+    // Antes a IA inventava produtos quando o briefing vinha vazio; agora isso quebra o funil
+    // (cliente fecha cobrança e o dono não tem como entregar). Bloqueio rígido aqui.
+    const incomingProducts = Array.isArray((briefing as Record<string, unknown>)?.products)
+      ? ((briefing as { products: unknown[] }).products as Array<Record<string, unknown>>)
+      : [];
+    const validIncomingProducts = incomingProducts.filter(
+      (p) => typeof p?.name === "string" && (p.name as string).trim().length > 0,
+    );
+    if (validIncomingProducts.length === 0) {
+      return new Response(
+        JSON.stringify({
+          error: "missing_products",
+          message:
+            "Cadastre pelo menos 1 produto antes de gerar o funil. A IA não inventa produtos — ela só usa os seus.",
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
 
     // Valida ownership + addon
@@ -181,43 +212,121 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Chama Lovable AI
-    const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
+    // Chama Gemini direto via Google AI Studio (sem proxy Lovable).
+    // Tenta 2.5-flash primeiro (mais inteligente). Se 503 (sobrecarga), faz retry com 2s
+    // e depois fallback pro 2.0-flash (mais estável). JSON Schema mode pra structured output.
+    const GEMINI_REQUEST_BODY = JSON.stringify({
+      systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              text: `Briefing do dono:\n\n${JSON.stringify(briefing, null, 2)}\n\nGere o funil completo agora retornando JSON estruturado seguindo o schema.`,
+            },
+          ],
+        },
+      ],
+      generationConfig: {
+        temperature: 0.7,
+        // 32768 cobre 12 perguntas × 4-5 opções × pain_weights + 5 produtos com copy estruturada.
+        // 8192 era pouco e Gemini truncava o JSON, quebrando o parse.
+        maxOutputTokens: 32768,
+        responseMimeType: "application/json",
+        responseSchema: TOOLS[0].function.parameters,
       },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-pro",
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: `Briefing do dono:\n\n${JSON.stringify(briefing, null, 2)}\n\nGere o funil completo agora.` },
-        ],
-        tools: TOOLS,
-        tool_choice: { type: "function", function: { name: "create_deep_funnel" } },
-      }),
     });
 
-    if (!aiResp.ok) {
-      const txt = await aiResp.text();
-      console.error("AI error:", aiResp.status, txt);
-      const errCode = aiResp.status === 429 ? "rate_limited" : aiResp.status === 402 ? "ai_credits" : "ai_error";
-      return new Response(JSON.stringify({ error: errCode }), {
-        status: aiResp.status,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const callGemini = async (model: string): Promise<Response> => {
+      return fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: GEMINI_REQUEST_BODY,
+        },
+      );
+    };
+
+    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+    // Estratégia: 2.5-flash → retry após 2s → 2.0-flash fallback → retry 2.0-flash após 2s
+    let aiResp: Response | null = null;
+    const attempts: Array<{ model: string; delayMs: number }> = [
+      { model: "gemini-2.5-flash", delayMs: 0 },
+      { model: "gemini-2.5-flash", delayMs: 2000 },
+      { model: "gemini-2.0-flash", delayMs: 0 },
+      { model: "gemini-2.0-flash", delayMs: 2000 },
+    ];
+
+    for (const { model, delayMs } of attempts) {
+      if (delayMs > 0) await sleep(delayMs);
+      try {
+        const r = await callGemini(model);
+        if (r.ok) {
+          aiResp = r;
+          break;
+        }
+        // 503/429/500 → tenta de novo. Outros (400, 401, 403) → sai do loop, é erro definitivo.
+        if (r.status !== 503 && r.status !== 429 && r.status !== 500) {
+          aiResp = r;
+          break;
+        }
+        const txt = await r.text();
+        console.warn(`Gemini ${model} retornou ${r.status}, tentando próximo:`, txt.slice(0, 200));
+      } catch (e) {
+        console.warn(`Gemini ${model} exception:`, (e as Error).message);
+      }
+    }
+
+    if (!aiResp || !aiResp.ok) {
+      const status = aiResp?.status ?? 503;
+      const txt = aiResp ? await aiResp.text() : "no response after retries";
+      console.error("Gemini falhou em todas as tentativas:", status, txt);
+      const errCode =
+        status === 429
+          ? "rate_limited"
+          : status === 503
+            ? "model_overloaded"
+            : status === 403 || status === 401
+              ? "ai_credits"
+              : "ai_error";
+      return new Response(
+        JSON.stringify({ error: errCode, detail: txt.slice(0, 500), status }),
+        {
+          status,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
 
     const aiJson = await aiResp.json();
-    const toolCall = aiJson.choices?.[0]?.message?.tool_calls?.[0];
-    if (!toolCall) {
-      return new Response(JSON.stringify({ error: "no_tool_call", raw: aiJson }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // Em JSON Schema mode, Gemini retorna o JSON estruturado em candidates[0].content.parts[0].text
+    const parts = aiJson.candidates?.[0]?.content?.parts ?? [];
+    const textPart = parts.find((p: { text?: string }) => typeof p?.text === "string");
+    if (!textPart?.text) {
+      console.error("Gemini sem texto:", JSON.stringify(aiJson).slice(0, 1000));
+      return new Response(
+        JSON.stringify({ error: "no_tool_call", raw: aiJson }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
-    const args = JSON.parse(toolCall.function.arguments);
+    let args: Record<string, unknown>;
+    try {
+      args = JSON.parse(textPart.text);
+    } catch (e) {
+      console.error("Gemini JSON parse falhou:", textPart.text.slice(0, 500));
+      return new Response(
+        JSON.stringify({ error: "invalid_json", detail: (e as Error).message }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
 
     // Cria ou atualiza o funil
     const baseSlug = (briefing.business_name || tenant.display_name || "funil")

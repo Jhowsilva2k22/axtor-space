@@ -23,6 +23,25 @@ type BriefingProduct = {
   session_duration: string;
   plan_duration: string;
   link: string;
+  // Campos extras (Onda 4) que ajudam a IA a gerar copy mais cirúrgica
+  // sem inventar nada — todos vêm do dono e são opcionais por produto.
+  tipo_entrega: string; // ex: mentoria 1:1, curso, workshop, grupo, presencial
+  publico_alvo: string; // perfil específico que esse produto serve
+  diferencial: string; // USP — método/abordagem que justifica preço
+  bonus_garantia: string; // bônus inclusos + risk-reversal
+};
+
+const EMPTY_PRODUCT: BriefingProduct = {
+  name: "",
+  description: "",
+  price_hint: "",
+  session_duration: "",
+  plan_duration: "",
+  link: "",
+  tipo_entrega: "",
+  publico_alvo: "",
+  diferencial: "",
+  bonus_garantia: "",
 };
 
 const BRIEFING_FIELDS = [
@@ -49,7 +68,7 @@ export default function DeepDiagnosticEditor() {
   const [step, setStep] = useState<Step>("list");
   const [briefing, setBriefing] = useState<Record<string, string>>({});
   const [briefingProducts, setBriefingProducts] = useState<BriefingProduct[]>([
-    { name: "", description: "", price_hint: "", session_duration: "", plan_duration: "", link: "" },
+    { ...EMPTY_PRODUCT },
   ]);
   const [generating, setGenerating] = useState(false);
   const [activeFunnelId, setActiveFunnelId] = useState<string | null>(null);
@@ -106,8 +125,24 @@ export default function DeepDiagnosticEditor() {
           session_duration: p.session_duration.trim(),
           plan_duration: p.plan_duration.trim(),
           link: p.link.trim(),
+          tipo_entrega: p.tipo_entrega.trim(),
+          publico_alvo: p.publico_alvo.trim(),
+          diferencial: p.diferencial.trim(),
+          bonus_garantia: p.bonus_garantia.trim(),
         }))
-        .filter((p) => p.name.length > 0);
+        .filter((p) => p.name.length > 0 && p.description.length > 0);
+
+      if (cleanProducts.length === 0) {
+        toast({
+          title: "Cadastre pelo menos 1 produto",
+          description:
+            "A IA não inventa produtos — ela só usa os seus. Preencha nome e descrição de pelo menos 1 produto antes de gerar o funil.",
+          variant: "destructive",
+        });
+        setStep("briefing");
+        setGenerating(false);
+        return;
+      }
       const { data, error } = await supabase.functions.invoke("generate-deep-funnel", {
         body: {
           tenant_id: tenantId,
@@ -370,9 +405,14 @@ export default function DeepDiagnosticEditor() {
             </div>
             <div className="space-y-3 rounded-lg border border-border/60 bg-muted/20 p-4">
               <div>
-                <h2 className="font-display text-lg">Seus produtos / serviços principais</h2>
+                <h2 className="font-display text-lg">
+                  Seus produtos / serviços principais
+                  <span className="ml-2 text-destructive">*</span>
+                </h2>
                 <p className="text-xs text-muted-foreground">
-                  Liste de 1 a 5 ofertas (entrada, intermediária e topo). A IA vai recomendar essas como solução pra cada dor detectada. Se deixar vazio, ela inventa sugestões genéricas.
+                  Liste de 1 a 5 ofertas reais (entrada, intermediária e topo). A IA vai usar
+                  exatamente esses como solução pra cada dor que diagnosticar — não invente
+                  produtos que você não tem como entregar.
                 </p>
               </div>
               <div className="space-y-3">
@@ -455,8 +495,50 @@ export default function DeepDiagnosticEditor() {
                         }
                       />
                     </div>
+
+                    {/* Campos extras pra alimentar a IA com mais contexto sem inventar nada */}
+                    <Input
+                      placeholder="Tipo de entrega (ex: mentoria 1:1, curso online, workshop em grupo)"
+                      value={p.tipo_entrega}
+                      onChange={(e) =>
+                        setBriefingProducts((prev) =>
+                          prev.map((x, i) => (i === idx ? { ...x, tipo_entrega: e.target.value } : x)),
+                        )
+                      }
+                    />
+                    <Input
+                      placeholder="Pra quem é (perfil específico — ex: pais 30-45 que querem melhorar o vínculo)"
+                      value={p.publico_alvo}
+                      onChange={(e) =>
+                        setBriefingProducts((prev) =>
+                          prev.map((x, i) => (i === idx ? { ...x, publico_alvo: e.target.value } : x)),
+                        )
+                      }
+                    />
+                    <Textarea
+                      placeholder="Diferencial — o que esse produto tem que justifica preço/escolha"
+                      rows={2}
+                      value={p.diferencial}
+                      onChange={(e) =>
+                        setBriefingProducts((prev) =>
+                          prev.map((x, i) => (i === idx ? { ...x, diferencial: e.target.value } : x)),
+                        )
+                      }
+                    />
+                    <Textarea
+                      placeholder="Bônus + garantia (ex: 7 dias de reembolso, bônus de implementação até sexta)"
+                      rows={2}
+                      value={p.bonus_garantia}
+                      onChange={(e) =>
+                        setBriefingProducts((prev) =>
+                          prev.map((x, i) => (i === idx ? { ...x, bonus_garantia: e.target.value } : x)),
+                        )
+                      }
+                    />
+
                     <p className="text-[10px] text-muted-foreground">
-                      Esses campos são SEUS — a IA nunca inventa duração nem valor.
+                      Esses campos são SEUS. A IA nunca inventa nome, valor, duração nem features —
+                      ela só gera copy de venda em cima do que você cadastrar.
                     </p>
                   </div>
                 ))}
@@ -468,10 +550,7 @@ export default function DeepDiagnosticEditor() {
                   size="sm"
                   className="gap-1"
                   onClick={() =>
-                    setBriefingProducts((prev) => [
-                      ...prev,
-                      { name: "", description: "", price_hint: "", session_duration: "", plan_duration: "", link: "" },
-                    ])
+                    setBriefingProducts((prev) => [...prev, { ...EMPTY_PRODUCT }])
                   }
                 >
                   <Plus className="h-3 w-3" /> Adicionar produto
@@ -480,7 +559,15 @@ export default function DeepDiagnosticEditor() {
             </div>
             <div className="flex justify-between gap-3">
               <Button variant="ghost" onClick={() => setStep("list")}>Cancelar</Button>
-              <Button onClick={handleGenerate} className="gap-2 transition-transform hover:scale-[1.02]">
+              <Button
+                onClick={handleGenerate}
+                disabled={
+                  !briefingProducts.some(
+                    (p) => p.name.trim().length > 0 && p.description.trim().length > 0,
+                  )
+                }
+                className="gap-2 transition-transform hover:scale-[1.02]"
+              >
                 <Sparkles className="h-4 w-4" /> Gerar funil com IA
               </Button>
             </div>
@@ -504,7 +591,13 @@ export default function DeepDiagnosticEditor() {
             </motion.div>
             <h2 className="font-display text-2xl">Gerando seu funil...</h2>
             <p className="text-sm text-muted-foreground">
-              A IA está montando 12 perguntas e 5 produtos. Isso leva uns 30 segundos.
+              {(() => {
+                const validCount = briefingProducts.filter(
+                  (p) => p.name.trim().length > 0 && p.description.trim().length > 0,
+                ).length;
+                const oferta = validCount === 1 ? "oferta" : "ofertas";
+                return `A IA está montando 12 perguntas e gerando copy de venda pra suas ${validCount} ${oferta}. Isso leva uns 30 segundos.`;
+              })()}
             </p>
           </Card>
           </motion.div>
