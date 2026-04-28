@@ -159,18 +159,18 @@ export const CategoriesManager = ({ tenantId }: { tenantId: string }) => {
 
   return (
     <TooltipProvider delayDuration={150}>
-      <section id="categorias" className="rounded-sm border-gold-gradient p-6 scroll-mt-24">
-        <div className="mb-2 flex items-center justify-between">
-          <h2 className="font-display text-2xl">
-            <FolderOpen className="mr-2 inline-block h-5 w-5 text-primary" />
+      <section id="categorias" className="rounded-sm border-gold-gradient p-4 scroll-mt-24">
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <h2 className="font-display text-xl">
+            <FolderOpen className="mr-2 inline-block h-4 w-4 text-primary" />
             Categorias
           </h2>
-          <Button onClick={create} disabled={creating} className="btn-luxe h-10 rounded-sm px-4 text-[10px] uppercase tracking-[0.2em]">
-            {creating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <><Plus className="h-3.5 w-3.5" /> Nova</>}
+          <Button onClick={create} disabled={creating} className="btn-luxe h-8 rounded-sm px-3 text-[10px] uppercase tracking-[0.2em]">
+            {creating ? <Loader2 className="h-3 w-3 animate-spin" /> : <><Plus className="h-3 w-3" /> Nova</>}
           </Button>
         </div>
-        <p className="mb-4 text-xs text-muted-foreground">
-          Categorias agrupam seus blocos em seções na sua bio pública (ex: <span className="text-primary">Redes sociais</span>, <span className="text-primary">Produtos</span>, <span className="text-primary">Cursos</span>). Cada bloco pode pertencer a uma categoria — ou ficar avulso.
+        <p className="mb-3 text-[11px] text-muted-foreground">
+          Agrupam blocos em seções na bio pública. Cada bloco pode pertencer a uma — ou ficar avulso.
         </p>
 
         {loading ? (
@@ -185,41 +185,41 @@ export const CategoriesManager = ({ tenantId }: { tenantId: string }) => {
               const IconComp = (c.icon && (LucideIcons as any)[c.icon]) || LucideIcons.FolderOpen;
               const isAdv = !!advancedOpen[c.id];
               return (
-                <div key={c.id} className="rounded-sm border border-gold/40 bg-card/40 p-3">
-                  <div className="flex flex-wrap items-center gap-3">
+                <div key={c.id} className="rounded-sm border border-gold/40 bg-card/40 p-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <div className="flex items-center gap-1">
-                      <button onClick={() => move(i, -1)} disabled={i === 0} className="rounded-sm border border-border p-1.5 text-muted-foreground hover:text-primary disabled:opacity-30">
+                      <button onClick={() => move(i, -1)} disabled={i === 0} className="rounded-sm border border-border p-1 text-muted-foreground hover:text-primary disabled:opacity-30">
                         <ArrowUp className="h-3 w-3" />
                       </button>
-                      <button onClick={() => move(i, 1)} disabled={i === items.length - 1} className="rounded-sm border border-border p-1.5 text-muted-foreground hover:text-primary disabled:opacity-30">
+                      <button onClick={() => move(i, 1)} disabled={i === items.length - 1} className="rounded-sm border border-border p-1 text-muted-foreground hover:text-primary disabled:opacity-30">
                         <ArrowDown className="h-3 w-3" />
                       </button>
                     </div>
 
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border border-gold/40 bg-background/40 text-primary">
-                      <IconComp className="h-4 w-4" />
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-sm border border-gold/40 bg-background/40 text-primary">
+                      <IconComp className="h-3.5 w-3.5" />
                     </div>
 
                     <Input
                       value={c.name}
                       onChange={(e) => updateName(c.id, e.target.value)}
                       placeholder="Nome da categoria"
-                      className="h-9 flex-1 min-w-[160px] rounded-sm border-gold/40 bg-input text-sm"
+                      className="h-8 flex-1 min-w-[140px] rounded-sm border-gold/40 bg-input text-sm"
                     />
 
-                    <div className="w-[180px]">
+                    <div className="w-[140px]">
                       <IconPicker
                         value={c.icon ?? null}
                         onChange={(name) => update(c.id, { icon: name })}
                       />
                     </div>
 
-                    <label className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                    <label className="flex items-center gap-1.5 text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
                       ativa
                       <Switch checked={c.is_active} onCheckedChange={(v) => update(c.id, { is_active: v })} />
                     </label>
 
-                    <button onClick={() => remove(c.id)} className="rounded-sm border border-destructive/40 p-2 text-destructive hover:bg-destructive/10" title="Excluir">
+                    <button onClick={() => remove(c.id)} className="rounded-sm border border-destructive/40 p-1.5 text-destructive hover:bg-destructive/10" title="Excluir">
                       <Trash2 className="h-3 w-3" />
                     </button>
                   </div>
