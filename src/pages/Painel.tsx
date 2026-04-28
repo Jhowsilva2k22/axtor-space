@@ -11,6 +11,7 @@ import { CaptureConfigForm } from "@/components/CaptureConfigForm";
 import { PainelHeaderActions } from "@/components/PainelHeaderActions";
 import { BioHeaderEditorStandalone } from "@/components/bio/BioHeaderEditorStandalone";
 import { BioBlocksManagerStandalone } from "@/components/bio/BioBlocksManagerStandalone";
+import { CategoriesManager } from "@/components/CategoriesManager";
 
 const PLAN_LABELS: Record<string, string> = {
   free: "Free",
@@ -120,6 +121,7 @@ export default function Painel() {
                   displayName={current.display_name}
                 />
                 <BioBlocksManagerStandalone tenantId={current.id} />
+                <CategoriesManager tenantId={current.id} />
                 <BioRemainingSectionsCard />
               </>
             ) : (
@@ -240,18 +242,18 @@ const UpgradeBlock = ({
 
 /**
  * Aba Bio — informativo das seções ainda em consolidação.
- * Cabeçalho e Blocos já foram consolidados. Categorias e Tema entram
- * nos próximos PRs da Onda 3.5 (refactor de Admin.tsx + AdminTemplates).
+ * Cabeçalho, Blocos e Categorias já foram consolidados. Tema visual entra
+ * no próximo PR da Onda 3.5 (refactor de AdminTemplates).
  */
 const BioRemainingSectionsCard = () => (
   <Card className="p-8">
     <span className="mb-3 inline-block rounded-full border border-gold/40 bg-gold/5 px-3 py-1 text-[10px] uppercase tracking-widest text-gold">
-      Em consolidação · próximos PRs
+      Em consolidação · próximo PR
     </span>
-    <h3 className="font-display text-lg">Categorias e Tema visual</h3>
+    <h3 className="font-display text-lg">Tema visual / templates da bio</h3>
     <p className="mt-2 text-sm text-muted-foreground">
-      Faltam categorias (agrupar blocos em seções) e a escolha de tema/template (Pro+).
-      Estão sendo extraídas do painel anterior em PRs separados pra evitar regressão.
+      Pro+ vai poder escolher entre templates visuais (Gold Noir, etc) e personalizar
+      tipografia da marca. Estamos extraindo do painel anterior em PR dedicado.
     </p>
   </Card>
 );
