@@ -108,7 +108,7 @@ export const MediaGallery = ({ tenantId }: { tenantId: string }) => {
               <img
                 src={item.url}
                 alt={item.file_name ?? "imagem"}
-                className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                className="h-full w-full object-cover object-top transition-transform group-hover:scale-105"
                 loading="lazy"
               />
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
