@@ -194,16 +194,17 @@ export const BioFullPreview = ({
             )}
           </div>
 
-          {/* Categorias (chips) */}
+          {/* Categorias (chips) — largura uniforme pra evitar órfãos quando faz wrap. */}
           {categories.length > 0 && (
             <div className="mt-8 flex flex-wrap justify-center gap-2">
               {categories.map((c) => (
                 <span
                   key={c.id}
-                  className="inline-flex items-center gap-1 rounded-full border border-gold/30 bg-card/40 px-3 py-1 text-[10px] uppercase tracking-widest text-muted-foreground"
+                  className="inline-flex w-[120px] items-center justify-center gap-1.5 rounded-full border border-gold/30 bg-card/40 px-3 py-1 text-[10px] uppercase tracking-widest text-muted-foreground"
+                  title={c.name}
                 >
                   <RenderIcon name={c.icon} />
-                  {c.name}
+                  <span className="truncate">{c.name}</span>
                 </span>
               ))}
             </div>
