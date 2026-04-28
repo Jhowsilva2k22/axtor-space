@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Copy, ExternalLink, Loader2, Check, QrCode } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -9,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 import type { CreatePaymentResult } from "@/hooks/useStoreCheckout";
 
 /**
@@ -34,12 +36,97 @@ export const PixCheckoutModal = ({
   loading: boolean;
 }) => {
   const [copied, setCopied] = useState(false);
+  // Estado de detecção: aguardando | pago — controla a UI de "pagamento confirmado"
+  const [confirmed, setConfirmed] = useState(false);
+  // Guarda flag pra não disparar redirect 2x se UPDATE rolar duas vezes
+  const navigatedRef = useRef(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!copied) return;
     const t = setTimeout(() => setCopied(false), 2000);
     return () => clearTimeout(t);
   }, [copied]);
+
+  // Reseta o estado de confirmação sempre que o modal fecha ou um novo paymentId chega
+  useEffect(() => {
+    if (!open) {
+      setConfirmed(false);
+      navigatedRef.current = false;
+    }
+  }, [open]);
+
+  /**
+   * Realtime listener — escuta UPDATE em tenant_addons e tenant_subscriptions
+   * filtrado pelo paymentId atual. Quando o webhook do Asaas atualizar o status
+   * pra `paid` (addon) ou `active` (sub), a gente fecha o modal e leva o user
+   * pra tela de boas-vindas.
+   */
+  useEffect(() => {
+    if (!open || !data?.paymentId) return;
+    const paymentId = data.paymentId;
+
+    const handleConfirmed = (params: {
+      type: "plan" | "addon";
+      slug: string;
+    }) => {
+      if (navigatedRef.current) return;
+      navigatedRef.current = true;
+      setConfirmed(true);
+      toast.success("Pagamento confirmado!");
+      // Pequeno delay pro user ver o estado "confirmado" antes de sair
+      setTimeout(() => {
+        onOpenChange(false);
+        navigate(
+          `/bem-vindo?type=${params.type}&slug=${encodeURIComponent(params.slug)}`,
+          { replace: true },
+        );
+      }, 1200);
+    };
+
+    const channelAddon = supabase
+      .channel(`pix-addon-${paymentId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "tenant_addons",
+          filter: `gateway_payment_id=eq.${paymentId}`,
+        },
+        (payload) => {
+          const row = payload.new as { status?: string; addon_slug?: string };
+          if (row.status === "paid" && row.addon_slug) {
+            handleConfirmed({ type: "addon", slug: row.addon_slug });
+          }
+        },
+      )
+      .subscribe();
+
+    const channelSub = supabase
+      .channel(`pix-sub-${paymentId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "tenant_subscriptions",
+          filter: `gateway_subscription_id=eq.${paymentId}`,
+        },
+        (payload) => {
+          const row = payload.new as { status?: string; plan_slug?: string };
+          if (row.status === "active" && row.plan_slug) {
+            handleConfirmed({ type: "plan", slug: row.plan_slug });
+          }
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channelAddon);
+      supabase.removeChannel(channelSub);
+    };
+  }, [open, data?.paymentId, onOpenChange, navigate]);
 
   const handleCopy = async () => {
     if (!data?.qrCodeText) return;
@@ -73,6 +160,14 @@ export const PixCheckoutModal = ({
           <p className="py-8 text-center text-sm text-muted-foreground">
             Erro ao gerar cobrança. Tenta de novo.
           </p>
+        ) : confirmed ? (
+          <div className="flex h-72 flex-col items-center justify-center gap-3 text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gold/20 ring-2 ring-gold">
+              <Check className="h-8 w-8 text-gold" />
+            </div>
+            <p className="font-display text-2xl text-primary">Pagamento confirmado</p>
+            <p className="text-xs text-muted-foreground">Levando você ao seu painel…</p>
+          </div>
         ) : (
           <div className="space-y-4">
             {/* Valor */}

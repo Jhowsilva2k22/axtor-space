@@ -16,6 +16,7 @@ import { BioFullPreview } from "@/components/bio/BioFullPreview";
 import { BioThemePickerStandalone } from "@/components/bio/BioThemePickerStandalone";
 import { MediaGallery } from "@/components/bio/MediaGallery";
 import { MetricsDashboard } from "@/components/bio/MetricsDashboard";
+import { ActivationBanner } from "@/components/ActivationBanner";
 
 const PLAN_LABELS: Record<string, string> = {
   free: "Free",
@@ -87,6 +88,10 @@ export default function Painel() {
             <TenantSelector />
           </div>
         </header>
+
+        {/* Banner que aparece quando o user chega após pagar (?activated=true).
+            Botão "Ir agora" troca a aba ativa pro produto comprado. */}
+        <ActivationBanner onAction={(tab) => setActiveTab(tab)} />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-3 sm:grid-cols-5">

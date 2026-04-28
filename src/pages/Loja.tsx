@@ -11,6 +11,10 @@ import {
   type CreatePaymentResult,
 } from "@/hooks/useStoreCheckout";
 import { PixCheckoutModal } from "@/components/store/PixCheckoutModal";
+import {
+  PaymentDataModal,
+  type PaymentSubmitData,
+} from "@/components/store/PaymentDataModal";
 
 /**
  * Onda 4 Fase 6 — Loja do tenant.
@@ -46,6 +50,12 @@ const Loja = () => {
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [paymentData, setPaymentData] = useState<CreatePaymentResult | null>(null);
+  // Modal de coleta de dados (nome/CPF/email/consent) — abre antes do checkout
+  const [dataModalOpen, setDataModalOpen] = useState(false);
+  const [pendingPurchase, setPendingPurchase] = useState<{
+    planSlug?: string;
+    addonSlug?: string;
+  } | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -95,21 +105,34 @@ const Loja = () => {
     current.plan === "tester" ||
     current.plan === "owner";
 
-  const buy = async (input: { planSlug?: string; addonSlug?: string }) => {
+  // Click no botão "Comprar" — só registra a intenção e abre o modal de dados.
+  // O checkout em si é disparado depois que o user submete o form com nome/CPF.
+  const buy = (input: { planSlug?: string; addonSlug?: string }) => {
+    setPendingPurchase(input);
+    setDataModalOpen(true);
+  };
+
+  // Submissão do PaymentDataModal: aqui sim chama a Edge Function de checkout.
+  const handlePaymentSubmit = async (data: PaymentSubmitData) => {
+    if (!pendingPurchase || !current) return;
+    setDataModalOpen(false);
     setModalOpen(true);
     setPaymentData(null);
     try {
       const result = await checkout.mutateAsync({
         tenantId: current.id,
-        planSlug: input.planSlug,
-        addonSlug: input.addonSlug,
-        customerEmail: user.email ?? undefined,
-        customerName: current.display_name,
+        planSlug: pendingPurchase.planSlug,
+        addonSlug: pendingPurchase.addonSlug,
+        customerName: data.customerName,
+        customerCpf: data.customerCpf,
+        customerEmail: data.customerEmail || user.email || undefined,
       });
       setPaymentData(result);
     } catch (e) {
       setModalOpen(false);
       alert(`Erro: ${(e as Error).message}`);
+    } finally {
+      setPendingPurchase(null);
     }
   };
 
@@ -242,6 +265,18 @@ const Loja = () => {
           </div>
         )}
       </div>
+
+      <PaymentDataModal
+        open={dataModalOpen}
+        onOpenChange={(v) => {
+          setDataModalOpen(v);
+          if (!v) setPendingPurchase(null);
+        }}
+        defaultName={current.display_name ?? ""}
+        defaultEmail={user.email ?? ""}
+        loading={checkout.isPending}
+        onSubmit={handlePaymentSubmit}
+      />
 
       <PixCheckoutModal
         open={modalOpen}
