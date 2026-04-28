@@ -35,10 +35,13 @@ export const BioHeaderEditorStandalone = ({
   tenantId,
   slug,
   displayName,
+  onCfgChange,
 }: {
   tenantId: string;
   slug: string;
   displayName: string;
+  /** Callback opcional pra exibir mudanças locais ao vivo no preview. */
+  onCfgChange?: (cfg: BioHeaderConfig) => void;
 }) => {
   const queryClient = useQueryClient();
   const [row, setRow] = useState<DbBioConfig | null>(null);
@@ -110,7 +113,20 @@ export const BioHeaderEditorStandalone = ({
   };
 
   const handleUpdate = (patch: Partial<BioHeaderConfig>) => {
-    setRow((r) => (r ? { ...r, ...patch } : r));
+    setRow((r) => {
+      const next = r ? { ...r, ...patch } : r;
+      if (next && onCfgChange) {
+        onCfgChange({
+          display_name: next.display_name ?? "",
+          headline: next.headline ?? "",
+          sub_headline: next.sub_headline,
+          avatar_url: next.avatar_url,
+          cover_url: next.cover_url,
+          footer_text: next.footer_text,
+        });
+      }
+      return next;
+    });
   };
 
   const handleSave = async () => {

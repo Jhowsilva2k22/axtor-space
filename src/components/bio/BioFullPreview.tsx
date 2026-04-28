@@ -88,9 +88,15 @@ const RenderIcon = ({ name }: { name: string | null }) => {
 export const BioFullPreview = ({
   tenantId,
   slug,
+  liveConfig,
+  liveBlocks,
 }: {
   tenantId: string;
   slug: string;
+  /** State local do editor de cabeçalho — sobrescreve o que vem do banco. */
+  liveConfig?: Partial<Cfg> | null;
+  /** State local do editor de blocos — sobrescreve o que vem do banco. */
+  liveBlocks?: Block[];
 }) => {
   const { data, isLoading, isFetching } = useQuery({
     queryKey: QUERY_KEY(tenantId),
@@ -108,7 +114,14 @@ export const BioFullPreview = ({
     );
   }
 
-  const { config, blocks, categories } = data;
+  // Live state sobrescreve o do banco (preview reflete a edição imediatamente).
+  const config: Cfg | null = liveConfig
+    ? { ...(data.config ?? ({} as Cfg)), ...liveConfig }
+    : data.config;
+  const blocks: Block[] = liveBlocks
+    ? liveBlocks.filter((b) => b.is_active)
+    : data.blocks;
+  const { categories } = data;
   const displayName = config?.display_name?.trim() || "Seu nome aqui";
   const headline = config?.headline?.trim() || "Sua headline em uma linha";
   const subHeadline = config?.sub_headline?.trim() || null;

@@ -43,7 +43,14 @@ const DRAFT_FIELDS: (keyof Block)[] = [
   "category_id",
 ];
 
-export const BioBlocksManagerStandalone = ({ tenantId }: { tenantId: string }) => {
+export const BioBlocksManagerStandalone = ({
+  tenantId,
+  onBlocksChange,
+}: {
+  tenantId: string;
+  /** Callback opcional pra refletir state local em tempo real no preview. */
+  onBlocksChange?: (blocks: Block[]) => void;
+}) => {
   const queryClient = useQueryClient();
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -59,6 +66,12 @@ export const BioBlocksManagerStandalone = ({ tenantId }: { tenantId: string }) =
   const invalidatePreview = () => {
     queryClient.invalidateQueries({ queryKey: useBioPreviewQueryKey(tenantId) });
   };
+
+  // Notifica state local pro preview ao vivo do Painel.
+  useEffect(() => {
+    onBlocksChange?.(blocks);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [blocks]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
