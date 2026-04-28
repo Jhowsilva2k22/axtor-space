@@ -113,21 +113,22 @@ export const BioHeaderEditorStandalone = ({
   };
 
   const handleUpdate = (patch: Partial<BioHeaderConfig>) => {
-    setRow((r) => {
-      const next = r ? { ...r, ...patch } : r;
-      if (next && onCfgChange) {
-        onCfgChange({
-          display_name: next.display_name ?? "",
-          headline: next.headline ?? "",
-          sub_headline: next.sub_headline,
-          avatar_url: next.avatar_url,
-          cover_url: next.cover_url,
-          footer_text: next.footer_text,
-        });
-      }
-      return next;
-    });
+    setRow((r) => (r ? { ...r, ...patch } : r));
   };
+
+  // Notifica state local pro preview ao vivo (após o setState comprometer).
+  useEffect(() => {
+    if (!row || !onCfgChange) return;
+    onCfgChange({
+      display_name: row.display_name ?? "",
+      headline: row.headline ?? "",
+      sub_headline: row.sub_headline,
+      avatar_url: row.avatar_url,
+      cover_url: row.cover_url,
+      footer_text: row.footer_text,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [row]);
 
   const handleSave = async () => {
     if (!row) return;

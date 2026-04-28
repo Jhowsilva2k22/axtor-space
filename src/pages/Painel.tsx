@@ -287,21 +287,11 @@ const BioTabPanel = ({
     [],
   );
 
-  const handleBlocksChange = useCallback(
-    (blocks: Array<{
-      id: string;
-      label: string;
-      url: string;
-      icon: string | null;
-      badge: string | null;
-      is_active: boolean;
-      position: number;
-      highlight: boolean;
-      category_id: string | null;
-    }>) => {
-      // Aplicar viewBlock-equivalent: se há draft, usar o draft (Painel novo
-      // mostra o draft em editing pra preview ser fiel ao que o user vê).
-      setLiveBlocks(blocks.map((b) => ({
+  // Aceita Block[] do bio/types — subset (label/url/icon/badge/etc) já presente.
+  // Cast pra desacoplar tipos. Painel só precisa dos campos visuais pro preview.
+  const handleBlocksChange = useCallback((blocks: any[]) => {
+    setLiveBlocks(
+      blocks.map((b) => ({
         id: b.id,
         label: b.label,
         url: b.url,
@@ -311,10 +301,9 @@ const BioTabPanel = ({
         position: b.position,
         highlight: b.highlight,
         category_id: b.category_id,
-      })));
-    },
-    [],
-  );
+      })),
+    );
+  }, []);
 
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_400px]">
@@ -327,7 +316,7 @@ const BioTabPanel = ({
         />
         <BioBlocksManagerStandalone
           tenantId={tenantId}
-          onBlocksChange={handleBlocksChange as never}
+          onBlocksChange={handleBlocksChange}
         />
         <CategoriesManager tenantId={tenantId} />
         <BioRemainingSectionsCard />
