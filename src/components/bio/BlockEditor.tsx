@@ -104,8 +104,6 @@ export const BlockEditor = ({
       ref={setNodeRef}
       style={style}
       className={`min-w-0 overflow-hidden rounded-sm border p-2 sm:p-2.5 transition-all ${
-        isExpanded ? "lg:col-span-2" : ""
-      } ${
         hasDraft
           ? "border-yellow-500/70 bg-yellow-500/[0.04]"
           : block.is_active
