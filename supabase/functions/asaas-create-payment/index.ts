@@ -155,8 +155,9 @@ Deno.serve(async (req) => {
     return jsonResponse(403, { error: "Sem permissão pra esse tenant" }, origin);
   }
 
-  // 4. Determina valor da cobrança
-  let valor = 0;
+  // 4. Determina valor da cobrança — separa plan e addon pra registrar em tabelas distintas depois
+  let planValor = 0;
+  let addonValor = 0;
   let descricao = "";
 
   if (plan_slug) {
@@ -168,7 +169,7 @@ Deno.serve(async (req) => {
     if (!plan?.price_monthly) {
       return jsonResponse(400, { error: "Plano sem preço definido" }, origin);
     }
-    valor = Number(plan.price_monthly);
+    planValor = Number(plan.price_monthly);
     descricao = `Plano ${plan.plan_slug.toUpperCase()} - mensal - ${tenantRow.display_name}`;
   }
 
@@ -180,12 +181,13 @@ Deno.serve(async (req) => {
       .eq("is_active", true)
       .maybeSingle();
     if (!addon) return jsonResponse(400, { error: "Addon não encontrado" }, origin);
-    valor += Number(addon.price_brl);
+    addonValor = Number(addon.price_brl);
     descricao = descricao
       ? `${descricao} + Addon ${addon.name}`
       : `Addon ${addon.name} - ${tenantRow.display_name}`;
   }
 
+  const valor = planValor + addonValor;
   if (valor <= 0) {
     return jsonResponse(400, { error: "Valor inválido" }, origin);
   }
@@ -217,8 +219,10 @@ Deno.serve(async (req) => {
     return jsonResponse(502, { error: "Falha de comunicação com Asaas" }, origin);
   }
 
-  // 6. Cria cobrança Pix
-  const dueDate = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split("T")[0]; // amanhã
+  // 6. Cria cobrança Pix — vencimento em 3 dias úteis pra suportar Pix agendado
+  //    e dar folga pro cliente. Quando o cliente agenda no app do banco, o Asaas
+  //    mantém pendente até a data, e o webhook dispara assim que compensar.
+  const dueDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
   const paymentRes = await fetch(`${ASAAS_API_URL}/payments`, {
     method: "POST",
     headers: { "Content-Type": "application/json", access_token: asaasKey },
@@ -243,16 +247,35 @@ Deno.serve(async (req) => {
   });
   const qrData = await qrRes.json();
 
-  // 8. Registra subscription pending (somente plan)
+  // 8. Registra pending no banco — plano vai pra tenant_subscriptions, addon avulso pra tenant_addons.
+  //    Caso compre os dois juntos (Pro + Addon), grava em ambas.
   if (plan_slug) {
-    await supabaseAdmin.from("tenant_subscriptions").insert({
+    const { error: subErr } = await supabaseAdmin.from("tenant_subscriptions").insert({
       tenant_id,
       plan_slug,
+      billing_cycle: "monthly",
       gateway: "asaas",
       gateway_subscription_id: paymentData.id,
-      final_price_brl: valor,
+      final_price_brl: planValor,
       status: "pending",
     });
+    if (subErr) {
+      console.error("[asaas-create-payment] insert subscription falhou", subErr);
+    }
+  }
+
+  if (addon_slug) {
+    const { error: addonErr } = await supabaseAdmin.from("tenant_addons").insert({
+      tenant_id,
+      addon_slug,
+      gateway: "asaas",
+      gateway_payment_id: paymentData.id,
+      value_brl: addonValor,
+      status: "pending",
+    });
+    if (addonErr) {
+      console.error("[asaas-create-payment] insert addon falhou", addonErr);
+    }
   }
 
   return jsonResponse(

@@ -23,6 +23,10 @@ type BriefingProduct = {
   session_duration: string;
   plan_duration: string;
   link: string;
+  tipo_entrega: string;
+  publico_alvo: string;
+  diferencial: string;
+  bonus_garantia: string;
 };
 
 const BRIEFING_FIELDS = [
@@ -49,7 +53,7 @@ export default function DeepDiagnosticEditor() {
   const [step, setStep] = useState<Step>("list");
   const [briefing, setBriefing] = useState<Record<string, string>>({});
   const [briefingProducts, setBriefingProducts] = useState<BriefingProduct[]>([
-    { name: "", description: "", price_hint: "", session_duration: "", plan_duration: "", link: "" },
+    { name: "", description: "", price_hint: "", session_duration: "", plan_duration: "", link: "", tipo_entrega: "", publico_alvo: "", diferencial: "", bonus_garantia: "" },
   ]);
   const [generating, setGenerating] = useState(false);
   const [activeFunnelId, setActiveFunnelId] = useState<string | null>(null);
@@ -372,7 +376,7 @@ export default function DeepDiagnosticEditor() {
               <div>
                 <h2 className="font-display text-lg">Seus produtos / serviços principais</h2>
                 <p className="text-xs text-muted-foreground">
-                  Liste de 1 a 5 ofertas (entrada, intermediária e topo). A IA vai recomendar essas como solução pra cada dor detectada. Se deixar vazio, ela inventa sugestões genéricas.
+                  Liste os produtos que você de fato vende. A IA vai usar exatamente esses como solução pra cada dor que diagnosticar — não inventa nada.
                 </p>
               </div>
               <div className="space-y-3">
@@ -455,6 +459,46 @@ export default function DeepDiagnosticEditor() {
                         }
                       />
                     </div>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      <Input
+                        placeholder="Tipo de entrega (ex: 1:1, grupo, app, presencial)"
+                        value={p.tipo_entrega}
+                        onChange={(e) =>
+                          setBriefingProducts((prev) =>
+                            prev.map((x, i) => (i === idx ? { ...x, tipo_entrega: e.target.value } : x)),
+                          )
+                        }
+                      />
+                      <Input
+                        placeholder="Público-alvo deste produto"
+                        value={p.publico_alvo}
+                        onChange={(e) =>
+                          setBriefingProducts((prev) =>
+                            prev.map((x, i) => (i === idx ? { ...x, publico_alvo: e.target.value } : x)),
+                          )
+                        }
+                      />
+                    </div>
+                    <Textarea
+                      placeholder="Diferencial deste produto (o que só ele entrega)"
+                      rows={2}
+                      value={p.diferencial}
+                      onChange={(e) =>
+                        setBriefingProducts((prev) =>
+                          prev.map((x, i) => (i === idx ? { ...x, diferencial: e.target.value } : x)),
+                        )
+                      }
+                    />
+                    <Textarea
+                      placeholder="Bônus / garantia incluídos (opcional)"
+                      rows={2}
+                      value={p.bonus_garantia}
+                      onChange={(e) =>
+                        setBriefingProducts((prev) =>
+                          prev.map((x, i) => (i === idx ? { ...x, bonus_garantia: e.target.value } : x)),
+                        )
+                      }
+                    />
                     <p className="text-[10px] text-muted-foreground">
                       Esses campos são SEUS — a IA nunca inventa duração nem valor.
                     </p>
@@ -470,7 +514,7 @@ export default function DeepDiagnosticEditor() {
                   onClick={() =>
                     setBriefingProducts((prev) => [
                       ...prev,
-                      { name: "", description: "", price_hint: "", session_duration: "", plan_duration: "", link: "" },
+                      { name: "", description: "", price_hint: "", session_duration: "", plan_duration: "", link: "", tipo_entrega: "", publico_alvo: "", diferencial: "", bonus_garantia: "" },
                     ])
                   }
                 >
@@ -480,7 +524,11 @@ export default function DeepDiagnosticEditor() {
             </div>
             <div className="flex justify-between gap-3">
               <Button variant="ghost" onClick={() => setStep("list")}>Cancelar</Button>
-              <Button onClick={handleGenerate} className="gap-2 transition-transform hover:scale-[1.02]">
+              <Button
+                onClick={handleGenerate}
+                disabled={!briefingProducts.some((p) => p.name.trim() && p.description.trim())}
+                className="gap-2 transition-transform hover:scale-[1.02]"
+              >
                 <Sparkles className="h-4 w-4" /> Gerar funil com IA
               </Button>
             </div>

@@ -41,6 +41,8 @@ const DeepFunnelPublic = lazy(() => import("./pages/DeepFunnelPublic.tsx"));
 const DeepFunnelThankYou = lazy(() => import("./pages/DeepFunnelThankYou.tsx"));
 const Painel = lazy(() => import("./pages/Painel.tsx"));
 const Loja = lazy(() => import("./pages/Loja.tsx"));
+const BemVindo = lazy(() => import("./pages/BemVindo.tsx"));
+const Privacidade = lazy(() => import("./pages/Privacidade.tsx"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -93,6 +95,8 @@ const App = () => (
             <Route path="/painel" element={<Painel />} />
             <Route path="/painel/loja" element={<Loja />} />
             <Route path="/loja" element={<Loja />} />
+            <Route path="/bem-vindo" element={<BemVindo />} />
+            <Route path="/privacidade" element={<Privacidade />} />
             <Route path="/d/funnel/:slug" element={<DeepFunnelPublic />} />
             <Route path="/obrigado/:slug" element={<DeepFunnelThankYou />} />
             <Route path="/unsubscribe" element={<Unsubscribe />} />

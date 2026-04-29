@@ -65,9 +65,10 @@ Deno.serve(async (req) => {
 
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-  // 3. Roteia por evento
+  // 3. Roteia por evento — atualiza tenant_subscriptions (planos) e tenant_addons (compras avulsas).
+  //    O mesmo paymentId pode estar em ambas se foi compra Pro+Addon junto.
   if (event === "PAYMENT_RECEIVED" || event === "PAYMENT_CONFIRMED") {
-    // Marca subscription como ativa
+    // 3a. Subscription (plano recorrente)
     const { data: subRow } = await supabase
       .from("tenant_subscriptions")
       .select("id, tenant_id, plan_slug")
@@ -84,29 +85,48 @@ Deno.serve(async (req) => {
         })
         .eq("id", subRow.id);
 
-      // Atualiza tenants.plan
       if (subRow.plan_slug && subRow.tenant_id) {
         await supabase
           .from("tenants")
           .update({ plan: subRow.plan_slug })
           .eq("id", subRow.tenant_id);
       }
-
       console.log("[asaas-webhook] sub %s ativada", subRow.id);
-    } else {
-      // Pode ser pagamento de addon avulso (não criou subscription) — TODO mapear
-      console.log("[asaas-webhook] payment recebido sem subscription — possível addon avulso", paymentId);
+    }
+
+    // 3b. Addons avulsos (a mesma cobrança pode trazer um ou mais)
+    const { data: addonRows, error: addonErr } = await supabase
+      .from("tenant_addons")
+      .update({ status: "paid" })
+      .eq("gateway_payment_id", paymentId)
+      .select("id, addon_slug, tenant_id");
+
+    if (addonErr) {
+      console.error("[asaas-webhook] update addons falhou", addonErr);
+    } else if (addonRows && addonRows.length > 0) {
+      console.log("[asaas-webhook] %d addon(s) marcado(s) como pagos", addonRows.length);
+    } else if (!subRow) {
+      // Nem sub nem addon — pagamento órfão
+      console.warn("[asaas-webhook] payment %s sem subscription nem addon", paymentId);
     }
   } else if (event === "PAYMENT_OVERDUE") {
     await supabase
       .from("tenant_subscriptions")
       .update({ status: "past_due" })
       .eq("gateway_subscription_id", paymentId);
+    await supabase
+      .from("tenant_addons")
+      .update({ status: "pending" })
+      .eq("gateway_payment_id", paymentId);
   } else if (event === "PAYMENT_REFUNDED" || event === "PAYMENT_DELETED") {
     await supabase
       .from("tenant_subscriptions")
       .update({ status: "canceled" })
       .eq("gateway_subscription_id", paymentId);
+    await supabase
+      .from("tenant_addons")
+      .update({ status: "refunded" })
+      .eq("gateway_payment_id", paymentId);
   }
 
   return okResponse();
