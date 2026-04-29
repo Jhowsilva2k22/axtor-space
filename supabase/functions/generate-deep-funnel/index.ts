@@ -141,6 +141,15 @@ Deno.serve(async (req) => {
       });
     }
 
+    const products = Array.isArray(briefing?.products) ? briefing.products : [];
+    const validProducts = products.filter((p: any) => p?.name && p?.description);
+    if (validProducts.length === 0) {
+      return new Response(JSON.stringify({ error: "missing_products" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Valida ownership + addon
     const { data: tenant } = await admin
       .from("tenants")
