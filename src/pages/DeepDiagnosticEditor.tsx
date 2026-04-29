@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Sparkles, Loader2, ExternalLink, Trash2, Plus, ChevronDown, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useDeepDiagnostic } from "@/hooks/useDeepDiagnostic";
@@ -77,6 +77,14 @@ export default function DeepDiagnosticEditor() {
       setIsDirty(true);
     }
   }, [briefing, briefingProducts]);
+
+  const [searchParams] = useSearchParams();
+  useEffect(() => {
+    const fid = searchParams.get("funnelId");
+    if (fid && funnels.length > 0 && activeFunnelId !== fid) {
+      loadFunnel(fid);
+    }
+  }, [searchParams, funnels, activeFunnelId]);
 
   const loadFunnel = async (id: string) => {
     setActiveFunnelId(id);

@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { Loader2, Lock } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,6 +7,7 @@ import { TenantSelector } from "@/components/TenantSelector";
 import { useAuth } from "@/hooks/useAuth";
 import { useCurrentTenant } from "@/hooks/useCurrentTenant";
 import { useCanAccessTab } from "@/hooks/useCanAccessTab";
+import { useDeepDiagnostic } from "@/hooks/useDeepDiagnostic";
 import { CaptureConfigForm } from "@/components/CaptureConfigForm";
 import { PainelHeaderActions } from "@/components/PainelHeaderActions";
 import { BioHeaderEditorStandalone } from "@/components/bio/BioHeaderEditorStandalone";
@@ -17,6 +18,7 @@ import { BioThemePickerStandalone } from "@/components/bio/BioThemePickerStandal
 import { MediaGallery } from "@/components/bio/MediaGallery";
 import { MetricsDashboard } from "@/components/bio/MetricsDashboard";
 import { ActivationBanner } from "@/components/ActivationBanner";
+import { FunnelListView } from "@/components/imersivo/FunnelListView";
 
 const PLAN_LABELS: Record<string, string> = {
   free: "Free",
@@ -131,7 +133,7 @@ export default function Painel() {
 
           <TabsContent value="imersivo" className="mt-6">
             {accessImersivo.canAccess ? (
-              <DeepDiagnosticBridgeCard />
+              <DeepDiagnosticTabPanel />
             ) : (
               <UpgradeBlock title="Diagnóstico Imersivo" />
             )}
@@ -353,25 +355,27 @@ const BioRemainingSectionsCard = () => (
 );
 
 /**
- * Bridge temporário pra aba Diagnóstico Imersivo: leva pro editor maduro do
- * Deep Funnel em /admin/deep-diagnostic enquanto consolidamos no Painel novo.
+ * Container da aba Diagnóstico Imersivo: carrega os funis via useDeepDiagnostic
+ * e delega o render pro FunnelListView (presentacional puro). Navegação pro
+ * editor é por query param (?funnelId=xxx) — Opção B.
  */
-const DeepDiagnosticBridgeCard = () => (
-  <Card className="p-12 text-center">
-    <span className="mb-4 inline-block rounded-full border border-gold/40 bg-gold/5 px-3 py-1 text-[10px] uppercase tracking-widest text-gold">
-      Em consolidação
-    </span>
-    <h2 className="mb-3 font-display text-2xl">Editor do Diagnóstico Imersivo</h2>
-    <p className="mx-auto max-w-lg text-sm text-muted-foreground">
-      Funil profundo com perguntas, produtos, pain tags e CTAs. O editor
-      completo está no painel anterior; vamos consolidar aqui em ondas futuras
-      sem quebrar o que já funciona.
-    </p>
-    <a
-      href="/admin/deep-diagnostic"
-      className="mt-6 inline-flex items-center justify-center gap-2 rounded-md bg-gold px-5 py-2.5 text-sm font-medium text-black transition hover:opacity-90"
-    >
-      Abrir editor completo →
-    </a>
-  </Card>
-);
+const DeepDiagnosticTabPanel = () => {
+  const navigate = useNavigate();
+  const { funnels, loading } = useDeepDiagnostic();
+
+  if (loading) {
+    return (
+      <Card className="flex items-center justify-center p-12">
+        <Loader2 className="h-5 w-5 animate-spin text-primary" />
+      </Card>
+    );
+  }
+
+  return (
+    <FunnelListView
+      funnels={funnels}
+      onNew={() => navigate("/admin/deep-diagnostic")}
+      onEdit={(funnelId) => navigate(`/admin/deep-diagnostic?funnelId=${funnelId}`)}
+    />
+  );
+};
