@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Sparkles, Loader2, ExternalLink, Trash2, Plus, ChevronDown, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useDeepDiagnostic } from "@/hooks/useDeepDiagnostic";
@@ -14,54 +14,16 @@ import { toast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { ImageUploadWithCrop } from "@/components/ImageUploadWithCrop";
 
-type Step = "list" | "briefing" | "generating" | "review";
-
-type BriefingProduct = {
-  name: string;
-  description: string;
-  price_hint: string;
-  session_duration: string;
-  plan_duration: string;
-  link: string;
-  tipo_entrega: string;
-  publico_alvo: string;
-  diferencial: string;
-  bonus_garantia: string;
-};
-
-const BRIEFING_FIELDS = [
-  { key: "business_name", label: "Nome do seu negócio/marca", placeholder: "Ex: Sua Marca Consultoria" },
-  { key: "niche", label: "Nicho específico", placeholder: "Ex: Mentoria pra um público específico que você atende" },
-  { key: "ideal_client", label: "Quem é seu cliente ideal? (perfil, idade, momento)", placeholder: "Ex: Faixa etária, profissão, momento de vida e faturamento médio" },
-  { key: "main_pain", label: "Qual a maior dor que você resolve?", placeholder: "Ex: A principal frustração que seu cliente sente hoje" },
-  { key: "transformation", label: "Que transformação você entrega?", placeholder: "Ex: De [estado atual] para [estado desejado] em [prazo]" },
-  { key: "tone_of_voice", label: "Tom de voz (3-5 adjetivos)", placeholder: "Ex: Direto, acolhedor, sem floreio, prático" },
-  { key: "objections", label: "Top 3 objeções que você mais escuta", placeholder: "Ex: Não tenho tempo / Já tentei e não deu certo / É caro" },
-  { key: "best_offer", label: "Sua oferta principal hoje (preço médio)", placeholder: "Ex: Nome do produto/serviço + duração + faixa de preço" },
-  { key: "channels", label: "Por onde vendem hoje?", placeholder: "Ex: Instagram + WhatsApp + indicação" },
-  { key: "competitors", label: "2-3 concorrentes que você admira", placeholder: "Ex: @perfil1, @perfil2" },
-  { key: "differentials", label: "O que te torna diferente?", placeholder: "Ex: Método, ferramenta ou abordagem que só você tem" },
-  { key: "results", label: "Maior resultado que entregou", placeholder: "Ex: Resultado concreto e mensurável de um cliente real" },
-  { key: "format", label: "Formato preferido de entrega", placeholder: "Ex: 1:1, grupo, app, presencial — combine como preferir" },
-  { key: "ai_use", label: "Você já usa IA no seu negócio? Como?", placeholder: "Ex: Pra roteiros, atendimento, planejamento — ou ainda não uso" },
-  { key: "goal_3_months", label: "Sua meta nos próximos 3 meses", placeholder: "Ex: Faturamento, número de clientes ou marco que quer bater" },
-];
-
 export default function DeepDiagnosticEditor() {
   const navigate = useNavigate();
   const { hasAddon, funnels, loading, refresh, tenantId } = useDeepDiagnostic();
-  const [step, setStep] = useState<Step>("list");
-  const [briefing, setBriefing] = useState<Record<string, string>>({});
-  const [briefingProducts, setBriefingProducts] = useState<BriefingProduct[]>([
-    { name: "", description: "", price_hint: "", session_duration: "", plan_duration: "", link: "", tipo_entrega: "", publico_alvo: "", diferencial: "", bonus_garantia: "" },
-  ]);
-  const [generating, setGenerating] = useState(false);
   const [activeFunnelId, setActiveFunnelId] = useState<string | null>(null);
   const [questions, setQuestions] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [funnel, setFunnel] = useState<any>(null);
 
-  const [isDirty, setIsDirty] = useState(false);
+  const [searchParams] = useSearchParams();
+  const funnelId = searchParams.get("funnelId");
 
   useEffect(() => {
     if (!loading && hasAddon === false) {
@@ -69,22 +31,11 @@ export default function DeepDiagnosticEditor() {
     }
   }, [hasAddon, loading, navigate]);
 
-  // Monitora alterações para evitar recarregamento automático
   useEffect(() => {
-    const hasBriefingData = Object.values(briefing).some(v => v.trim().length > 0);
-    const hasProductData = briefingProducts.some(p => p.name.trim().length > 0);
-    if (hasBriefingData || hasProductData) {
-      setIsDirty(true);
+    if (funnelId && funnels.length > 0 && activeFunnelId !== funnelId) {
+      loadFunnel(funnelId);
     }
-  }, [briefing, briefingProducts]);
-
-  const [searchParams] = useSearchParams();
-  useEffect(() => {
-    const fid = searchParams.get("funnelId");
-    if (fid && funnels.length > 0 && activeFunnelId !== fid) {
-      loadFunnel(fid);
-    }
-  }, [searchParams, funnels, activeFunnelId]);
+  }, [funnelId, funnels, activeFunnelId]);
 
   const loadFunnel = async (id: string) => {
     setActiveFunnelId(id);
@@ -96,48 +47,6 @@ export default function DeepDiagnosticEditor() {
     setFunnel(f);
     setQuestions(qs ?? []);
     setProducts(ps ?? []);
-    setStep("review");
-  };
-
-  const handleGenerate = async () => {
-    if (!tenantId) return;
-    const required = ["business_name", "niche", "ideal_client", "main_pain", "transformation"];
-    const missing = required.filter((k) => !briefing[k]?.trim());
-    if (missing.length) {
-      toast({ title: "Preencha os campos essenciais", description: missing.join(", "), variant: "destructive" });
-      return;
-    }
-    setStep("generating");
-    setGenerating(true);
-    try {
-      const cleanProducts = briefingProducts
-        .map((p) => ({
-          name: p.name.trim(),
-          description: p.description.trim(),
-          price_hint: p.price_hint.trim(),
-          session_duration: p.session_duration.trim(),
-          plan_duration: p.plan_duration.trim(),
-          link: p.link.trim(),
-        }))
-        .filter((p) => p.name.length > 0);
-      const { data, error } = await supabase.functions.invoke("generate-deep-funnel", {
-        body: {
-          tenant_id: tenantId,
-          briefing: { ...briefing, products: cleanProducts },
-        },
-      });
-      if (error) throw error;
-      if ((data as any)?.error) throw new Error((data as any).error);
-      toast({ title: "Funil gerado!", description: "Revise as perguntas e produtos abaixo." });
-      await refresh();
-      await loadFunnel((data as any).funnel_id);
-    } catch (e: any) {
-      console.error(e);
-      toast({ title: "Erro ao gerar funil", description: e?.message ?? "Tente novamente", variant: "destructive" });
-      setStep("briefing");
-    } finally {
-      setGenerating(false);
-    }
   };
 
   const updateQuestion = (idx: number, patch: any) => {
@@ -276,6 +185,8 @@ export default function DeepDiagnosticEditor() {
     );
   }
 
+  if (!funnelId) return <Navigate to="/painel?tab=imersivo" replace />;
+
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-4xl px-4 py-8">
@@ -288,285 +199,7 @@ export default function DeepDiagnosticEditor() {
           </div>
         </div>
 
-        {step === "list" && (
-          <motion.div
-            key="list"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            className="space-y-6"
-          >
-            <div className="flex items-center justify-between">
-              <h1 className="font-display text-3xl">Seus funis</h1>
-              <Button onClick={() => setStep("briefing")} className="gap-2">
-                <Plus className="h-4 w-4" /> Novo funil
-              </Button>
-            </div>
-            {funnels.length === 0 && (
-              <Card className="p-8 text-center">
-                <p className="text-muted-foreground">Você ainda não criou nenhum funil. Comece pelo briefing.</p>
-                <Button className="mt-4" onClick={() => setStep("briefing")}>Criar meu primeiro funil</Button>
-              </Card>
-            )}
-            {funnels.map((f, i) => (
-              <motion.div
-                key={f.id}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.05 + i * 0.04, duration: 0.25 }}
-              >
-              <Card className="flex items-center justify-between gap-4 p-5 transition-colors hover:border-primary/40">
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="truncate font-medium">{f.name}</h3>
-                    {f.is_published ? (
-                      <Badge variant="default">Publicado</Badge>
-                    ) : (
-                      <Badge variant="secondary">Rascunho</Badge>
-                    )}
-                  </div>
-                  <p className="truncate text-xs text-muted-foreground">/d/funnel/{f.slug}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  {f.is_published && (
-                    <Button variant="outline" size="sm" asChild>
-                      <a href={`/d/funnel/${f.slug}`} target="_blank" rel="noreferrer" className="gap-1">
-                        <ExternalLink className="h-3 w-3" /> Ver
-                      </a>
-                    </Button>
-                  )}
-                  <Button size="sm" onClick={() => loadFunnel(f.id)}>Editar</Button>
-                </div>
-              </Card>
-              </motion.div>
-            ))}
-          </motion.div>
-        )}
-
-        {step === "briefing" && (
-          <motion.div
-            key="briefing"
-            initial={{ opacity: 0, x: 16 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-          <Card className="space-y-6 p-6 md:p-8">
-            <div>
-              <h1 className="font-display text-2xl">Briefing profundo</h1>
-              <p className="text-sm text-muted-foreground">
-                Quanto mais detalhe você der, mais sob medida o funil fica. Os 5 primeiros campos são obrigatórios.
-              </p>
-            </div>
-            <div className="space-y-4">
-              {BRIEFING_FIELDS.map((f, i) => (
-                <motion.div
-                  key={f.key}
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.05 + i * 0.025, duration: 0.25 }}
-                  className="space-y-1.5"
-                >
-                  <Label htmlFor={f.key}>
-                    {f.label}
-                    {i < 5 && <span className="text-destructive"> *</span>}
-                  </Label>
-                  <Textarea
-                    id={f.key}
-                    placeholder={f.placeholder}
-                    value={briefing[f.key] ?? ""}
-                    onChange={(e) => setBriefing({ ...briefing, [f.key]: e.target.value })}
-                    rows={2}
-                  />
-                </motion.div>
-              ))}
-            </div>
-            <div className="space-y-3 rounded-lg border border-border/60 bg-muted/20 p-4">
-              <div>
-                <h2 className="font-display text-lg">Seus produtos / serviços principais</h2>
-                <p className="text-xs text-muted-foreground">
-                  Liste os produtos que você de fato vende. A IA vai usar exatamente esses como solução pra cada dor que diagnosticar — não inventa nada.
-                </p>
-              </div>
-              <div className="space-y-3">
-                {briefingProducts.map((p, idx) => (
-                  <div key={idx} className="space-y-2 rounded-md border border-border/40 bg-background/40 p-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                        Produto {idx + 1}
-                      </span>
-                      {briefingProducts.length > 1 && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 gap-1 text-destructive hover:text-destructive"
-                          onClick={() =>
-                            setBriefingProducts((prev) => prev.filter((_, i) => i !== idx))
-                          }
-                        >
-                          <Trash2 className="h-3 w-3" /> Remover
-                        </Button>
-                      )}
-                    </div>
-                    <Input
-                      placeholder="Nome do produto/serviço"
-                      value={p.name}
-                      onChange={(e) =>
-                        setBriefingProducts((prev) =>
-                          prev.map((x, i) => (i === idx ? { ...x, name: e.target.value } : x)),
-                        )
-                      }
-                    />
-                    <Textarea
-                      placeholder="Descrição curta (o que entrega, pra quem)"
-                      rows={2}
-                      value={p.description}
-                      onChange={(e) =>
-                        setBriefingProducts((prev) =>
-                          prev.map((x, i) => (i === idx ? { ...x, description: e.target.value } : x)),
-                        )
-                      }
-                    />
-                    <div className="grid gap-2 sm:grid-cols-2">
-                      <Input
-                        placeholder="Preço (ex: R$ 497)"
-                        value={p.price_hint}
-                        onChange={(e) =>
-                          setBriefingProducts((prev) =>
-                            prev.map((x, i) => (i === idx ? { ...x, price_hint: e.target.value } : x)),
-                          )
-                        }
-                      />
-                      <Input
-                        placeholder="Link de checkout (opcional)"
-                        value={p.link}
-                        onChange={(e) =>
-                          setBriefingProducts((prev) =>
-                            prev.map((x, i) => (i === idx ? { ...x, link: e.target.value } : x)),
-                          )
-                        }
-                      />
-                    </div>
-                    <div className="grid gap-2 sm:grid-cols-2">
-                      <Input
-                        placeholder="Duração da sessão (ex: 1 hora)"
-                        value={p.session_duration}
-                        onChange={(e) =>
-                          setBriefingProducts((prev) =>
-                            prev.map((x, i) => (i === idx ? { ...x, session_duration: e.target.value } : x)),
-                          )
-                        }
-                      />
-                      <Input
-                        placeholder="Duração do plano (ex: 30 dias)"
-                        value={p.plan_duration}
-                        onChange={(e) =>
-                          setBriefingProducts((prev) =>
-                            prev.map((x, i) => (i === idx ? { ...x, plan_duration: e.target.value } : x)),
-                          )
-                        }
-                      />
-                    </div>
-                    <div className="grid gap-2 sm:grid-cols-2">
-                      <Input
-                        placeholder="Tipo de entrega (ex: 1:1, grupo, app, presencial)"
-                        value={p.tipo_entrega}
-                        onChange={(e) =>
-                          setBriefingProducts((prev) =>
-                            prev.map((x, i) => (i === idx ? { ...x, tipo_entrega: e.target.value } : x)),
-                          )
-                        }
-                      />
-                      <Input
-                        placeholder="Público-alvo deste produto"
-                        value={p.publico_alvo}
-                        onChange={(e) =>
-                          setBriefingProducts((prev) =>
-                            prev.map((x, i) => (i === idx ? { ...x, publico_alvo: e.target.value } : x)),
-                          )
-                        }
-                      />
-                    </div>
-                    <Textarea
-                      placeholder="Diferencial deste produto (o que só ele entrega)"
-                      rows={2}
-                      value={p.diferencial}
-                      onChange={(e) =>
-                        setBriefingProducts((prev) =>
-                          prev.map((x, i) => (i === idx ? { ...x, diferencial: e.target.value } : x)),
-                        )
-                      }
-                    />
-                    <Textarea
-                      placeholder="Bônus / garantia incluídos (opcional)"
-                      rows={2}
-                      value={p.bonus_garantia}
-                      onChange={(e) =>
-                        setBriefingProducts((prev) =>
-                          prev.map((x, i) => (i === idx ? { ...x, bonus_garantia: e.target.value } : x)),
-                        )
-                      }
-                    />
-                    <p className="text-[10px] text-muted-foreground">
-                      Esses campos são SEUS — a IA nunca inventa duração nem valor.
-                    </p>
-                  </div>
-                ))}
-              </div>
-              {briefingProducts.length < 5 && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="gap-1"
-                  onClick={() =>
-                    setBriefingProducts((prev) => [
-                      ...prev,
-                      { name: "", description: "", price_hint: "", session_duration: "", plan_duration: "", link: "", tipo_entrega: "", publico_alvo: "", diferencial: "", bonus_garantia: "" },
-                    ])
-                  }
-                >
-                  <Plus className="h-3 w-3" /> Adicionar produto
-                </Button>
-              )}
-            </div>
-            <div className="flex justify-between gap-3">
-              <Button variant="ghost" onClick={() => setStep("list")}>Cancelar</Button>
-              <Button
-                onClick={handleGenerate}
-                disabled={!briefingProducts.some((p) => p.name.trim() && p.description.trim())}
-                className="gap-2 transition-transform hover:scale-[1.02]"
-              >
-                <Sparkles className="h-4 w-4" /> Gerar funil com IA
-              </Button>
-            </div>
-          </Card>
-          </motion.div>
-        )}
-
-        {step === "generating" && (
-          <motion.div
-            key="generating"
-            initial={{ opacity: 0, scale: 0.97 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.4 }}
-          >
-          <Card className="flex flex-col items-center justify-center gap-4 p-16 text-center">
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ repeat: Infinity, duration: 1.4, ease: "linear" }}
-            >
-              <Sparkles className="h-10 w-10 text-primary" />
-            </motion.div>
-            <h2 className="font-display text-2xl">Gerando seu funil...</h2>
-            <p className="text-sm text-muted-foreground">
-              A IA está montando 12 perguntas e 5 produtos. Isso leva uns 30 segundos.
-            </p>
-          </Card>
-          </motion.div>
-        )}
-
-        {step === "review" && funnel && (
+        {funnel && (
           <motion.div
             key="review"
             initial={{ opacity: 0, y: 8 }}
@@ -579,7 +212,7 @@ export default function DeepDiagnosticEditor() {
                 <h1 className="font-display text-2xl">{funnel.name}</h1>
                 <p className="text-xs text-muted-foreground">Slug: /d/funnel/{funnel.slug}</p>
               </div>
-              <Button variant="ghost" onClick={() => { setStep("list"); setActiveFunnelId(null); }}>← Voltar</Button>
+              <Button variant="ghost" onClick={() => navigate("/painel?tab=imersivo")}>← Voltar</Button>
             </div>
 
             <Card className="space-y-4 p-6">

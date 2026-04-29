@@ -19,6 +19,7 @@ import { MediaGallery } from "@/components/bio/MediaGallery";
 import { MetricsDashboard } from "@/components/bio/MetricsDashboard";
 import { ActivationBanner } from "@/components/ActivationBanner";
 import { FunnelListView } from "@/components/imersivo/FunnelListView";
+import { BriefingWizard } from "@/components/imersivo/BriefingWizard";
 
 const PLAN_LABELS: Record<string, string> = {
   free: "Free",
@@ -361,7 +362,8 @@ const BioRemainingSectionsCard = () => (
  */
 const DeepDiagnosticTabPanel = () => {
   const navigate = useNavigate();
-  const { funnels, loading } = useDeepDiagnostic();
+  const { funnels, loading, tenantId } = useDeepDiagnostic();
+  const [view, setView] = useState<"list" | "briefing">("list");
 
   if (loading) {
     return (
@@ -371,10 +373,23 @@ const DeepDiagnosticTabPanel = () => {
     );
   }
 
+  if (view === "briefing" && tenantId) {
+    return (
+      <BriefingWizard
+        tenantId={tenantId}
+        onCancel={() => setView("list")}
+        onGenerated={(funnelId) => {
+          setView("list");
+          navigate(`/admin/deep-diagnostic?funnelId=${funnelId}`);
+        }}
+      />
+    );
+  }
+
   return (
     <FunnelListView
       funnels={funnels}
-      onNew={() => navigate("/admin/deep-diagnostic")}
+      onNew={() => setView("briefing")}
       onEdit={(funnelId) => navigate(`/admin/deep-diagnostic?funnelId=${funnelId}`)}
     />
   );
