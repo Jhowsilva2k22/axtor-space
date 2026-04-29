@@ -19,10 +19,24 @@ Tipos permitidos de pergunta: 'single' (1 escolha), 'multi' (várias), 'scale' (
 Para 'single' e 'multi': 4-5 opções. Para 'scale': use 5 opções de 1 a 5 com labels descritivos.
 
 REGRA DE PRODUTOS:
-- O dono SEMPRE define nome, preço, duração da sessão e duração do plano. Você NUNCA inventa esses 4 campos.
-- Se o briefing trouxer "products" (lista de produtos reais do dono), use EXATAMENTE esses produtos: copie nome, price_hint, session_duration e plan_duration LITERAIS do briefing — não traduza, não arredonde, não substitua. Distribua-os entre as 5 dores (marketing, gestao, vendas, ia, estrutura). Se houver menos de 5, repita os mais versáteis. Se houver mais de 5, escolha os 5 melhores.
-- Se NÃO houver produtos no briefing, deixe price_hint, session_duration e plan_duration COMO STRING VAZIA "" pra que o dono preencha depois no painel. Você ainda inventa nome e descrição persuasiva.
+- Use APENAS os produtos do briefing. Não invente nome, preço, duração, link, features, nada. Se algum campo vier vazio no briefing, mantenha vazio no output — não preencha com placeholder, não traduza, não arredonde, não substitua.
+- O briefing traz "products" com os produtos reais do dono. Copie LITERAL: name, price_hint, session_duration, plan_duration, checkout_url. Output = exatamente o que entra.
+- Se price_hint vier "A combinar", "Sob consulta", "Valor sob consulta", "" (vazio) ou similar — copie LITERAL. Nunca chute número.
+- Se checkout_url vier vazio — deixe vazio no output. Não invente URL nem aponte pra placeholder.
+- Distribua os produtos entre as 5 dores (marketing, gestao, vendas, ia, estrutura). Se houver menos produtos que dores, repita os mais versáteis. Se houver mais, escolha os melhores. Sem inventar nada novo.
 - Em todos os casos, gere um template de WhatsApp pronto pra cada produto, usando {{nome}} como placeholder do nome do lead.
+
+USO DOS CAMPOS DE CONTEXTO DO BRIEFING (quando vierem em cada produto):
+- tipo_entrega: ajuste o tom do cta_label. Casos:
+  • "1:1" / "individual" + checkout_url preenchido → "Quero agendar minha mentoria"
+  • "1:1" / "individual" + checkout_url vazio OU price_hint "A combinar" → "Quero conversar sobre essa mentoria"
+  • "grupo" / "turma" → "Quero entrar na próxima turma"
+  • "online assíncrono" / "curso gravado" → "Quero acessar o curso"
+  • "presencial" → "Quero garantir minha vaga"
+  • Sem tipo_entrega definido → escolha pelo contexto geral (ex: "Quero saber mais")
+- publico_alvo: copie LITERAL para o campo who_for do output. Não reescreva, não resuma. Se vier vazio, monte who_for a partir do briefing geral.
+- diferencial: use como BULLET DE DESTAQUE dentro de benefits (idealmente o primeiro, com peso de promessa única). Se vier vazio, ignore.
+- bonus_garantia: use em urgency_text (ex: "Garantia de 7 dias + bônus inclusos") ou como benefit dedicado. Se vier vazio, ignore.
 
 PARA CADA PRODUTO, preencha OBRIGATORIAMENTE os campos de copy estruturada:
 - who_for: 1 frase descrevendo PRA QUEM É (perfil específico, momento, dor)
