@@ -20,6 +20,8 @@ import { MetricsDashboard } from "@/components/bio/MetricsDashboard";
 import { ActivationBanner } from "@/components/ActivationBanner";
 import { FunnelListView } from "@/components/imersivo/FunnelListView";
 import { BriefingWizard } from "@/components/imersivo/BriefingWizard";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 const PLAN_LABELS: Record<string, string> = {
   free: "Free",
@@ -362,8 +364,27 @@ const BioRemainingSectionsCard = () => (
  */
 const DeepDiagnosticTabPanel = () => {
   const navigate = useNavigate();
-  const { funnels, loading, tenantId } = useDeepDiagnostic();
+  const { funnels, loading, tenantId, refresh } = useDeepDiagnostic();
   const [view, setView] = useState<"list" | "briefing">("list");
+
+  const handleDelete = async (funnelId: string, funnelName: string) => {
+    if (!confirm(`Excluir o funil "${funnelName}"? Essa ação não pode ser desfeita.`)) return;
+    try {
+      await supabase.from("deep_funnel_questions").delete().eq("funnel_id", funnelId);
+      await supabase.from("deep_funnel_products").delete().eq("funnel_id", funnelId);
+      const { error } = await supabase.from("deep_funnels").delete().eq("id", funnelId);
+      if (error) throw error;
+      toast({ title: "Funil excluído", description: `"${funnelName}" foi removido.` });
+      await refresh();
+    } catch (e: any) {
+      console.error(e);
+      toast({
+        title: "Erro ao excluir",
+        description: e?.message ?? "Tente novamente",
+        variant: "destructive",
+      });
+    }
+  };
 
   if (loading) {
     return (
@@ -391,6 +412,7 @@ const DeepDiagnosticTabPanel = () => {
       funnels={funnels}
       onNew={() => setView("briefing")}
       onEdit={(funnelId) => navigate(`/admin/deep-diagnostic?funnelId=${funnelId}`)}
+      onDelete={handleDelete}
     />
   );
 };

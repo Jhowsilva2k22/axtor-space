@@ -21,6 +21,7 @@ export default function DeepDiagnosticEditor() {
   const [questions, setQuestions] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [funnel, setFunnel] = useState<any>(null);
+  const [saving, setSaving] = useState<false | "draft" | "publish">(false);
 
   const [searchParams] = useSearchParams();
   const funnelId = searchParams.get("funnelId");
@@ -111,6 +112,7 @@ export default function DeepDiagnosticEditor() {
 
   const saveAll = async (publish: boolean) => {
     if (!activeFunnelId) return;
+    setSaving(publish ? "publish" : "draft");
     try {
       await supabase.from("deep_funnels").update({
         welcome_text: funnel?.welcome_text,
@@ -174,6 +176,8 @@ export default function DeepDiagnosticEditor() {
       await refresh();
     } catch (e: any) {
       toast({ title: "Erro ao salvar", description: e?.message, variant: "destructive" });
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -712,9 +716,28 @@ export default function DeepDiagnosticEditor() {
             </Card>
 
             <div className="sticky bottom-4 flex justify-end gap-2 rounded-md border border-border bg-card p-3 shadow-lg">
-              <Button variant="outline" onClick={() => saveAll(false)}>Salvar rascunho</Button>
-              <Button onClick={() => saveAll(true)} className="gap-2">
-                <Sparkles className="h-4 w-4" /> Publicar funil
+              <Button
+                variant="outline"
+                onClick={() => saveAll(false)}
+                disabled={!!saving}
+                className="gap-2"
+              >
+                {saving === "draft" ? (
+                  <><Loader2 className="h-4 w-4 animate-spin" /> Salvando...</>
+                ) : (
+                  "Salvar rascunho"
+                )}
+              </Button>
+              <Button
+                onClick={() => saveAll(true)}
+                disabled={!!saving}
+                className="gap-2"
+              >
+                {saving === "publish" ? (
+                  <><Loader2 className="h-4 w-4 animate-spin" /> Publicando...</>
+                ) : (
+                  <><Sparkles className="h-4 w-4" /> Publicar funil</>
+                )}
               </Button>
             </div>
           </motion.div>
