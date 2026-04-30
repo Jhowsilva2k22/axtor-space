@@ -12,9 +12,10 @@ import { ReviewProductsCard } from "@/components/imersivo/cards/ReviewProductsCa
 
 type DeepDiagnosticReviewViewProps = {
   funnelId: string;
+  onBack?: () => void;
 };
 
-export function DeepDiagnosticReviewView({ funnelId }: DeepDiagnosticReviewViewProps) {
+export function DeepDiagnosticReviewView({ funnelId, onBack }: DeepDiagnosticReviewViewProps) {
   const navigate = useNavigate();
   const { funnels, refresh, tenantId } = useDeepDiagnostic();
   const [activeFunnelId, setActiveFunnelId] = useState<string | null>(null);
@@ -207,7 +208,7 @@ export function DeepDiagnosticReviewView({ funnelId }: DeepDiagnosticReviewViewP
                 <h1 className="font-display text-2xl">{funnel.name}</h1>
                 <p className="text-xs text-muted-foreground">Slug: /d/funnel/{funnel.slug}</p>
               </div>
-              <Button variant="ghost" onClick={() => navigate("/painel?tab=imersivo")}>
+              <Button variant="ghost" onClick={() => onBack ? onBack() : navigate("/painel?tab=imersivo")}>
                 ← Voltar pra lista
               </Button>
             </div>
