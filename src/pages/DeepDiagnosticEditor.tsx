@@ -19,6 +19,7 @@ import { DeleteIconButton } from "@/components/imersivo/atomic/DeleteIconButton"
 import { ReviewSectionCard } from "@/components/imersivo/atomic/ReviewSectionCard";
 import { ReviewBoasVindasCard } from "@/components/imersivo/cards/ReviewBoasVindasCard";
 import { ReviewQuestionsCard } from "@/components/imersivo/cards/ReviewQuestionsCard";
+import { ProductCardHeader } from "@/components/imersivo/cards/ProductCardHeader";
 
 export default function DeepDiagnosticEditor() {
   const navigate = useNavigate();
@@ -245,29 +246,14 @@ export default function DeepDiagnosticEditor() {
                     p.is_active === false ? "border-border/40 bg-muted/30 opacity-70" : "border-border/60"
                   }`}
                 >
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex min-w-0 flex-1 items-center gap-2">
-                      <Badge variant="outline">Produto {idx + 1}</Badge>
-                      <Badge variant={p.is_active === false ? "secondary" : "default"}>{p.pain_tag}</Badge>
-                      {p.is_active === false && (
-                        <span className="truncate text-sm text-muted-foreground">— {p.name || "(sem nome)"} (desativado)</span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground">Ativo</span>
-                        <Switch
-                          checked={p.is_active !== false}
-                          onCheckedChange={(v) => updateProduct(idx, { is_active: v })}
-                        />
-                      </div>
-                      <DeleteIconButton
-                        onClick={() => deleteProduct(idx)}
-                        ariaLabel="Excluir produto"
-                        iconClassName="text-destructive"
-                      />
-                    </div>
-                  </div>
+                  <ProductCardHeader
+                    index={idx}
+                    painTag={p.pain_tag}
+                    isActive={p.is_active !== false}
+                    name={p.name}
+                    onActiveChange={(v) => updateProduct(idx, { is_active: v })}
+                    onDelete={() => deleteProduct(idx)}
+                  />
                   {p.is_active !== false && (
                   <>
                   <FieldWithHint
