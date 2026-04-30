@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -7,12 +6,17 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Sparkles, Loader2, ExternalLink, Trash2, Plus, ChevronDown, ChevronRight } from "lucide-react";
+import { ArrowLeft, Sparkles, Loader2, ExternalLink, Plus, ChevronDown, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useDeepDiagnostic } from "@/hooks/useDeepDiagnostic";
 import { toast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { ImageUploadWithCrop } from "@/components/ImageUploadWithCrop";
+import { FieldWithHint } from "@/components/imersivo/atomic/FieldWithHint";
+import { SwitchField } from "@/components/imersivo/atomic/SwitchField";
+import { MediaUrlPicker } from "@/components/imersivo/atomic/MediaUrlPicker";
+import { DeleteIconButton } from "@/components/imersivo/atomic/DeleteIconButton";
+import { ReviewSectionCard } from "@/components/imersivo/atomic/ReviewSectionCard";
 
 export default function DeepDiagnosticEditor() {
   const navigate = useNavigate();
@@ -219,8 +223,7 @@ export default function DeepDiagnosticEditor() {
               <Button variant="ghost" onClick={() => navigate("/painel?tab=imersivo")}>← Voltar</Button>
             </div>
 
-            <Card className="space-y-4 p-6">
-              <h2 className="font-display text-lg">Boas-vindas e regras</h2>
+            <ReviewSectionCard title="Boas-vindas e regras">
               <div className="space-y-3">
                 <div>
                   <Label>Texto de boas-vindas</Label>
@@ -238,16 +241,12 @@ export default function DeepDiagnosticEditor() {
                     rows={2}
                   />
                 </div>
-                  <div className="flex items-center justify-between rounded-md border p-3">
-                    <div>
-                      <p className="text-sm font-medium">Travar opções até o vídeo/áudio terminar</p>
-                      <p className="text-xs text-muted-foreground">Aplica-se a perguntas com mídia</p>
-                    </div>
-                    <Switch
-                      checked={!!funnel.lock_until_media_ends}
-                      onCheckedChange={(v) => setFunnel({ ...funnel, lock_until_media_ends: v })}
-                    />
-                  </div>
+                  <SwitchField
+                    label="Travar opções até o vídeo/áudio terminar"
+                    hint="Aplica-se a perguntas com mídia"
+                    checked={!!funnel.lock_until_media_ends}
+                    onCheckedChange={(v) => setFunnel({ ...funnel, lock_until_media_ends: v })}
+                  />
                   <div>
                     <Label>Permitir pular após (segundos)</Label>
                     <Input
@@ -342,33 +341,17 @@ export default function DeepDiagnosticEditor() {
                       rows={3}
                     />
                   </div>
-                  <div className="grid gap-3 md:grid-cols-2">
-                    <div>
-                      <Label>Mídia (URL)</Label>
-                      <Input
-                        value={funnel.thankyou_media_url ?? ""}
-                        onChange={(e) => setFunnel({ ...funnel, thankyou_media_url: e.target.value })}
-                      />
-                    </div>
-                    <div>
-                      <Label>Tipo</Label>
-                      <select
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                        value={funnel.thankyou_media_type ?? ""}
-                        onChange={(e) => setFunnel({ ...funnel, thankyou_media_type: e.target.value })}
-                      >
-                        <option value="">Sem mídia</option>
-                        <option value="image">Imagem</option>
-                        <option value="video">Vídeo</option>
-                        <option value="audio">Áudio</option>
-                      </select>
-                    </div>
-                  </div>
+                  <MediaUrlPicker
+                    variant="plain"
+                    urlValue={funnel.thankyou_media_url ?? ""}
+                    onUrlChange={(v) => setFunnel({ ...funnel, thankyou_media_url: v })}
+                    typeValue={funnel.thankyou_media_type ?? ""}
+                    onTypeChange={(v) => setFunnel({ ...funnel, thankyou_media_type: v })}
+                  />
                 </div>
-            </Card>
+            </ReviewSectionCard>
 
-            <Card className="space-y-4 p-6">
-              <h2 className="font-display text-lg">Perguntas ({questions.length})</h2>
+            <ReviewSectionCard title={`Perguntas (${questions.length})`}>
               {questions.map((q, idx) => (
                   <motion.div
                     key={q.id}
@@ -383,80 +366,65 @@ export default function DeepDiagnosticEditor() {
                         <Badge variant="outline" className="rounded-full border-gold/30 text-gold bg-gold/5">Pergunta {idx + 1}</Badge>
                         <span className="text-[10px] uppercase tracking-widest text-muted-foreground/60 font-bold">Configuração da Etapa</span>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
+                      <DeleteIconButton
                         onClick={() => deleteQuestion(idx)}
                         className="rounded-full hover:bg-destructive/10 hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      />
                     </div>
 
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/60">Texto da Pergunta</label>
-                      <p className="text-[10px] text-gold/60 italic font-light">Este é o título principal que o lead verá no topo da tela.</p>
+                    <FieldWithHint
+                      label="Texto da Pergunta"
+                      hint="Este é o título principal que o lead verá no topo da tela."
+                    >
                       <Textarea
                         value={q.question_text}
                         onChange={(e) => updateQuestion(idx, { question_text: e.target.value })}
                         rows={2}
                         className="rounded-xl border-gold/20 bg-background/40"
                       />
-                    </div>
+                    </FieldWithHint>
 
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/60">Subtítulo / Orientação (Opcional)</label>
-                      <p className="text-[10px] text-gold/60 italic font-light">Um texto menor para ajudar o lead a refletir sobre a resposta.</p>
+                    <FieldWithHint
+                      label="Subtítulo / Orientação (Opcional)"
+                      hint="Um texto menor para ajudar o lead a refletir sobre a resposta."
+                    >
                       <Input
                         value={q.subtitle ?? ""}
                         onChange={(e) => updateQuestion(idx, { subtitle: e.target.value })}
                         className="h-12 rounded-xl border-gold/20 bg-background/40"
                       />
-                    </div>
+                    </FieldWithHint>
 
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/60">Mídia de Apoio (URL)</label>
-                        <p className="text-[10px] text-gold/60 italic font-light">Link da imagem ou vídeo que ilustra a pergunta.</p>
-                        <Input
-                          placeholder="https://..."
-                          value={q.media_url ?? ""}
-                          onChange={(e) => updateQuestion(idx, { media_url: e.target.value })}
-                          className="h-11 rounded-xl border-gold/20 bg-background/40"
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/60">Tipo de Mídia</label>
-                        <p className="text-[10px] text-gold/60 italic font-light">Selecione o formato correto do arquivo acima.</p>
-                        <select
-                          className="flex h-11 w-full rounded-xl border border-gold/20 bg-background/40 px-3 py-2 text-xs"
-                          value={q.media_type ?? ""}
-                          onChange={(e) => updateQuestion(idx, { media_type: e.target.value })}
-                        >
-                          <option value="">Sem mídia</option>
-                          <option value="image">Imagem</option>
-                          <option value="video">Vídeo</option>
-                          <option value="audio">Áudio</option>
-                        </select>
-                      </div>
-                    </div>
+                    <MediaUrlPicker
+                      className="grid gap-4 md:grid-cols-2"
+                      urlLabel="Mídia de Apoio (URL)"
+                      urlHint="Link da imagem ou vídeo que ilustra a pergunta."
+                      typeLabel="Tipo de Mídia"
+                      typeHint="Selecione o formato correto do arquivo acima."
+                      inputPlaceholder="https://..."
+                      inputClassName="h-11 rounded-xl border-gold/20 bg-background/40"
+                      selectClassName="flex h-11 w-full rounded-xl border border-gold/20 bg-background/40 px-3 py-2 text-xs"
+                      urlValue={q.media_url ?? ""}
+                      onUrlChange={(v) => updateQuestion(idx, { media_url: v })}
+                      typeValue={q.media_type ?? ""}
+                      onTypeChange={(v) => updateQuestion(idx, { media_type: v })}
+                    />
 
-                    <div className="flex items-center justify-between rounded-2xl border border-gold/10 bg-gold/5 p-4">
-                      <div className="space-y-0.5">
-                        <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-gold/80">Trava de Segurança</label>
-                        <p className="text-[10px] text-muted-foreground/60 italic">Impede que o lead responda antes de ver toda a mídia.</p>
-                      </div>
-                      <Switch
-                        checked={!!q.lock_until_media_ends}
-                        onCheckedChange={(v) => updateQuestion(idx, { lock_until_media_ends: v })}
-                      />
-                    </div>
+                    <SwitchField
+                      label="Trava de Segurança"
+                      hint="Impede que o lead responda antes de ver toda a mídia."
+                      checked={!!q.lock_until_media_ends}
+                      onCheckedChange={(v) => updateQuestion(idx, { lock_until_media_ends: v })}
+                      className="rounded-2xl border-gold/10 bg-gold/5 p-4"
+                      textWrapperClassName="space-y-0.5"
+                      labelClassName="text-[10px] uppercase tracking-[0.2em] font-bold text-gold/80"
+                      hintClassName="text-[10px] text-muted-foreground/60 italic"
+                    />
                   </motion.div>
                 ))}
-            </Card>
+            </ReviewSectionCard>
 
-            <Card className="space-y-4 p-6">
-              <h2 className="font-display text-lg">Produtos ({products.length})</h2>
+            <ReviewSectionCard title={`Produtos (${products.length})`}>
               {products.map((p, idx) => (
                 <div
                   key={p.id}
@@ -480,33 +448,36 @@ export default function DeepDiagnosticEditor() {
                           onCheckedChange={(v) => updateProduct(idx, { is_active: v })}
                         />
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
+                      <DeleteIconButton
                         onClick={() => deleteProduct(idx)}
-                        aria-label="Excluir produto"
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
+                        ariaLabel="Excluir produto"
+                        iconClassName="text-destructive"
+                      />
                     </div>
                   </div>
                   {p.is_active !== false && (
                   <>
-                  <div className="space-y-1">
-                    <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/60">Nome do Produto</label>
-                    <p className="text-[10px] text-gold/60 italic font-light">Este nome aparecerá para o lead na tela de resultado.</p>
+                  <FieldWithHint
+                    label="Nome do Produto"
+                    hint="Este nome aparecerá para o lead na tela de resultado."
+                    className="space-y-1"
+                  >
                     <Input value={p.name} onChange={(e) => updateProduct(idx, { name: e.target.value })} className="h-12 rounded-xl border-gold/20 bg-background/40" />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/60">Descrição / Pitch de Vendas</label>
-                    <p className="text-[10px] text-gold/60 italic font-light">Convença o lead de que este é o produto ideal para ele agora.</p>
+                  </FieldWithHint>
+                  <FieldWithHint
+                    label="Descrição / Pitch de Vendas"
+                    hint="Convença o lead de que este é o produto ideal para ele agora."
+                    className="space-y-1"
+                  >
                     <Textarea value={p.description ?? ""} onChange={(e) => updateProduct(idx, { description: e.target.value })} rows={3} className="rounded-xl border-gold/20 bg-background/40" />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/60">Preço ou Condição Especial</label>
-                    <p className="text-[10px] text-gold/60 italic font-light">Ex: R$ 497 à vista ou 12x de R$ 49,70.</p>
+                  </FieldWithHint>
+                  <FieldWithHint
+                    label="Preço ou Condição Especial"
+                    hint="Ex: R$ 497 à vista ou 12x de R$ 49,70."
+                    className="space-y-1"
+                  >
                     <Input value={p.price_hint ?? ""} onChange={(e) => updateProduct(idx, { price_hint: e.target.value })} className="h-12 rounded-xl border-gold/20 bg-background/40" />
-                  </div>
+                  </FieldWithHint>
                   <div className="grid gap-3 md:grid-cols-2">
                     <div>
                       <Label>Duração da sessão</Label>
@@ -525,35 +496,38 @@ export default function DeepDiagnosticEditor() {
                       />
                     </div>
                   </div>
-                  <div>
-                    <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/60">Mensagem de WhatsApp (Contexto do Produto)</label>
-                    <p className="text-[10px] text-gold/60 italic font-light mb-1.5">Esta mensagem aparecerá pronta para o lead enviar quando for qualificado para este produto. Use {"{{nome}}"} para o primeiro nome dele.</p>
+                  <FieldWithHint
+                    label="Mensagem de WhatsApp (Contexto do Produto)"
+                    hint="Esta mensagem aparecerá pronta para o lead enviar quando for qualificado para este produto. Use {{nome}} para o primeiro nome dele."
+                    className="space-y-0"
+                    hintClassName="mb-1.5"
+                  >
                     <Textarea
                       value={p.whatsapp_template ?? ""}
                       onChange={(e) => updateProduct(idx, { whatsapp_template: e.target.value })}
                       rows={3}
                       placeholder="Ex: Olá! Acabei de fazer o diagnóstico e quero saber mais sobre a mentoria..."
                     />
-                  </div>
+                  </FieldWithHint>
                   <div>
                     <Label>URL de mídia de resultado (opcional)</Label>
                     <Input value={p.result_media_url ?? ""} onChange={(e) => updateProduct(idx, { result_media_url: e.target.value })} />
                   </div>
 
                   <div className="rounded-md border border-gold/30 bg-gold/5 p-4 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label className="text-gold">Modo: Oferta Exclusiva do Diagnóstico</Label>
-                        <p className="text-[10px] text-muted-foreground">Ativa o layout de alta conversão (âncora + bônus + garantia)</p>
-                      </div>
-                      <Switch
-                        checked={p.benefits?.is_exclusive === true}
-                        onCheckedChange={(v) => {
-                          const b = typeof p.benefits === 'object' && !Array.isArray(p.benefits) ? p.benefits : { items: Array.isArray(p.benefits) ? p.benefits : [] };
-                          updateProduct(idx, { benefits: { ...b, is_exclusive: v } });
-                        }}
-                      />
-                    </div>
+                    <SwitchField
+                      label="Modo: Oferta Exclusiva do Diagnóstico"
+                      hint="Ativa o layout de alta conversão (âncora + bônus + garantia)"
+                      checked={p.benefits?.is_exclusive === true}
+                      onCheckedChange={(v) => {
+                        const b = typeof p.benefits === 'object' && !Array.isArray(p.benefits) ? p.benefits : { items: Array.isArray(p.benefits) ? p.benefits : [] };
+                        updateProduct(idx, { benefits: { ...b, is_exclusive: v } });
+                      }}
+                      className="rounded-none border-0 p-0"
+                      textWrapperClassName="space-y-0.5"
+                      labelClassName="text-gold"
+                      hintClassName="text-[10px] text-muted-foreground"
+                    />
 
                     {p.benefits?.is_exclusive && (
                       <div className="grid gap-3 sm:grid-cols-2">
@@ -596,18 +570,15 @@ export default function DeepDiagnosticEditor() {
                                 updateProduct(idx, { benefits: { ...b, items: currentItems } });
                               }}
                             />
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
+                            <DeleteIconButton
                               onClick={() => {
                                 const currentItems = Array.isArray(p.benefits?.items) ? [...p.benefits.items] : (Array.isArray(p.benefits) ? [...p.benefits] : []);
                                 const filtered = currentItems.filter((_, i) => i !== ii);
                                 const b = typeof p.benefits === 'object' && !Array.isArray(p.benefits) ? p.benefits : { items: [] };
                                 updateProduct(idx, { benefits: { ...b, items: filtered } });
                               }}
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
+                              iconClassName="h-3 w-3"
+                            />
                           </div>
                         ))}
                         <Button 
@@ -629,9 +600,13 @@ export default function DeepDiagnosticEditor() {
 
                   <div className="rounded-md border border-primary/30 bg-primary/5 p-3 space-y-3">
                     <p className="text-xs font-medium uppercase tracking-wider text-primary">Checkout & Pós-venda</p>
-                    <div className="space-y-1">
-                      <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary/80">Modo de Chamada para Ação (CTA)</label>
-                      <p className="text-[10px] text-primary/60 italic font-light">Escolha como o lead deve finalizar a compra.</p>
+                    <FieldWithHint
+                      label="Modo de Chamada para Ação (CTA)"
+                      hint="Escolha como o lead deve finalizar a compra."
+                      className="space-y-1"
+                      labelClassName="text-primary/80"
+                      hintClassName="text-primary/60"
+                    >
                       <select
                         className="flex h-11 w-full rounded-xl border border-primary/20 bg-background/40 px-3 py-2 text-sm"
                         value={p.cta_mode ?? "whatsapp"}
@@ -641,11 +616,15 @@ export default function DeepDiagnosticEditor() {
                         <option value="checkout">Só checkout (Venda direta automática)</option>
                         <option value="both">Híbrido (Comprar + Tirar dúvida)</option>
                       </select>
-                    </div>
+                    </FieldWithHint>
                     {(p.cta_mode === "checkout" || p.cta_mode === "both") && (
-                      <div className="space-y-1">
-                        <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary/80">URL do checkout (Link de Pagamento)</label>
-                        <p className="text-[10px] text-primary/60 italic font-light">Seu link da Kiwify, Greenn, Hotmart, etc.</p>
+                      <FieldWithHint
+                        label="URL do checkout (Link de Pagamento)"
+                        hint="Seu link da Kiwify, Greenn, Hotmart, etc."
+                        className="space-y-1"
+                        labelClassName="text-primary/80"
+                        hintClassName="text-primary/60"
+                      >
                         <Input
                           placeholder="https://pay..."
                           value={p.checkout_url ?? ""}
@@ -656,11 +635,13 @@ export default function DeepDiagnosticEditor() {
                           DICA: Configure o <strong>Pós-venda</strong> na sua plataforma para este link:{" "}
                           <code className="rounded bg-primary/10 px-1 font-mono">https://axtor.space/obrigado/{funnel?.slug}?p={p.id}</code>
                         </p>
-                      </div>
+                      </FieldWithHint>
                     )}
-                    <div className="space-y-1">
-                      <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/60">Texto da tela de obrigado (opcional)</label>
-                      <p className="text-[10px] text-gold/60 italic font-light">Sobrescreve o texto padrão da tela de agradecimento. Use {"{{nome}}"} para personalizar.</p>
+                    <FieldWithHint
+                      label="Texto da tela de obrigado (opcional)"
+                      hint="Sobrescreve o texto padrão da tela de agradecimento. Use {{nome}} para personalizar."
+                      className="space-y-1"
+                    >
                       <Textarea
                         placeholder="Sobrescreve o fallback do funil. Use {{nome}} pra personalizar."
                         value={p.thankyou_text ?? ""}
@@ -668,35 +649,23 @@ export default function DeepDiagnosticEditor() {
                         rows={3}
                         className="rounded-xl border-gold/20 bg-background/40"
                       />
-                    </div>
-                    <div className="grid gap-3 md:grid-cols-2">
-                      <div className="space-y-1">
-                        <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/60">Mídia de obrigado (URL)</label>
-                        <p className="text-[10px] text-gold/60 italic font-light">Vídeo ou imagem de parabéns após a compra.</p>
-                        <Input
-                          value={p.thankyou_media_url ?? ""}
-                          onChange={(e) => updateProduct(idx, { thankyou_media_url: e.target.value })}
-                          className="rounded-xl border-gold/20 bg-background/40"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/60">Tipo de Mídia</label>
-                        <p className="text-[10px] text-gold/60 italic font-light">Formato da mídia acima.</p>
-                        <select
-                          className="flex h-10 w-full rounded-xl border border-gold/20 bg-background/40 px-3 py-2 text-xs"
-                          value={p.thankyou_media_type ?? ""}
-                          onChange={(e) => updateProduct(idx, { thankyou_media_type: e.target.value })}
-                        >
-                          <option value="">Sem mídia</option>
-                          <option value="image">Imagem</option>
-                          <option value="video">Vídeo</option>
-                          <option value="audio">Áudio</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/60">Mensagem WhatsApp pós-compra (opcional)</label>
-                      <p className="text-[10px] text-gold/60 italic font-light">Mensagem que o lead envia após finalizar o checkout.</p>
+                    </FieldWithHint>
+                    <MediaUrlPicker
+                      urlLabel="Mídia de obrigado (URL)"
+                      urlHint="Vídeo ou imagem de parabéns após a compra."
+                      typeLabel="Tipo de Mídia"
+                      typeHint="Formato da mídia acima."
+                      fieldClassName="space-y-1"
+                      urlValue={p.thankyou_media_url ?? ""}
+                      onUrlChange={(v) => updateProduct(idx, { thankyou_media_url: v })}
+                      typeValue={p.thankyou_media_type ?? ""}
+                      onTypeChange={(v) => updateProduct(idx, { thankyou_media_type: v })}
+                    />
+                    <FieldWithHint
+                      label="Mensagem WhatsApp pós-compra (opcional)"
+                      hint="Mensagem que o lead envia após finalizar o checkout."
+                      className="space-y-1"
+                    >
                       <Textarea
                         placeholder="Ex: Oi! Acabei de comprar X, qual o próximo passo?"
                         value={p.thankyou_whatsapp_template ?? ""}
@@ -704,7 +673,7 @@ export default function DeepDiagnosticEditor() {
                         rows={2}
                         className="rounded-xl border-gold/20 bg-background/40"
                       />
-                    </div>
+                    </FieldWithHint>
                   </div>
                   </>
                   )}
@@ -713,7 +682,7 @@ export default function DeepDiagnosticEditor() {
               <Button variant="outline" onClick={addProduct} className="w-full gap-2">
                 <Plus className="h-4 w-4" /> Adicionar produto
               </Button>
-            </Card>
+            </ReviewSectionCard>
 
             <div className="sticky bottom-4 flex justify-end gap-2 rounded-md border border-border bg-card p-3 shadow-lg">
               <Button
