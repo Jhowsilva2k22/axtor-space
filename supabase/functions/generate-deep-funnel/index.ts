@@ -46,40 +46,37 @@ PARA CADA PRODUTO, preencha OBRIGATORIAMENTE os campos de copy estruturada:
 - cta_label: texto do BOTÃO PRINCIPAL adequado ao tipo de oferta. Use frases ativas em 1ª pessoa, ex: "Quero entrar na próxima turma", "Quero agendar minha consultoria", "Quero comprar agora", "Quero garantir minha vaga", "Quero começar agora".
 - cta_secondary_label: texto do botão WhatsApp secundário, ex: "Falar com o time", "Tirar dúvida no WhatsApp", "Quero conversar antes".`;
 
-const TOOLS = [
+const TOOLS_ANTHROPIC = [
   {
-    type: "function",
-    function: {
-      name: "create_deep_funnel",
-      description: "Cria o funil de qualificação completo a partir do briefing.",
-      parameters: {
-        type: "object",
-        properties: {
-          welcome_text: { type: "string" },
-          result_intro: { type: "string" },
-          questions: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                question_text: { type: "string" },
-                subtitle: { type: "string" },
-                question_type: { type: "string" },
-                options: {
-                  type: "array",
-                  items: {
-                    type: "object",
-                    properties: {
-                      label: { type: "string" },
-                      pain_weights: {
-                        type: "object",
-                        properties: {
-                          marketing: { type: "number" },
-                          gestao: { type: "number" },
-                          vendas: { type: "number" },
-                          ia: { type: "number" },
-                          estrutura: { type: "number" },
-                        },
+    name: "create_deep_funnel",
+    description: "Cria o funil de qualificação completo a partir do briefing.",
+    input_schema: {
+      type: "object",
+      properties: {
+        welcome_text: { type: "string" },
+        result_intro: { type: "string" },
+        questions: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              question_text: { type: "string" },
+              subtitle: { type: "string" },
+              question_type: { type: "string" },
+              options: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    label: { type: "string" },
+                    pain_weights: {
+                      type: "object",
+                      properties: {
+                        marketing: { type: "number" },
+                        gestao: { type: "number" },
+                        vendas: { type: "number" },
+                        ia: { type: "number" },
+                        estrutura: { type: "number" },
                       },
                     },
                   },
@@ -87,31 +84,31 @@ const TOOLS = [
               },
             },
           },
-          products: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                name: { type: "string" },
-                description: { type: "string" },
-                pain_tag: { type: "string" },
-                price_hint: { type: "string" },
-                session_duration: { type: "string", description: "Duração da sessão (ex: '1 hora'). COPIE LITERAL do briefing; se não houver, deixe vazio." },
-                plan_duration: { type: "string", description: "Duração do plano de ação (ex: '30 dias'). COPIE LITERAL do briefing; se não houver, deixe vazio." },
-                checkout_url: { type: "string" },
-                whatsapp_template: { type: "string", description: "Mensagem pronta com {{nome}} placeholder" },
-                who_for: { type: "string", description: "Pra quem é o produto (1 frase)" },
-                how_it_works: { type: "string", description: "Como funciona (1-2 frases)" },
-                benefits: { type: "array", items: { type: "string" }, description: "3-5 bullets curtos" },
-                urgency_text: { type: "string", description: "Frase de urgência/escassez (opcional)" },
-                cta_label: { type: "string", description: "Texto do botão principal" },
-                cta_secondary_label: { type: "string", description: "Texto do botão WhatsApp" },
-              },
+        },
+        products: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              name: { type: "string" },
+              description: { type: "string" },
+              pain_tag: { type: "string" },
+              price_hint: { type: "string" },
+              session_duration: { type: "string", description: "Duração da sessão (ex: '1 hora'). COPIE LITERAL do briefing; se não houver, deixe vazio." },
+              plan_duration: { type: "string", description: "Duração do plano de ação (ex: '30 dias'). COPIE LITERAL do briefing; se não houver, deixe vazio." },
+              checkout_url: { type: "string" },
+              whatsapp_template: { type: "string", description: "Mensagem pronta com {{nome}} placeholder" },
+              who_for: { type: "string", description: "Pra quem é o produto (1 frase)" },
+              how_it_works: { type: "string", description: "Como funciona (1-2 frases)" },
+              benefits: { type: "array", items: { type: "string" }, description: "3-5 bullets curtos" },
+              urgency_text: { type: "string", description: "Frase de urgência/escassez (opcional)" },
+              cta_label: { type: "string", description: "Texto do botão principal" },
+              cta_secondary_label: { type: "string", description: "Texto do botão WhatsApp" },
             },
           },
         },
-        required: ["welcome_text", "questions", "products"],
       },
+      required: ["welcome_text", "questions", "products"],
     },
   },
 ];
@@ -130,8 +127,8 @@ Deno.serve(async (req) => {
 
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+    const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+    if (!ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY not configured");
 
     const userClient = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_ANON_KEY")!, {
       global: { headers: { Authorization: authHeader } },
@@ -204,27 +201,36 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Chama Lovable AI
-    const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    // Chama Claude (Anthropic API direto)
+    const aiResp = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
+        "x-api-key": ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-pro",
+        model: "claude-sonnet-4-6",
+        max_tokens: 8192,
+        system: SYSTEM_PROMPT,
         messages: [
-          { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: `Briefing do dono:\n\n${JSON.stringify(briefing, null, 2)}\n\nGere o funil completo agora.` },
         ],
-        tools: TOOLS,
-        tool_choice: { type: "function", function: { name: "create_deep_funnel" } },
+        tools: TOOLS_ANTHROPIC,
+        tool_choice: { type: "tool", name: "create_deep_funnel" },
       }),
     });
 
     if (!aiResp.ok) {
       const txt = await aiResp.text();
-      console.error("AI error:", aiResp.status, txt);
+      let errMessage = txt;
+      try {
+        const errJson = JSON.parse(txt);
+        errMessage = errJson?.error?.message ?? txt;
+      } catch (_) {
+        // mantém txt cru
+      }
+      console.error("AI error:", aiResp.status, errMessage);
       const errCode = aiResp.status === 429 ? "rate_limited" : aiResp.status === 402 ? "ai_credits" : "ai_error";
       return new Response(JSON.stringify({ error: errCode }), {
         status: aiResp.status,
@@ -233,14 +239,16 @@ Deno.serve(async (req) => {
     }
 
     const aiJson = await aiResp.json();
-    const toolCall = aiJson.choices?.[0]?.message?.tool_calls?.[0];
-    if (!toolCall) {
+    const toolUseBlock = Array.isArray(aiJson.content)
+      ? aiJson.content.find((b: any) => b?.type === "tool_use")
+      : null;
+    if (!toolUseBlock) {
       return new Response(JSON.stringify({ error: "no_tool_call", raw: aiJson }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const args = JSON.parse(toolCall.function.arguments);
+    const args = toolUseBlock.input;
 
     // Cria ou atualiza o funil
     const baseSlug = (briefing.business_name || tenant.display_name || "funil")
