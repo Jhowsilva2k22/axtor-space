@@ -15,6 +15,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ImageUploadWithCrop } from "@/components/ImageUploadWithCrop";
 import { FieldWithHint } from "@/components/imersivo/atomic/FieldWithHint";
 import { SwitchField } from "@/components/imersivo/atomic/SwitchField";
+import { MediaUrlPicker } from "@/components/imersivo/atomic/MediaUrlPicker";
 
 export default function DeepDiagnosticEditor() {
   const navigate = useNavigate();
@@ -340,28 +341,13 @@ export default function DeepDiagnosticEditor() {
                       rows={3}
                     />
                   </div>
-                  <div className="grid gap-3 md:grid-cols-2">
-                    <div>
-                      <Label>Mídia (URL)</Label>
-                      <Input
-                        value={funnel.thankyou_media_url ?? ""}
-                        onChange={(e) => setFunnel({ ...funnel, thankyou_media_url: e.target.value })}
-                      />
-                    </div>
-                    <div>
-                      <Label>Tipo</Label>
-                      <select
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                        value={funnel.thankyou_media_type ?? ""}
-                        onChange={(e) => setFunnel({ ...funnel, thankyou_media_type: e.target.value })}
-                      >
-                        <option value="">Sem mídia</option>
-                        <option value="image">Imagem</option>
-                        <option value="video">Vídeo</option>
-                        <option value="audio">Áudio</option>
-                      </select>
-                    </div>
-                  </div>
+                  <MediaUrlPicker
+                    variant="plain"
+                    urlValue={funnel.thankyou_media_url ?? ""}
+                    onUrlChange={(v) => setFunnel({ ...funnel, thankyou_media_url: v })}
+                    typeValue={funnel.thankyou_media_type ?? ""}
+                    onTypeChange={(v) => setFunnel({ ...funnel, thankyou_media_type: v })}
+                  />
                 </div>
             </Card>
 
@@ -414,34 +400,20 @@ export default function DeepDiagnosticEditor() {
                       />
                     </FieldWithHint>
 
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <FieldWithHint
-                        label="Mídia de Apoio (URL)"
-                        hint="Link da imagem ou vídeo que ilustra a pergunta."
-                      >
-                        <Input
-                          placeholder="https://..."
-                          value={q.media_url ?? ""}
-                          onChange={(e) => updateQuestion(idx, { media_url: e.target.value })}
-                          className="h-11 rounded-xl border-gold/20 bg-background/40"
-                        />
-                      </FieldWithHint>
-                      <FieldWithHint
-                        label="Tipo de Mídia"
-                        hint="Selecione o formato correto do arquivo acima."
-                      >
-                        <select
-                          className="flex h-11 w-full rounded-xl border border-gold/20 bg-background/40 px-3 py-2 text-xs"
-                          value={q.media_type ?? ""}
-                          onChange={(e) => updateQuestion(idx, { media_type: e.target.value })}
-                        >
-                          <option value="">Sem mídia</option>
-                          <option value="image">Imagem</option>
-                          <option value="video">Vídeo</option>
-                          <option value="audio">Áudio</option>
-                        </select>
-                      </FieldWithHint>
-                    </div>
+                    <MediaUrlPicker
+                      className="grid gap-4 md:grid-cols-2"
+                      urlLabel="Mídia de Apoio (URL)"
+                      urlHint="Link da imagem ou vídeo que ilustra a pergunta."
+                      typeLabel="Tipo de Mídia"
+                      typeHint="Selecione o formato correto do arquivo acima."
+                      inputPlaceholder="https://..."
+                      inputClassName="h-11 rounded-xl border-gold/20 bg-background/40"
+                      selectClassName="flex h-11 w-full rounded-xl border border-gold/20 bg-background/40 px-3 py-2 text-xs"
+                      urlValue={q.media_url ?? ""}
+                      onUrlChange={(v) => updateQuestion(idx, { media_url: v })}
+                      typeValue={q.media_type ?? ""}
+                      onTypeChange={(v) => updateQuestion(idx, { media_type: v })}
+                    />
 
                     <SwitchField
                       label="Trava de Segurança"
@@ -690,35 +662,17 @@ export default function DeepDiagnosticEditor() {
                         className="rounded-xl border-gold/20 bg-background/40"
                       />
                     </FieldWithHint>
-                    <div className="grid gap-3 md:grid-cols-2">
-                      <FieldWithHint
-                        label="Mídia de obrigado (URL)"
-                        hint="Vídeo ou imagem de parabéns após a compra."
-                        className="space-y-1"
-                      >
-                        <Input
-                          value={p.thankyou_media_url ?? ""}
-                          onChange={(e) => updateProduct(idx, { thankyou_media_url: e.target.value })}
-                          className="rounded-xl border-gold/20 bg-background/40"
-                        />
-                      </FieldWithHint>
-                      <FieldWithHint
-                        label="Tipo de Mídia"
-                        hint="Formato da mídia acima."
-                        className="space-y-1"
-                      >
-                        <select
-                          className="flex h-10 w-full rounded-xl border border-gold/20 bg-background/40 px-3 py-2 text-xs"
-                          value={p.thankyou_media_type ?? ""}
-                          onChange={(e) => updateProduct(idx, { thankyou_media_type: e.target.value })}
-                        >
-                          <option value="">Sem mídia</option>
-                          <option value="image">Imagem</option>
-                          <option value="video">Vídeo</option>
-                          <option value="audio">Áudio</option>
-                        </select>
-                      </FieldWithHint>
-                    </div>
+                    <MediaUrlPicker
+                      urlLabel="Mídia de obrigado (URL)"
+                      urlHint="Vídeo ou imagem de parabéns após a compra."
+                      typeLabel="Tipo de Mídia"
+                      typeHint="Formato da mídia acima."
+                      fieldClassName="space-y-1"
+                      urlValue={p.thankyou_media_url ?? ""}
+                      onUrlChange={(v) => updateProduct(idx, { thankyou_media_url: v })}
+                      typeValue={p.thankyou_media_type ?? ""}
+                      onTypeChange={(v) => updateProduct(idx, { thankyou_media_type: v })}
+                    />
                     <FieldWithHint
                       label="Mensagem WhatsApp pós-compra (opcional)"
                       hint="Mensagem que o lead envia após finalizar o checkout."
