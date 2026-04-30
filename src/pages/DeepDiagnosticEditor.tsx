@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,6 +16,7 @@ import { FieldWithHint } from "@/components/imersivo/atomic/FieldWithHint";
 import { SwitchField } from "@/components/imersivo/atomic/SwitchField";
 import { MediaUrlPicker } from "@/components/imersivo/atomic/MediaUrlPicker";
 import { DeleteIconButton } from "@/components/imersivo/atomic/DeleteIconButton";
+import { ReviewSectionCard } from "@/components/imersivo/atomic/ReviewSectionCard";
 
 export default function DeepDiagnosticEditor() {
   const navigate = useNavigate();
@@ -223,8 +223,7 @@ export default function DeepDiagnosticEditor() {
               <Button variant="ghost" onClick={() => navigate("/painel?tab=imersivo")}>← Voltar</Button>
             </div>
 
-            <Card className="space-y-4 p-6">
-              <h2 className="font-display text-lg">Boas-vindas e regras</h2>
+            <ReviewSectionCard title="Boas-vindas e regras">
               <div className="space-y-3">
                 <div>
                   <Label>Texto de boas-vindas</Label>
@@ -350,10 +349,9 @@ export default function DeepDiagnosticEditor() {
                     onTypeChange={(v) => setFunnel({ ...funnel, thankyou_media_type: v })}
                   />
                 </div>
-            </Card>
+            </ReviewSectionCard>
 
-            <Card className="space-y-4 p-6">
-              <h2 className="font-display text-lg">Perguntas ({questions.length})</h2>
+            <ReviewSectionCard title={`Perguntas (${questions.length})`}>
               {questions.map((q, idx) => (
                   <motion.div
                     key={q.id}
@@ -424,10 +422,9 @@ export default function DeepDiagnosticEditor() {
                     />
                   </motion.div>
                 ))}
-            </Card>
+            </ReviewSectionCard>
 
-            <Card className="space-y-4 p-6">
-              <h2 className="font-display text-lg">Produtos ({products.length})</h2>
+            <ReviewSectionCard title={`Produtos (${products.length})`}>
               {products.map((p, idx) => (
                 <div
                   key={p.id}
@@ -685,7 +682,7 @@ export default function DeepDiagnosticEditor() {
               <Button variant="outline" onClick={addProduct} className="w-full gap-2">
                 <Plus className="h-4 w-4" /> Adicionar produto
               </Button>
-            </Card>
+            </ReviewSectionCard>
 
             <div className="sticky bottom-4 flex justify-end gap-2 rounded-md border border-border bg-card p-3 shadow-lg">
               <Button
