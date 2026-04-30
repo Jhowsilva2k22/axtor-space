@@ -1,28 +1,14 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Sparkles, Loader2, ExternalLink, Plus, ChevronDown, ChevronRight } from "lucide-react";
+import { ArrowLeft, Sparkles, Loader2, ExternalLink, ChevronDown, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useDeepDiagnostic } from "@/hooks/useDeepDiagnostic";
 import { toast } from "@/hooks/use-toast";
-import { motion, AnimatePresence } from "framer-motion";
-import { ImageUploadWithCrop } from "@/components/ImageUploadWithCrop";
-import { FieldWithHint } from "@/components/imersivo/atomic/FieldWithHint";
-import { SwitchField } from "@/components/imersivo/atomic/SwitchField";
-import { MediaUrlPicker } from "@/components/imersivo/atomic/MediaUrlPicker";
-import { DeleteIconButton } from "@/components/imersivo/atomic/DeleteIconButton";
-import { ReviewSectionCard } from "@/components/imersivo/atomic/ReviewSectionCard";
+import { motion } from "framer-motion";
 import { ReviewBoasVindasCard } from "@/components/imersivo/cards/ReviewBoasVindasCard";
 import { ReviewQuestionsCard } from "@/components/imersivo/cards/ReviewQuestionsCard";
-import { ProductCardHeader } from "@/components/imersivo/cards/ProductCardHeader";
-import { ProductMainFields } from "@/components/imersivo/cards/ProductMainFields";
-import { ExclusiveOfferBlock } from "@/components/imersivo/cards/ExclusiveOfferBlock";
-import { CheckoutPostSaleBlock } from "@/components/imersivo/cards/CheckoutPostSaleBlock";
+import { ReviewProductsCard } from "@/components/imersivo/cards/ReviewProductsCard";
 
 export default function DeepDiagnosticEditor() {
   const navigate = useNavigate();
@@ -241,59 +227,13 @@ export default function DeepDiagnosticEditor() {
               onDelete={(idx) => deleteQuestion(idx)}
             />
 
-            <ReviewSectionCard title={`Produtos (${products.length})`}>
-              {products.map((p, idx) => (
-                <div
-                  key={p.id}
-                  className={`space-y-3 rounded-md border p-4 transition-opacity ${
-                    p.is_active === false ? "border-border/40 bg-muted/30 opacity-70" : "border-border/60"
-                  }`}
-                >
-                  <ProductCardHeader
-                    index={idx}
-                    painTag={p.pain_tag}
-                    isActive={p.is_active !== false}
-                    name={p.name}
-                    onActiveChange={(v) => updateProduct(idx, { is_active: v })}
-                    onDelete={() => deleteProduct(idx)}
-                  />
-                  {p.is_active !== false && (
-                  <>
-                  <ProductMainFields
-                    name={p.name}
-                    description={p.description}
-                    priceHint={p.price_hint}
-                    sessionDuration={p.session_duration}
-                    planDuration={p.plan_duration}
-                    whatsappTemplate={p.whatsapp_template}
-                    resultMediaUrl={p.result_media_url}
-                    onChange={(patch) => updateProduct(idx, patch)}
-                  />
-
-                  <ExclusiveOfferBlock
-                    benefits={p.benefits}
-                    onChange={(patch) => updateProduct(idx, patch)}
-                  />
-
-                  <CheckoutPostSaleBlock
-                    ctaMode={p.cta_mode}
-                    checkoutUrl={p.checkout_url}
-                    thankyouText={p.thankyou_text}
-                    thankyouMediaUrl={p.thankyou_media_url}
-                    thankyouMediaType={p.thankyou_media_type}
-                    thankyouWhatsappTemplate={p.thankyou_whatsapp_template}
-                    funnelSlug={funnel?.slug}
-                    productId={p.id}
-                    onChange={(patch) => updateProduct(idx, patch)}
-                  />
-                  </>
-                  )}
-                </div>
-              ))}
-              <Button variant="outline" onClick={addProduct} className="w-full gap-2">
-                <Plus className="h-4 w-4" /> Adicionar produto
-              </Button>
-            </ReviewSectionCard>
+            <ReviewProductsCard
+              products={products}
+              funnelSlug={funnel?.slug}
+              onUpdate={updateProduct}
+              onAdd={addProduct}
+              onDelete={deleteProduct}
+            />
 
             <div className="sticky bottom-4 flex justify-end gap-2 rounded-md border border-border bg-card p-3 shadow-lg">
               <Button
