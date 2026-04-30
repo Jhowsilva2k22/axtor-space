@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Sparkles, Loader2, ExternalLink, Trash2, Plus, ChevronDown, ChevronRight } from "lucide-react";
+import { ArrowLeft, Sparkles, Loader2, ExternalLink, Plus, ChevronDown, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useDeepDiagnostic } from "@/hooks/useDeepDiagnostic";
 import { toast } from "@/hooks/use-toast";
@@ -16,6 +16,7 @@ import { ImageUploadWithCrop } from "@/components/ImageUploadWithCrop";
 import { FieldWithHint } from "@/components/imersivo/atomic/FieldWithHint";
 import { SwitchField } from "@/components/imersivo/atomic/SwitchField";
 import { MediaUrlPicker } from "@/components/imersivo/atomic/MediaUrlPicker";
+import { DeleteIconButton } from "@/components/imersivo/atomic/DeleteIconButton";
 
 export default function DeepDiagnosticEditor() {
   const navigate = useNavigate();
@@ -367,14 +368,10 @@ export default function DeepDiagnosticEditor() {
                         <Badge variant="outline" className="rounded-full border-gold/30 text-gold bg-gold/5">Pergunta {idx + 1}</Badge>
                         <span className="text-[10px] uppercase tracking-widest text-muted-foreground/60 font-bold">Configuração da Etapa</span>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
+                      <DeleteIconButton
                         onClick={() => deleteQuestion(idx)}
                         className="rounded-full hover:bg-destructive/10 hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      />
                     </div>
 
                     <FieldWithHint
@@ -454,14 +451,11 @@ export default function DeepDiagnosticEditor() {
                           onCheckedChange={(v) => updateProduct(idx, { is_active: v })}
                         />
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
+                      <DeleteIconButton
                         onClick={() => deleteProduct(idx)}
-                        aria-label="Excluir produto"
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
+                        ariaLabel="Excluir produto"
+                        iconClassName="text-destructive"
+                      />
                     </div>
                   </div>
                   {p.is_active !== false && (
@@ -579,18 +573,15 @@ export default function DeepDiagnosticEditor() {
                                 updateProduct(idx, { benefits: { ...b, items: currentItems } });
                               }}
                             />
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
+                            <DeleteIconButton
                               onClick={() => {
                                 const currentItems = Array.isArray(p.benefits?.items) ? [...p.benefits.items] : (Array.isArray(p.benefits) ? [...p.benefits] : []);
                                 const filtered = currentItems.filter((_, i) => i !== ii);
                                 const b = typeof p.benefits === 'object' && !Array.isArray(p.benefits) ? p.benefits : { items: [] };
                                 updateProduct(idx, { benefits: { ...b, items: filtered } });
                               }}
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
+                              iconClassName="h-3 w-3"
+                            />
                           </div>
                         ))}
                         <Button 
