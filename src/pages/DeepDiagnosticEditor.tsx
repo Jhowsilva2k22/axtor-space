@@ -673,7 +673,7 @@ export default function DeepDiagnosticEditor() {
                         rows={2}
                         className="rounded-xl border-gold/20 bg-background/40"
                       />
-                    </div>
+                    </FieldWithHint>
                   </div>
                   </>
                   )}
