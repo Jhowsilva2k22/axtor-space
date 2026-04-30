@@ -14,6 +14,7 @@ import { toast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { ImageUploadWithCrop } from "@/components/ImageUploadWithCrop";
 import { FieldWithHint } from "@/components/imersivo/atomic/FieldWithHint";
+import { SwitchField } from "@/components/imersivo/atomic/SwitchField";
 
 export default function DeepDiagnosticEditor() {
   const navigate = useNavigate();
@@ -239,16 +240,12 @@ export default function DeepDiagnosticEditor() {
                     rows={2}
                   />
                 </div>
-                  <div className="flex items-center justify-between rounded-md border p-3">
-                    <div>
-                      <p className="text-sm font-medium">Travar opções até o vídeo/áudio terminar</p>
-                      <p className="text-xs text-muted-foreground">Aplica-se a perguntas com mídia</p>
-                    </div>
-                    <Switch
-                      checked={!!funnel.lock_until_media_ends}
-                      onCheckedChange={(v) => setFunnel({ ...funnel, lock_until_media_ends: v })}
-                    />
-                  </div>
+                  <SwitchField
+                    label="Travar opções até o vídeo/áudio terminar"
+                    hint="Aplica-se a perguntas com mídia"
+                    checked={!!funnel.lock_until_media_ends}
+                    onCheckedChange={(v) => setFunnel({ ...funnel, lock_until_media_ends: v })}
+                  />
                   <div>
                     <Label>Permitir pular após (segundos)</Label>
                     <Input
@@ -446,16 +443,16 @@ export default function DeepDiagnosticEditor() {
                       </FieldWithHint>
                     </div>
 
-                    <div className="flex items-center justify-between rounded-2xl border border-gold/10 bg-gold/5 p-4">
-                      <div className="space-y-0.5">
-                        <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-gold/80">Trava de Segurança</label>
-                        <p className="text-[10px] text-muted-foreground/60 italic">Impede que o lead responda antes de ver toda a mídia.</p>
-                      </div>
-                      <Switch
-                        checked={!!q.lock_until_media_ends}
-                        onCheckedChange={(v) => updateQuestion(idx, { lock_until_media_ends: v })}
-                      />
-                    </div>
+                    <SwitchField
+                      label="Trava de Segurança"
+                      hint="Impede que o lead responda antes de ver toda a mídia."
+                      checked={!!q.lock_until_media_ends}
+                      onCheckedChange={(v) => updateQuestion(idx, { lock_until_media_ends: v })}
+                      className="rounded-2xl border-gold/10 bg-gold/5 p-4"
+                      textWrapperClassName="space-y-0.5"
+                      labelClassName="text-[10px] uppercase tracking-[0.2em] font-bold text-gold/80"
+                      hintClassName="text-[10px] text-muted-foreground/60 italic"
+                    />
                   </motion.div>
                 ))}
             </Card>
@@ -555,19 +552,19 @@ export default function DeepDiagnosticEditor() {
                   </div>
 
                   <div className="rounded-md border border-gold/30 bg-gold/5 p-4 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label className="text-gold">Modo: Oferta Exclusiva do Diagnóstico</Label>
-                        <p className="text-[10px] text-muted-foreground">Ativa o layout de alta conversão (âncora + bônus + garantia)</p>
-                      </div>
-                      <Switch
-                        checked={p.benefits?.is_exclusive === true}
-                        onCheckedChange={(v) => {
-                          const b = typeof p.benefits === 'object' && !Array.isArray(p.benefits) ? p.benefits : { items: Array.isArray(p.benefits) ? p.benefits : [] };
-                          updateProduct(idx, { benefits: { ...b, is_exclusive: v } });
-                        }}
-                      />
-                    </div>
+                    <SwitchField
+                      label="Modo: Oferta Exclusiva do Diagnóstico"
+                      hint="Ativa o layout de alta conversão (âncora + bônus + garantia)"
+                      checked={p.benefits?.is_exclusive === true}
+                      onCheckedChange={(v) => {
+                        const b = typeof p.benefits === 'object' && !Array.isArray(p.benefits) ? p.benefits : { items: Array.isArray(p.benefits) ? p.benefits : [] };
+                        updateProduct(idx, { benefits: { ...b, is_exclusive: v } });
+                      }}
+                      className="rounded-none border-0 p-0"
+                      textWrapperClassName="space-y-0.5"
+                      labelClassName="text-gold"
+                      hintClassName="text-[10px] text-muted-foreground"
+                    />
 
                     {p.benefits?.is_exclusive && (
                       <div className="grid gap-3 sm:grid-cols-2">
