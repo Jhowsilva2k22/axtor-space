@@ -41,7 +41,7 @@ export const DeepDiagnosticCard = () => {
         <div className="flex flex-col gap-2 sm:flex-row md:flex-col lg:flex-row">
           {hasAddon ? (
             <Button asChild size="lg" className="gap-2">
-              <Link to="/admin/deep-diagnostic">
+              <Link to="/painel?tab=imersivo">
                 {funnels.length > 0 ? "Gerenciar funis" : "Criar meu funil"} <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>

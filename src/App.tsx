@@ -36,7 +36,6 @@ const Unsubscribe = lazy(() => import("./pages/Unsubscribe.tsx"));
 const ResetSession = lazy(() => import("./pages/ResetSession.tsx"));
 const AdminDiagnostics = lazy(() => import("./pages/AdminDiagnostics.tsx"));
 const DeepDiagnosticDemo = lazy(() => import("./pages/DeepDiagnosticDemo.tsx"));
-const DeepDiagnosticEditor = lazy(() => import("./pages/DeepDiagnosticEditor.tsx"));
 const DeepFunnelPublic = lazy(() => import("./pages/DeepFunnelPublic.tsx"));
 const DeepFunnelThankYou = lazy(() => import("./pages/DeepFunnelThankYou.tsx"));
 const Painel = lazy(() => import("./pages/Painel.tsx"));
@@ -90,7 +89,6 @@ const App = () => (
             <Route path="/admin/invites" element={<AdminInvites />} />
             <Route path="/admin/landing-partners" element={<AdminLandingPartners />} />
             <Route path="/admin/diagnostics" element={<AdminDiagnostics />} />
-            <Route path="/admin/deep-diagnostic" element={<DeepDiagnosticEditor />} />
             <Route path="/admin/deep-diagnostic/demo" element={<DeepDiagnosticDemo />} />
             <Route path="/painel" element={<Painel />} />
             <Route path="/painel/loja" element={<Loja />} />
