@@ -21,6 +21,7 @@ import { ReviewBoasVindasCard } from "@/components/imersivo/cards/ReviewBoasVind
 import { ReviewQuestionsCard } from "@/components/imersivo/cards/ReviewQuestionsCard";
 import { ProductCardHeader } from "@/components/imersivo/cards/ProductCardHeader";
 import { ProductMainFields } from "@/components/imersivo/cards/ProductMainFields";
+import { ExclusiveOfferBlock } from "@/components/imersivo/cards/ExclusiveOfferBlock";
 
 export default function DeepDiagnosticEditor() {
   const navigate = useNavigate();
@@ -268,89 +269,10 @@ export default function DeepDiagnosticEditor() {
                     onChange={(patch) => updateProduct(idx, patch)}
                   />
 
-                  <div className="rounded-md border border-gold/30 bg-gold/5 p-4 space-y-4">
-                    <SwitchField
-                      label="Modo: Oferta Exclusiva do Diagnóstico"
-                      hint="Ativa o layout de alta conversão (âncora + bônus + garantia)"
-                      checked={p.benefits?.is_exclusive === true}
-                      onCheckedChange={(v) => {
-                        const b = typeof p.benefits === 'object' && !Array.isArray(p.benefits) ? p.benefits : { items: Array.isArray(p.benefits) ? p.benefits : [] };
-                        updateProduct(idx, { benefits: { ...b, is_exclusive: v } });
-                      }}
-                      className="rounded-none border-0 p-0"
-                      textWrapperClassName="space-y-0.5"
-                      labelClassName="text-gold"
-                      hintClassName="text-[10px] text-muted-foreground"
-                    />
-
-                    {p.benefits?.is_exclusive && (
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        <div>
-                          <Label className="text-xs">Preço Original (Âncora)</Label>
-                          <Input 
-                            placeholder="Ex: R$ 694" 
-                            value={p.benefits?.original_price ?? ""} 
-                            onChange={(e) => {
-                              const b = typeof p.benefits === 'object' && !Array.isArray(p.benefits) ? p.benefits : { items: [] };
-                              updateProduct(idx, { benefits: { ...b, original_price: e.target.value } });
-                            }}
-                          />
-                        </div>
-                        <div>
-                          <Label className="text-xs">Dias de Garantia</Label>
-                          <Input 
-                            type="number"
-                            value={p.benefits?.guarantee_days ?? 7} 
-                            onChange={(e) => {
-                              const b = typeof p.benefits === 'object' && !Array.isArray(p.benefits) ? p.benefits : { items: [] };
-                              updateProduct(idx, { benefits: { ...b, guarantee_days: parseInt(e.target.value) || 7 } });
-                            }}
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    <div>
-                      <Label className="text-xs uppercase tracking-widest opacity-70">O que você recebe (Checklist)</Label>
-                      <div className="mt-2 space-y-2">
-                        {(Array.isArray(p.benefits?.items) ? p.benefits.items : (Array.isArray(p.benefits) ? p.benefits : [])).map((item: string, ii: number) => (
-                          <div key={ii} className="flex gap-2">
-                            <Input 
-                              value={item} 
-                              onChange={(e) => {
-                                const currentItems = Array.isArray(p.benefits?.items) ? [...p.benefits.items] : (Array.isArray(p.benefits) ? [...p.benefits] : []);
-                                currentItems[ii] = e.target.value;
-                                const b = typeof p.benefits === 'object' && !Array.isArray(p.benefits) ? p.benefits : { items: [] };
-                                updateProduct(idx, { benefits: { ...b, items: currentItems } });
-                              }}
-                            />
-                            <DeleteIconButton
-                              onClick={() => {
-                                const currentItems = Array.isArray(p.benefits?.items) ? [...p.benefits.items] : (Array.isArray(p.benefits) ? [...p.benefits] : []);
-                                const filtered = currentItems.filter((_, i) => i !== ii);
-                                const b = typeof p.benefits === 'object' && !Array.isArray(p.benefits) ? p.benefits : { items: [] };
-                                updateProduct(idx, { benefits: { ...b, items: filtered } });
-                              }}
-                              iconClassName="h-3 w-3"
-                            />
-                          </div>
-                        ))}
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="w-full h-8 text-[10px] border-dashed"
-                          onClick={() => {
-                            const currentItems = Array.isArray(p.benefits?.items) ? [...p.benefits.items] : (Array.isArray(p.benefits) ? [...p.benefits] : []);
-                            const newList = [...currentItems, ""];
-                            const b = typeof p.benefits === 'object' && !Array.isArray(p.benefits) ? p.benefits : { items: [] };
-                            updateProduct(idx, { benefits: { ...b, items: newList } });
-                          }}
-                        >
-                          + Adicionar item à oferta
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
+                  <ExclusiveOfferBlock
+                    benefits={p.benefits}
+                    onChange={(patch) => updateProduct(idx, patch)}
+                  />
 
                   <div className="rounded-md border border-primary/30 bg-primary/5 p-3 space-y-3">
                     <p className="text-xs font-medium uppercase tracking-wider text-primary">Checkout & Pós-venda</p>
