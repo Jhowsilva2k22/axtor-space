@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { Loader2, Lock } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -19,6 +19,7 @@ import { MediaGallery } from "@/components/bio/MediaGallery";
 import { MetricsDashboard } from "@/components/bio/MetricsDashboard";
 import { ActivationBanner } from "@/components/ActivationBanner";
 import { FunnelListView } from "@/components/imersivo/FunnelListView";
+import { DeepDiagnosticReviewView } from "@/pages/DeepDiagnosticReviewView";
 import { BriefingWizard } from "@/components/imersivo/BriefingWizard";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -363,9 +364,9 @@ const BioRemainingSectionsCard = () => (
  * editor é por query param (?funnelId=xxx) — Opção B.
  */
 const DeepDiagnosticTabPanel = () => {
-  const navigate = useNavigate();
   const { funnels, loading, tenantId, refresh } = useDeepDiagnostic();
-  const [view, setView] = useState<"list" | "briefing">("list");
+  const [view, setView] = useState<"list" | "briefing" | "review">("list");
+  const [activeFunnelId, setActiveFunnelId] = useState<string | null>(null);
 
   const handleDelete = async (funnelId: string, funnelName: string) => {
     if (!confirm(`Excluir o funil "${funnelName}"? Essa ação não pode ser desfeita.`)) return;
@@ -400,9 +401,18 @@ const DeepDiagnosticTabPanel = () => {
         tenantId={tenantId}
         onCancel={() => setView("list")}
         onGenerated={(funnelId) => {
-          setView("list");
-          navigate(`/admin/deep-diagnostic?funnelId=${funnelId}`);
+          setActiveFunnelId(funnelId);
+          setView("review");
         }}
+      />
+    );
+  }
+
+  if (view === "review" && activeFunnelId) {
+    return (
+      <DeepDiagnosticReviewView
+        funnelId={activeFunnelId}
+        onBack={() => { setView("list"); setActiveFunnelId(null); }}
       />
     );
   }
@@ -411,7 +421,7 @@ const DeepDiagnosticTabPanel = () => {
     <FunnelListView
       funnels={funnels}
       onNew={() => setView("briefing")}
-      onEdit={(funnelId) => navigate(`/admin/deep-diagnostic?funnelId=${funnelId}`)}
+      onEdit={(funnelId) => { setActiveFunnelId(funnelId); setView("review"); }}
       onDelete={handleDelete}
     />
   );
