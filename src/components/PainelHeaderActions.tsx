@@ -1,6 +1,7 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import QRCode from "qrcode";
-import { ExternalLink, QrCode, Download, Copy } from "lucide-react";
+import { ExternalLink, QrCode, Download, Copy, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +13,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Onda 3 v2 Fase 3 — utilitários do header do Painel.
@@ -19,9 +21,25 @@ import { ThemeToggle } from "@/components/ThemeToggle";
  *   - Ver minha bio (abre /{slug} em nova aba)
  *   - QR Code (modal com PNG da URL pública pra download)
  *   - Toggle Dark/Light
+ *   - Sair (logout)
  */
 export const PainelHeaderActions = ({ slug }: { slug: string }) => {
   const bioUrl = `${window.location.origin}/${slug}`;
+  const nav = useNavigate();
+  const [signingOut, setSigningOut] = useState(false);
+
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    try {
+      await supabase.auth.signOut();
+      toast.success("Sessão encerrada");
+      nav("/admin/login", { replace: true });
+    } catch (e) {
+      toast.error("Erro ao sair, tente de novo");
+    } finally {
+      setSigningOut(false);
+    }
+  };
 
   return (
     <div className="flex items-center gap-2">
@@ -38,6 +56,18 @@ export const PainelHeaderActions = ({ slug }: { slug: string }) => {
       <QRCodeButton bioUrl={bioUrl} slug={slug} />
 
       <ThemeToggle />
+
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={handleSignOut}
+        disabled={signingOut}
+        className="h-10 w-10 rounded-full border-destructive/30 bg-card/60 text-muted-foreground hover:border-destructive/60 hover:text-destructive"
+        aria-label="Sair"
+        title="Sair"
+      >
+        <LogOut className="h-4 w-4" />
+      </Button>
     </div>
   );
 };
