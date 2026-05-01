@@ -200,6 +200,36 @@ All colors MUST be HSL.
     .tracking-\[0\.2em\] {
       letter-spacing: 0.1em;
     }
+
+    /* Item 9 polimento: scroll travado em mobile.
+       Causas: blurs grandes + backdrop-blur sobrepostos congestionam a GPU
+       a cada frame de scroll. Reduz custo:
+       - Blurs grandes (120px / 3xl) viram médios
+       - backdrop-blur intenso fica leve
+       - Força compositing GPU em elementos animados pra scroll não brigar com paint */
+    .blur-\[120px\] { filter: blur(60px) !important; }
+    .blur-3xl { filter: blur(40px) !important; }
+    .blur-2xl { filter: blur(28px) !important; }
+    .blur-\[80px\] { filter: blur(40px) !important; }
+
+    .backdrop-blur-xl { backdrop-filter: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important; }
+    .backdrop-blur-md { backdrop-filter: blur(6px) !important; -webkit-backdrop-filter: blur(6px) !important; }
+
+    /* GPU compositing pra elementos animados — scroll fica suave, paint não travanca */
+    .animate-fade-up,
+    [class*="animate-gold"],
+    [class*="animate-pulse"],
+    .aurora-a,
+    .aurora-b {
+      will-change: transform, opacity;
+      transform: translateZ(0);
+      backface-visibility: hidden;
+    }
+
+    /* Fixed backgrounds (cover_url da bio) viram absolute — fixed em mobile causa jank */
+    [style*="background-attachment: fixed"] {
+      background-attachment: scroll !important;
+    }
   }
 
   h1, h2, h3, .font-display {
