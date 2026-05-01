@@ -78,7 +78,11 @@ All colors MUST be HSL.
     --input: var(--surface-h) var(--surface-s) var(--surface-l-input);
     --ring: var(--brand-h) var(--brand-s) var(--brand-l);
 
-    --radius: 0.1875rem;
+    /* Item 8 polimento pós-cutover: aumentei o radius default pra alinhar
+       com o design system orgânico (rounded-2xl/[24px] dos cards principais).
+       Antes era 0.1875rem (3px) — deixava cards/inputs/dialogs com cantos
+       quase retangulares, contrastando com botões/cards manuais arredondados. */
+    --radius: 0.875rem;
 
     --gradient-gold: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
     --gradient-gold-soft: linear-gradient(135deg, hsl(var(--primary) / 0.18), hsl(var(--primary-glow) / 0.06));
