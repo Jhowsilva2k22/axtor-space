@@ -50,7 +50,7 @@ const AdminLogin = () => {
     );
   }
   // Qualquer usuário logado (admin ou tenant owner) vai pro painel.
-  if (user) return <Navigate to="/admin" replace />;
+  if (user) return <Navigate to="/painel" replace />;
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -62,7 +62,7 @@ const AdminLogin = () => {
       return;
     }
     toast.success("Bem-vindo");
-    nav("/admin", { replace: true });
+    nav("/painel", { replace: true });
   };
 
   return (
@@ -91,13 +91,13 @@ const AdminLogin = () => {
         <Button type="submit" disabled={submitting} className="btn-luxe mt-10 h-14 w-full rounded-full text-xs font-bold uppercase tracking-[0.2em] shadow-lg shadow-gold/10">
           {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Entrar"}
         </Button>
-        
+
         <div className="mt-6 text-center">
           <Link to="/forgot-password" title="Esqueci minha senha" className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60 hover:text-gold transition-colors">
             esqueci minha senha
           </Link>
         </div>
-        
+
         <p className="mt-6 text-center text-xs text-muted-foreground">
           Ainda não tem conta? <Link to="/signup" className="font-bold text-gold hover:underline">Criar grátis</Link>
         </p>
