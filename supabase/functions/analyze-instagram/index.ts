@@ -8,7 +8,7 @@ const corsHeaders = {
 };
 
 const APIFY_TOKEN = Deno.env.get("APIFY_API_TOKEN")!;
-const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
+const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
@@ -77,19 +77,19 @@ TAREFA:
   "veredicto": "2-3 frases de estrategista. A última precisa ser uma frase-bomba memorável."
 }`;
 
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${LOVABLE_API_KEY}`,
+      "x-api-key": ANTHROPIC_API_KEY,
+      "anthropic-version": "2023-06-01",
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
-      messages: [
-        { role: "system", content: "Você é um estrategista de mercado digital sênior. Responda APENAS com JSON válido, sem markdown, sem comentários extras." },
-        { role: "user", content: prompt },
-      ],
-      temperature: 0.7,
+      model: "claude-sonnet-4-5",
+      max_tokens: 4096,
+      system:
+        "Você é um estrategista de mercado digital sênior. Responda APENAS com JSON válido, sem markdown, sem comentários extras.",
+      messages: [{ role: "user", content: prompt }],
     }),
   });
 
@@ -98,7 +98,7 @@ TAREFA:
     throw new Error(`IA falhou [${res.status}]: ${txt.slice(0, 200)}`);
   }
   const data = await res.json();
-  const content = data.choices?.[0]?.message?.content ?? "{}";
+  const content = data.content?.[0]?.text ?? "{}";
   const cleaned = content.replace(/^```json\s*/i, "").replace(/```\s*$/, "").trim();
   return JSON.parse(cleaned);
 }
