@@ -1,7 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { readPendingSignup, clearPendingSignup } from "@/lib/pendingSignup";
 
 export type AdminTenant = {
   id: string;
@@ -52,26 +51,6 @@ export const CurrentTenantProvider = ({ children }: { children: ReactNode }) => 
   const [currentId, setCurrentIdState] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchTenants = useCallback(async (): Promise<AdminTenant[]> => {
-    if (!user) return [];
-    if (isAdmin) {
-      const { data, error } = await supabase
-        .from("tenants")
-        .select("id,slug,display_name,plan,status")
-        .order("display_name", { ascending: true });
-      if (error) console.error("[useCurrentTenant] admin tenants query failed:", error);
-      return (data as AdminTenant[] | null) ?? [];
-    } else {
-      const { data, error } = await supabase
-        .from("tenants")
-        .select("id,slug,display_name,plan,status")
-        .eq("owner_user_id", user.id)
-        .order("display_name", { ascending: true });
-      if (error) console.error("[useCurrentTenant] owner tenants query failed:", error);
-      return (data as AdminTenant[] | null) ?? [];
-    }
-  }, [user, isAdmin]);
-
   const load = useCallback(async () => {
     if (!user) {
       setTenants([]);
@@ -85,61 +64,27 @@ export const CurrentTenantProvider = ({ children }: { children: ReactNode }) => 
 
     console.log("[tenant] load() start, isAdmin:", isAdmin);
     try {
-      rows = await fetchTenants();
-      console.log("[tenant] load() got", rows.length, "tenants");
-
-      // Pós email-confirm: se user logou pela 1ª vez e ainda não tem tenant,
-      // tenta finalizar o onboarding salvo em localStorage durante /signup.
-      // Isso fecha o gap quando "Confirm email" está ON e o signUp não retorna sessão.
-      if (rows.length === 0 && !isAdmin) {
-        const pending = readPendingSignup();
-        if (pending) {
-          console.log("[tenant] pending signup detectado — criando tenant pós email-confirm");
-          try {
-            const { data: tdata, error: terr } = await supabase.rpc(
-              "create_tenant_for_user" as any,
-              {
-                _slug: pending.slug,
-                _display_name: pending.displayName,
-                _invite_code: pending.inviteCode || null,
-              } as any,
-            );
-            if (terr) {
-              console.error("[tenant] create_tenant_for_user falhou:", terr);
-            } else {
-              console.log("[tenant] tenant criado via pending signup", tdata);
-              clearPendingSignup();
-              // Dispara welcome email (não bloqueia se falhar)
-              try {
-                const result = tdata as any;
-                await supabase.functions.invoke("send-transactional-email", {
-                  body: {
-                    templateName: "welcome-tenant",
-                    recipientEmail: pending.email,
-                    idempotencyKey: `welcome-${result?.tenant_id}`,
-                    templateData: {
-                      name: pending.displayName,
-                      bioUrl: result?.url,
-                      adminUrl: `${window.location.origin}/admin`,
-                      slug: result?.slug,
-                      plan: result?.plan ?? "free",
-                    },
-                  },
-                });
-              } catch (welcomeErr) {
-                console.error("welcome email failed:", welcomeErr);
-              }
-              // Re-query pra pegar o tenant recém-criado
-              rows = await fetchTenants();
-              console.log("[tenant] após create + refetch:", rows.length, "tenants");
-            }
-          } catch (e) {
-            console.error("[tenant] erro ao processar pending signup:", e);
-          }
-        }
+      if (isAdmin) {
+        // Super admin enxerga todos os tenants ativos
+        const { data, error } = await supabase
+          .from("tenants")
+          .select("id,slug,display_name,plan,status")
+          .order("display_name", { ascending: true });
+        if (error) console.error("[useCurrentTenant] admin tenants query failed:", error);
+        rows = (data as AdminTenant[] | null) ?? [];
+      } else {
+        // Tenant owner enxerga só os tenants dele
+        const { data, error } = await supabase
+          .from("tenants")
+          .select("id,slug,display_name,plan,status")
+          .eq("owner_user_id", user.id)
+          .order("display_name", { ascending: true });
+        if (error) console.error("[useCurrentTenant] owner tenants query failed:", error);
+        rows = (data as AdminTenant[] | null) ?? [];
       }
 
       setTenants(rows);
+      console.log("[tenant] load() got", rows.length, "tenants");
 
       // Resolve tenant atual: sessionStorage > primeiro disponível
       const stored = readSelectedTenantId();
@@ -151,11 +96,16 @@ export const CurrentTenantProvider = ({ children }: { children: ReactNode }) => 
       setTenants([]);
       setCurrentIdState(null);
     } finally {
+      // CRÍTICO: sempre liberar loading, senão Admin.tsx trava em spinner.
       console.log("[tenant] load() done → loading=false");
       setLoading(false);
     }
-  }, [user, isAdmin, fetchTenants]);
+  }, [user, isAdmin]);
 
+  // Só recarrega quando user.id muda de verdade (login/logout). Mudanças de
+  // referência do objeto user (por exemplo TOKEN_REFRESHED) NÃO devem
+  // disparar reload — isso causava perda de estado/scroll ao voltar de
+  // outra aba e em alguns casos parecia "deslogar".
   const userId = user?.id ?? null;
   useEffect(() => {
     if (authLoading) return;
