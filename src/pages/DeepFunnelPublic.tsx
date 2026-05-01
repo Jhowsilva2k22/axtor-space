@@ -596,7 +596,9 @@ export default function DeepFunnelPublic() {
                             </a>
                           </Button>
                         )}
-                        {(ctaMode === "whatsapp" || ctaMode === "both") && wppUrl && (
+                        {/* WhatsApp aparece quando: ctaMode é whatsapp/both,
+                            OU quando ctaMode é checkout mas o checkout_url está vazio (fallback). */}
+                        {((ctaMode === "whatsapp" || ctaMode === "both" || (ctaMode === "checkout" && !chkUrl)) && wppUrl) && (
                           <Button
                             size="lg"
                             variant={isExclusive ? "default" : "outline"}
@@ -610,9 +612,15 @@ export default function DeepFunnelPublic() {
                               className="flex items-center justify-center"
                             >
                               <MessageCircle className="h-4 w-4" />
-                              {ctaMode === "whatsapp" ? ctaLabel : secondaryLabel}
+                              {(ctaMode === "whatsapp" || (ctaMode === "checkout" && !chkUrl)) ? ctaLabel : secondaryLabel}
                             </a>
                           </Button>
+                        )}
+                        {/* Último fallback: nem checkout nem whatsapp configurados → mostra mensagem orientativa */}
+                        {!chkUrl && !wppUrl && (
+                          <div className="rounded-2xl border border-border/40 bg-muted/20 p-4 text-center text-xs text-muted-foreground">
+                            Em breve. Entre em contato com a Axtor pelos canais oficiais.
+                          </div>
                         )}
                       </div>
 
