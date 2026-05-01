@@ -151,6 +151,7 @@ const Admin = () => {
       if (error) {
         setFinalizeError(error.message);
         setFinalizing(false);
+        clearPendingSignup();
         return;
       }
       const planLabel = (data as any)?.plan;
