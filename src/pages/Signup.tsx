@@ -14,7 +14,7 @@ const slugify = (s: string) =>
   s
     .toLowerCase()
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[̀-ͯ]/g, "")
     .replace(/[^a-z0-9\s-]/g, "")
     .trim()
     .replace(/\s+/g, "-")
@@ -62,12 +62,10 @@ const Signup = () => {
   const [inviteChecking, setInviteChecking] = useState(false);
   const [inviteStatus, setInviteStatus] = useState<{ valid: boolean; type?: string; reason?: string } | null>(null);
 
-  // sugestão automática a partir do nome
   useEffect(() => {
     if (!slugTouched) setSlug(slugify(name));
   }, [name, slugTouched]);
 
-  // check de slug em tempo real (debounce)
   const [checking, setChecking] = useState(false);
   const [slugStatus, setSlugStatus] = useState<{ ok: boolean; reason?: string } | null>(null);
   useEffect(() => {
@@ -91,7 +89,6 @@ const Signup = () => {
     return { color: "text-destructive", text: REASONS[slugStatus.reason ?? ""] ?? "indisponível" };
   }, [slug, checking, slugStatus]);
 
-  // validação invite code com debounce
   useEffect(() => {
     if (!inviteCode) { setInviteStatus(null); return; }
     setInviteChecking(true);
@@ -124,9 +121,6 @@ const Signup = () => {
     if (password.length < 8) { toast.error("senha precisa ter ao menos 8 caracteres"); return; }
 
     setSubmitting(true);
-    // Salva o "tenant em construção" ANTES do signUp.
-    // Se email-confirm estiver ON, não há sessão depois — e perderíamos esses dados.
-    // O Admin lê isso depois pra finalizar o onboarding.
     savePendingSignup({
       slug,
       displayName: name.trim(),
@@ -147,14 +141,12 @@ const Signup = () => {
       return;
     }
 
-    // Se confirmação de email estiver ON, não há sessão; orientar usuário.
     if (!signUpData.session) {
       setSubmitting(false);
       toast.success("conta criada! confirme seu email — sua bio será liberada automaticamente quando você voltar");
       return;
     }
 
-    // Criar tenant
     const { data: tdata, error: terr } = await supabase.rpc(
       "create_tenant_for_user" as any,
       { _slug: slug, _display_name: name.trim(), _invite_code: inviteCode || null } as any
@@ -167,14 +159,12 @@ const Signup = () => {
     const result = tdata as any as Created;
     await refresh();
     setCreated(result);
-    // Tenant criado com sucesso — limpa o pending.
     clearPendingSignup();
     const planLabel = (tdata as any)?.plan;
     if (planLabel === "partner") toast.success("bio criada — acesso parceiro liberado ✨");
     else if (planLabel === "tester") toast.success("bio criada — acesso beta-tester liberado ✨");
     else toast.success("bio criada com sucesso");
 
-    // Dispara email de boas-vindas (não bloqueia o fluxo se falhar)
     try {
       await supabase.functions.invoke("send-transactional-email", {
         body: {
@@ -274,12 +264,19 @@ const Signup = () => {
             </div>
             {slugHint && <p className={`mt-1.5 px-4 text-[10px] font-medium ${slugHint.color}`}>{slugHint.text}</p>}
           </div>
+
+          {/* Checkbox aceite — Item polimento UX 2026-05-01: aumentei tamanho, border mais visível e fundo contrastante. */}
           <label className="group flex items-start gap-3 px-2 py-2 cursor-pointer">
-            <div className="relative mt-0.5">
-              <input type="checkbox" checked={accept} onChange={(e) => setAccept(e.target.checked)} className="peer h-4 w-4 appearance-none rounded-sm border border-gold/30 bg-card/40 transition-all checked:bg-gold" />
-              <Check className="absolute left-0 top-0 h-4 w-4 scale-0 text-primary-foreground transition-all peer-checked:scale-100" />
+            <div className="relative mt-0.5 flex-shrink-0">
+              <input
+                type="checkbox"
+                checked={accept}
+                onChange={(e) => setAccept(e.target.checked)}
+                className="peer h-5 w-5 appearance-none rounded-md border-2 border-gold/70 bg-card/80 transition-all checked:bg-gold checked:border-gold hover:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
+              />
+              <Check className="pointer-events-none absolute left-0.5 top-0.5 h-4 w-4 scale-0 text-background transition-all peer-checked:scale-100" strokeWidth={3} />
             </div>
-            <span className="text-[11px] leading-relaxed text-muted-foreground transition-colors group-hover:text-foreground">
+            <span className="text-xs leading-relaxed text-muted-foreground transition-colors group-hover:text-foreground">
               Aceito os <Link to="/terms" className="text-gold hover:underline">termos de uso</Link> e a <Link to="/privacy" className="text-gold hover:underline">política de privacidade</Link>
             </span>
           </label>
@@ -321,9 +318,9 @@ const Signup = () => {
           </div>
         </div>
 
-        <Button 
-          type="submit" 
-          disabled={submitting || !slugStatus?.ok || !accept} 
+        <Button
+          type="submit"
+          disabled={submitting || !slugStatus?.ok || !accept}
           className="btn-luxe mt-10 h-14 w-full rounded-full text-xs font-bold uppercase tracking-[0.2em] shadow-lg shadow-gold/10"
         >
           {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Criar minha bio grátis"}
