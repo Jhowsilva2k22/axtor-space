@@ -3,11 +3,14 @@ import { renderAsync } from 'npm:@react-email/components@0.0.22'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { TEMPLATES } from '../_shared/transactional-email-templates/registry.ts'
 
-// Configuration: agora vem do env (configurado no Supabase Edge Function Secrets).
-// Antes era hardcoded "notify.axtor.space" porque era o subdomínio delegado pra Lovable.
-// Pós-cutover usamos Resend direto com axtor.space verificado, então FROM_EMAIL = noreply@axtor.space.
+// Onda 4 polimento — envio imediato (sem queue) com rate-limit anti-flood.
+// Antes: enfileirava em pgmq, esperava process-email-queue desenfileirar (manual ou cron).
+// Agora: envia direto via Resend em <2s, com trava de 60s pra mesmo recipient+template.
+// Fallback: se Resend falhar, enfileira pra retry async.
+
 const SITE_NAME = 'Axtor'
 const DEFAULT_FROM_EMAIL = 'noreply@axtor.space'
+const RATE_LIMIT_MS = 60_000 // 1 minuto
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -22,6 +25,32 @@ function generateToken(): string {
     .join('')
 }
 
+async function sendResendEmail(
+  apiKey: string,
+  payload: { to: string; from: string; subject: string; html: string; text: string }
+): Promise<void> {
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from: payload.from,
+      to: [payload.to],
+      subject: payload.subject,
+      html: payload.html,
+      text: payload.text,
+    }),
+  })
+  if (!res.ok) {
+    const txt = await res.text()
+    const err: any = new Error(`Resend [${res.status}]: ${txt.slice(0, 300)}`)
+    err.status = res.status
+    throw err
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
@@ -29,6 +58,7 @@ Deno.serve(async (req) => {
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
   const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+  const resendApiKey = Deno.env.get('RESEND_API_KEY')
   const resendFromEmail = Deno.env.get('RESEND_FROM_EMAIL') || DEFAULT_FROM_EMAIL
 
   if (!supabaseUrl || !supabaseServiceKey) {
@@ -68,9 +98,7 @@ Deno.serve(async (req) => {
   }
 
   const template = TEMPLATES[templateName]
-
   if (!template) {
-    console.error('Template not found in registry', { templateName })
     return new Response(
       JSON.stringify({
         error: `Template '${templateName}' not found. Available: ${Object.keys(TEMPLATES).join(', ')}`,
@@ -80,18 +108,16 @@ Deno.serve(async (req) => {
   }
 
   const effectiveRecipient = template.to || recipientEmail
-
   if (!effectiveRecipient) {
     return new Response(
-      JSON.stringify({
-        error: 'recipientEmail is required (unless the template defines a fixed recipient)',
-      }),
+      JSON.stringify({ error: 'recipientEmail is required' }),
       { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }
 
   const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
+  // 1. Suppression check
   const { data: suppressed, error: suppressionError } = await supabase
     .from('suppressed_emails')
     .select('id')
@@ -99,10 +125,6 @@ Deno.serve(async (req) => {
     .maybeSingle()
 
   if (suppressionError) {
-    console.error('Suppression check failed — refusing to send', {
-      error: suppressionError,
-      effectiveRecipient,
-    })
     return new Response(
       JSON.stringify({ error: 'Failed to verify suppression status' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -116,103 +138,73 @@ Deno.serve(async (req) => {
       recipient_email: effectiveRecipient,
       status: 'suppressed',
     })
-
-    console.log('Email suppressed', { effectiveRecipient, templateName })
     return new Response(
       JSON.stringify({ success: false, reason: 'email_suppressed' }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }
 
+  // 2. Rate limit anti-flood: verifica se mesmo recipient+template recebeu email <60s
+  const cutoff = new Date(Date.now() - RATE_LIMIT_MS).toISOString()
+  const { data: recent } = await supabase
+    .from('email_send_log')
+    .select('id, created_at')
+    .eq('recipient_email', effectiveRecipient)
+    .eq('template_name', templateName)
+    .eq('status', 'sent')
+    .gt('created_at', cutoff)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (recent) {
+    const elapsedMs = Date.now() - new Date((recent as any).created_at).getTime()
+    const remainingSec = Math.max(1, Math.ceil((RATE_LIMIT_MS - elapsedMs) / 1000))
+    return new Response(
+      JSON.stringify({
+        success: false,
+        reason: 'rate_limited',
+        message: `Aguarde ${remainingSec}s antes de reenviar este tipo de email para esse destinatário.`,
+        retry_after_seconds: remainingSec,
+      }),
+      { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  }
+
+  // 3. Get/create unsubscribe token
   const normalizedEmail = effectiveRecipient.toLowerCase()
   let unsubscribeToken: string
 
-  const { data: existingToken, error: tokenLookupError } = await supabase
+  const { data: existingToken } = await supabase
     .from('email_unsubscribe_tokens')
     .select('token, used_at')
     .eq('email', normalizedEmail)
     .maybeSingle()
 
-  if (tokenLookupError) {
-    console.error('Token lookup failed', { error: tokenLookupError, email: normalizedEmail })
-    await supabase.from('email_send_log').insert({
-      message_id: messageId,
-      template_name: templateName,
-      recipient_email: effectiveRecipient,
-      status: 'failed',
-      error_message: 'Failed to look up unsubscribe token',
-    })
-    return new Response(
-      JSON.stringify({ error: 'Failed to prepare email' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
-  }
-
-  if (existingToken && !existingToken.used_at) {
-    unsubscribeToken = existingToken.token
+  if (existingToken && !(existingToken as any).used_at) {
+    unsubscribeToken = (existingToken as any).token
   } else if (!existingToken) {
     unsubscribeToken = generateToken()
-    const { error: tokenError } = await supabase
+    await supabase
       .from('email_unsubscribe_tokens')
       .upsert(
         { token: unsubscribeToken, email: normalizedEmail },
         { onConflict: 'email', ignoreDuplicates: true }
       )
-
-    if (tokenError) {
-      console.error('Failed to create unsubscribe token', { error: tokenError })
-      await supabase.from('email_send_log').insert({
-        message_id: messageId,
-        template_name: templateName,
-        recipient_email: effectiveRecipient,
-        status: 'failed',
-        error_message: 'Failed to create unsubscribe token',
-      })
-      return new Response(
-        JSON.stringify({ error: 'Failed to prepare email' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    const { data: storedToken, error: reReadError } = await supabase
+    const { data: storedToken } = await supabase
       .from('email_unsubscribe_tokens')
       .select('token')
       .eq('email', normalizedEmail)
       .maybeSingle()
-
-    if (reReadError || !storedToken) {
-      console.error('Failed to read back unsubscribe token after upsert', {
-        error: reReadError,
-        email: normalizedEmail,
-      })
-      await supabase.from('email_send_log').insert({
-        message_id: messageId,
-        template_name: templateName,
-        recipient_email: effectiveRecipient,
-        status: 'failed',
-        error_message: 'Failed to confirm unsubscribe token storage',
-      })
-      return new Response(
-        JSON.stringify({ error: 'Failed to prepare email' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-    unsubscribeToken = storedToken.token
+    unsubscribeToken = (storedToken as any)?.token ?? unsubscribeToken
   } else {
-    console.warn('Unsubscribe token already used but email not suppressed', { email: normalizedEmail })
-    await supabase.from('email_send_log').insert({
-      message_id: messageId,
-      template_name: templateName,
-      recipient_email: effectiveRecipient,
-      status: 'suppressed',
-      error_message: 'Unsubscribe token used but email missing from suppressed list',
-    })
     return new Response(
       JSON.stringify({ success: false, reason: 'email_suppressed' }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }
 
+  // 4. Render template
   const html = await renderAsync(React.createElement(template.component, templateData))
   const plainText = await renderAsync(
     React.createElement(template.component, templateData),
@@ -222,6 +214,38 @@ Deno.serve(async (req) => {
   const resolvedSubject =
     typeof template.subject === 'function' ? template.subject(templateData) : template.subject
 
+  const fromHeader = `${SITE_NAME} <${resendFromEmail}>`
+
+  // 5. ENVIO DIRETO via Resend (sem fila). Fallback pra fila se falhar.
+  if (resendApiKey) {
+    try {
+      await sendResendEmail(resendApiKey, {
+        to: effectiveRecipient,
+        from: fromHeader,
+        subject: resolvedSubject,
+        html,
+        text: plainText,
+      })
+
+      await supabase.from('email_send_log').insert({
+        message_id: messageId,
+        template_name: templateName,
+        recipient_email: effectiveRecipient,
+        status: 'sent',
+      })
+
+      return new Response(
+        JSON.stringify({ success: true, sent: true, message_id: messageId }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      console.warn('Resend direct send failed, falling back to queue:', msg)
+      // continua pro fallback de fila abaixo
+    }
+  }
+
+  // 6. Fallback: enfileira pra processamento async (caso Resend caiu ou key não setada)
   await supabase.from('email_send_log').insert({
     message_id: messageId,
     template_name: templateName,
@@ -234,7 +258,7 @@ Deno.serve(async (req) => {
     payload: {
       message_id: messageId,
       to: effectiveRecipient,
-      from: `${SITE_NAME} <${resendFromEmail}>`,
+      from: fromHeader,
       subject: resolvedSubject,
       html,
       text: plainText,
@@ -247,26 +271,21 @@ Deno.serve(async (req) => {
   })
 
   if (enqueueError) {
-    console.error('Failed to enqueue email', { error: enqueueError, templateName, effectiveRecipient })
-
     await supabase.from('email_send_log').insert({
       message_id: messageId,
       template_name: templateName,
       recipient_email: effectiveRecipient,
       status: 'failed',
-      error_message: 'Failed to enqueue email',
+      error_message: 'Failed to enqueue email after Resend fallback',
     })
-
-    return new Response(JSON.stringify({ error: 'Failed to enqueue email' }), {
+    return new Response(JSON.stringify({ error: 'Failed to send/enqueue email' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   }
 
-  console.log('Transactional email enqueued', { templateName, effectiveRecipient })
-
   return new Response(
-    JSON.stringify({ success: true, queued: true }),
+    JSON.stringify({ success: true, queued: true, message_id: messageId }),
     { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
   )
 })
