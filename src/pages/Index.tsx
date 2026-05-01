@@ -20,6 +20,11 @@ import {
 const PROXY = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/proxy-image?url=`;
 const proxied = (url?: string) => (url ? PROXY + encodeURIComponent(url) : "");
 
+// Chave do localStorage usada pra reaproveitar nome/email/phone/handle
+// na rota /d/funnel/<slug> sem fazer o lead redigitar tudo.
+const LEAD_CACHE_KEY = "axtor_lead";
+const LEAD_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+
 type Step = "handle" | "lead" | "loading" | "result" | "private" | "not_found" | "blocked";
 
 type PartnerCtas = {
@@ -81,7 +86,22 @@ const Index = () => {
     trackFunnel("diag_landing_view");
     const params = new URLSearchParams(window.location.search);
     const utm = params.get("utm_source") || params.get("ref");
-    
+
+    // Pré-preenche form se o lead já preencheu nas últimas 24h (em qualquer rota Axtor).
+    try {
+      const saved = localStorage.getItem(LEAD_CACHE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed?.ts && Date.now() - parsed.ts < LEAD_CACHE_TTL_MS) {
+          if (parsed.name) setName(parsed.name);
+          if (parsed.email) setEmail(parsed.email);
+          if (parsed.phone) setPhone(parsed.phone);
+          if (parsed.country) setCountry(parsed.country);
+          if (parsed.handle) setHandle(parsed.handle);
+        }
+      }
+    } catch {}
+
     (async () => {
       // 1. Tentar carregar do Cache Local (Instantâneo, TTL 60s pra invalidar dado velho)
       const cacheKey = `bio-cache-${utm || "global"}`;
@@ -161,6 +181,14 @@ const Index = () => {
     }
     setStep("loading");
     trackFunnel("diag_lead_submit", { handle });
+
+    // Salva o lead em localStorage pra reaproveitar no /d/funnel sem redigitar.
+    try {
+      localStorage.setItem(
+        LEAD_CACHE_KEY,
+        JSON.stringify({ name, email, phone, country, handle, ts: Date.now() }),
+      );
+    } catch {}
 
     // Anima as mensagens de loading
     let i = 0;
@@ -284,7 +312,7 @@ const Index = () => {
 const HandleStep = ({ handle, setHandle, onSubmit, bioCfg, tenant, partnerCtas }: any) => {
   const bioPhoto = bioCfg?.avatar_url || "https://axtor.space/wp-content/uploads/2024/04/stefany-perfil.jpg";
   const bioName = bioCfg?.display_name || "Stefany Mello";
-  
+
   return (
     <div className="animate-fade-up text-center">
       <span className="sheen inline-flex items-center gap-2 rounded-full border border-gold bg-gradient-gold-soft px-5 py-2 text-xs uppercase tracking-[0.3em] text-primary backdrop-blur">
@@ -405,13 +433,13 @@ const HandleStep = ({ handle, setHandle, onSubmit, bioCfg, tenant, partnerCtas }
           {partnerCtas ? "Canais Oficiais" : "Bio fraca foi um dos pontos?"}
         </span>
         <h2 className="mt-3 font-display text-3xl leading-tight sm:text-4xl">
-          {partnerCtas 
+          {partnerCtas
             ? <>Conecte-se com <span className="text-gold italic">{partnerCtas.display_name}</span></>
             : <>Crie uma bio <span className="text-gold italic">profissional</span> sem código.</>
           }
         </h2>
         <p className="mt-3 max-w-xl text-sm text-muted-foreground sm:text-base">
-          {partnerCtas 
+          {partnerCtas
             ? "Acesse meus links oficiais, agende uma consultoria ou fale diretamente comigo pelo WhatsApp."
             : "Link-in-bio premium com analytics, campanhas com UTM e visual que converte. Comece grátis, suba pra Pro quando quiser desbloquear tudo."
           }
@@ -728,16 +756,16 @@ const ResultStep = ({ data, onRestart, partnerCtas, tenant, bioCfg }: { data: Di
 
   // Resolve CTAs: parceiro (se UTM válido) > defaults (Stefany Mello)
   const ORIGIN = typeof window !== "undefined" ? window.location.origin : "https://axtor.space";
-  
+
   // NOME: Parceiro > Bio Config > Fallback Stefany
-  const partnerName = partnerCtas?.display_name?.split(" ")[0] 
-    || bioCfg?.display_name?.split(" ")[0] 
+  const partnerName = partnerCtas?.display_name?.split(" ")[0]
+    || bioCfg?.display_name?.split(" ")[0]
     || "Stefany";
 
   const bioHref = partnerCtas
     ? (partnerCtas.bio_url || `${ORIGIN}/${partnerCtas.slug}`)
     : "/bio";
-    
+
   const bioLabel = `Ver bio de ${partnerName}`;
 
   // INSTAGRAM: Parceiro > Bio Config > Fallback
@@ -751,13 +779,13 @@ const ResultStep = ({ data, onRestart, partnerCtas, tenant, bioCfg }: { data: Di
   const waMessage = partnerCtas?.whatsapp_message
     || bioCfg?.whatsapp_message
     || "Acabei de fazer o diagnóstico e quero estratégia personalizada";
-    
+
   const waHref = waNumber ? `https://wa.me/${waNumber}?text=${encodeURIComponent(waMessage)}` : null;
 
   const secondaryCta = partnerCtas?.secondary_cta_url
     ? { label: partnerCtas.secondary_cta_label || "Saiba mais", url: partnerCtas.secondary_cta_url }
     : null;
-    
+
   const isPartner = !!partnerCtas;
 
   return (
@@ -855,7 +883,7 @@ const ResultStep = ({ data, onRestart, partnerCtas, tenant, bioCfg }: { data: Di
                 Fazer Análise Completa (2 min) <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
-            
+
             <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground/60">
               recomendado para quem busca escala e autoridade real
             </p>

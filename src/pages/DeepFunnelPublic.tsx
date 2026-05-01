@@ -14,6 +14,10 @@ import { COUNTRIES, maskPhone, type CountryCode, suggestEmailDomain } from "@/li
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 
+// Reaproveita o que o lead preencheu no /d/diagnostico (Index.tsx) sem forçar redigitar.
+const LEAD_CACHE_KEY = "axtor_lead";
+const LEAD_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+
 type Funnel = any;
 type Question = any;
 
@@ -33,6 +37,23 @@ export default function DeepFunnelPublic() {
   const [mediaEnded, setMediaEnded] = useState(false);
   const [skipCountdown, setSkipCountdown] = useState(0);
   const mediaRef = useRef<HTMLVideoElement | HTMLAudioElement | null>(null);
+
+  // Pré-preenche form se o lead já preencheu nas últimas 24h em /d/diagnostico ou /d/funnel anterior.
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(LEAD_CACHE_KEY);
+      if (!saved) return;
+      const parsed = JSON.parse(saved);
+      if (!parsed?.ts || Date.now() - parsed.ts >= LEAD_CACHE_TTL_MS) return;
+      setLead({
+        name: parsed.name || "",
+        email: parsed.email || "",
+        phone: parsed.phone || "",
+        instagram_handle: parsed.handle || parsed.instagram_handle || "",
+      });
+      if (parsed.country) setCountry(parsed.country);
+    } catch {}
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -193,8 +214,13 @@ export default function DeepFunnelPublic() {
                 <p className="text-muted-foreground/80">
                   Relatório completo e plano de ação detalhado para o seu negócio.
                 </p>
+                {lead.name && (
+                  <p className="text-xs text-gold/80">
+                    Já reconhecemos seus dados. Confere e clica em continuar.
+                  </p>
+                )}
               </div>
-              
+
               <div className="space-y-6">
                 <div className="space-y-2">
                   <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/80">Nome completo</label>
@@ -205,7 +231,7 @@ export default function DeepFunnelPublic() {
                     className="h-11 rounded-full border-gold/20 bg-card/30 px-5 font-light transition-all focus:border-gold/50 focus:shadow-gold/10"
                   />
                 </div>
-                
+
                 <div className="grid gap-6 md:grid-cols-2">
                   <div className="space-y-2">
                     <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/80">Email profissional</label>
@@ -270,6 +296,20 @@ export default function DeepFunnelPublic() {
                     toast.error("Confira o número do WhatsApp.");
                     return;
                   }
+                  // Atualiza cache pra próximas rotas usarem dados frescos
+                  try {
+                    localStorage.setItem(
+                      LEAD_CACHE_KEY,
+                      JSON.stringify({
+                        name: lead.name,
+                        email: lead.email,
+                        phone: lead.phone,
+                        country,
+                        handle: lead.instagram_handle,
+                        ts: Date.now(),
+                      }),
+                    );
+                  } catch {}
                   setStep("quiz");
                 }}
               >
@@ -375,12 +415,12 @@ export default function DeepFunnelPublic() {
             <motion.div initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }} className="relative z-10">
               <div className="relative overflow-hidden rounded-3xl border border-gold/20 bg-card/40 p-8 text-center backdrop-blur-md md:p-12 shadow-2xl">
                 <div className="pointer-events-none absolute left-1/2 top-0 h-32 w-full -translate-x-1/2 -translate-y-1/2 bg-primary/20 blur-[80px]" />
-                
+
                 <p className="text-[10px] uppercase tracking-[0.4em] text-gold">diagnóstico concluído</p>
                 <h2 className="mt-4 font-display text-4xl leading-tight sm:text-5xl">
                   Olá, <span className="text-gold italic">{lead.name.split(' ')[0]}</span>.
                 </h2>
-                
+
                 {funnel.result_intro ? (
                   <p className="mt-4 text-muted-foreground mx-auto max-w-2xl">
                     {funnel.result_intro.replace(/\{\{nome\}\}/gi, lead.name.split(' ')[0] || '')}
@@ -430,23 +470,23 @@ export default function DeepFunnelPublic() {
               const chkUrl = buildCheckoutUrl(product);
               const ctaLabel = product.cta_label ?? "Quero esse";
               const secondaryLabel = product.cta_secondary_label ?? (ctaMode === "both" ? "Tirar dúvida no WhatsApp" : "Falar no WhatsApp");
-              
+
               // Nova estrutura de benefícios (objeto) vs legada (array)
               const rawBenefits = product.benefits;
               const isObj = typeof rawBenefits === 'object' && rawBenefits !== null && !Array.isArray(rawBenefits);
               const benefits: string[] = isObj ? ((rawBenefits as any).items || []) : (Array.isArray(rawBenefits) ? rawBenefits : []);
-              
+
               // Lógica de Oferta Exclusiva (Prioriza o que vier do banco, fallback para isPrimary)
               const isExclusive = isObj ? (rawBenefits as any).is_exclusive : isPrimary;
               let originalPrice = isObj ? (rawBenefits as any).original_price : "";
-              
+
               const currentPriceHint = product.price_hint?.toLowerCase() || "";
               if (currentPriceHint.includes("a partir") || currentPriceHint.includes("consulta")) {
                 originalPrice = "";
               }
               const guaranteeDays = isObj ? ((rawBenefits as any).guarantee_days || 7) : 7;
               const bioImage = funnel?.briefing?.bio_image_url || "https://axtor.space/wp-content/uploads/2024/04/stefany-perfil.jpg";
-              
+
               return (
                 <motion.div
                   key={product.id ?? idx}
@@ -536,7 +576,7 @@ export default function DeepFunnelPublic() {
                           )}
                         </div>
                       )}
-                      
+
                       {!isExclusive && product.price_hint && (
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-muted-foreground uppercase tracking-widest">Investimento:</span>
@@ -634,12 +674,12 @@ export default function DeepFunnelPublic() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="relative order-1 md:order-2 flex justify-center">
                   <div className="relative w-full aspect-[4/5] max-w-[320px] rounded-[32px] overflow-hidden shadow-2xl border border-gold/20">
-                    <img 
-                      src={(funnel?.briefing?.use_global_bio ? tenant?.global_avatar_url : funnel?.briefing?.bio_image_url) || "https://axtor.space/wp-content/uploads/2024/04/stefany-perfil.jpg"} 
-                      alt={tenant?.display_name || "Stefany Mello"} 
+                    <img
+                      src={(funnel?.briefing?.use_global_bio ? tenant?.global_avatar_url : funnel?.briefing?.bio_image_url) || "https://axtor.space/wp-content/uploads/2024/04/stefany-perfil.jpg"}
+                      alt={tenant?.display_name || "Stefany Mello"}
                       className="w-full h-full object-cover"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=800";
@@ -667,11 +707,11 @@ export default function DeepFunnelPublic() {
                 <span className="inline-flex items-center gap-2 rounded-full border border-gold/50 bg-background/40 px-4 py-1.5 text-[10px] uppercase tracking-[0.4em] text-gold font-bold">
                   Consciência de Funil
                 </span>
-                
+
                 <h3 className="font-display text-3xl leading-tight sm:text-4xl">
                   O caminho que você acabou de fazer é <span className="text-gold italic">o mesmo funil</span> que entrego para os meus clientes.
                 </h3>
-                
+
                 <p className="mx-auto max-w-xl text-muted-foreground leading-relaxed">
                   Você acaba de experimentar na pele a jornada de alta conversão da <span className="text-foreground font-bold">Axtor</span>. Do topo ao fundo de funil, de forma automática e persuasiva.
                 </p>
