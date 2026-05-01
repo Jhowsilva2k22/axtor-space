@@ -81,7 +81,7 @@ const Bio = () => {
 
   useEffect(() => {
     if (!tenant) return;
-    
+
     (async () => {
       // 1. Carregamento instantâneo do Cache (TTL 60s pra invalidar dado velho)
       const cacheKey = `bio-cfg-${tenant.id}`;
@@ -102,7 +102,7 @@ const Bio = () => {
         supabase.from("bio_blocks").select("*").eq("tenant_id", tenant.id).eq("is_active", true).order("position", { ascending: true }),
         supabase.from("bio_categories").select("*").eq("tenant_id", tenant.id).eq("is_active", true).order("position", { ascending: true }),
       ]);
-      
+
       if (c) {
         setCfg(c as any);
         sessionStorage.setItem(cacheKey, JSON.stringify({ data: c, timestamp: Date.now() }));
@@ -235,7 +235,7 @@ const Bio = () => {
         <div id="blocks" className="stagger mt-12 space-y-3">
           {categories.length > 0 && (
             <div className="relative mb-6 flex items-center gap-2">
-              {/* Scroll horizontal das pills com fade nas bordas */}
+              {/* Scroll horizontal das pills — sem fade lateral (estava parecendo bug visual). */}
               <div className="relative min-w-0 flex-1">
                 <div
                   className="flex w-full items-center gap-2 overflow-x-auto overflow-y-hidden scroll-smooth px-1 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
@@ -250,23 +250,6 @@ const Bio = () => {
                     </CategoryChip>
                   ))}
                 </div>
-                {/* fade sutil nas bordas — usa a cor real do background do tema */}
-                <div
-                  aria-hidden
-                  className="pointer-events-none absolute inset-y-0 left-0 w-4"
-                  style={{
-                    background:
-                      "linear-gradient(to right, hsl(var(--background) / 0.6), hsl(var(--background) / 0))",
-                  }}
-                />
-                <div
-                  aria-hidden
-                  className="pointer-events-none absolute inset-y-0 right-0 w-4"
-                  style={{
-                    background:
-                      "linear-gradient(to left, hsl(var(--background) / 0.6), hsl(var(--background) / 0))",
-                  }}
-                />
               </div>
               {/* Botão de busca sticky à direita, separado das pills */}
               <button
