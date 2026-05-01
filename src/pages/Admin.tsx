@@ -830,7 +830,17 @@ const Admin = () => {
             <p className="font-display text-2xl">Não conseguimos finalizar seu cadastro</p>
             <p className="max-w-md text-sm text-muted-foreground">{finalizeError}</p>
             <Button asChild className="btn-luxe h-11 rounded-sm px-6 text-xs uppercase tracking-[0.2em]">
-              <button onClick={async () => { clearPendingSignup(); await supabase.auth.signOut(); window.location.href = "/signup"; }}>Recomeçar cadastro</button>
+              <button onClick={async () => {
+  const p = readPendingSignup();
+  const invite = p?.inviteCode;
+  const email = p?.email;
+  clearPendingSignup();
+  await supabase.auth.signOut();
+  const params = new URLSearchParams();
+  if (invite) params.set("invite", invite);
+  if (email) params.set("email", email);
+  window.location.href = "/signup" + (params.toString() ? "?" + params.toString() : "");
+}}>Recomeçar cadastro</button>
             </Button>
           </div>
         ) : (
