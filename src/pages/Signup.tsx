@@ -121,6 +121,14 @@ const Signup = () => {
     if (password.length < 8) { toast.error("senha precisa ter ao menos 8 caracteres"); return; }
 
     setSubmitting(true);
+    // Revalidação síncrona pra evitar race condition do debounce
+    const { data: liveCheck } = await (supabase as any).rpc("check_slug_available", { _slug: slug });
+    if (!(liveCheck as any)?.available) {
+      setSubmitting(false);
+      setSlugStatus({ ok: false, reason: (liveCheck as any)?.reason ?? "taken" });
+      toast.error("Esse @ já está em uso. Escolhe outro.");
+      return;
+    }
     savePendingSignup({
       slug,
       displayName: name.trim(),
