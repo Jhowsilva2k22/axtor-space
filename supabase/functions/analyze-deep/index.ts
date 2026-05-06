@@ -19,7 +19,10 @@ REGRA CRÍTICA SOBRE NOME:
 REGRA DE PRODUTOS:
 - Você DEVE escolher 1 produto principal (recommended_product_id) — o que MELHOR resolve a dor dominante.
 - Você DEVE também escolher até 2 produtos alternativos (alternative_product_ids) — produtos diferentes do principal que ainda fazem sentido pra esse perfil (complementares ou caminhos alternativos). Se só houver 1 produto disponível, retorne array vazio.
-- O veredicto deve focar no produto principal, mas pode mencionar brevemente que existem alternativas.`;
+- O veredicto deve focar no produto principal, mas pode mencionar brevemente que existem alternativas.
+
+FORMATAÇÃO:
+- Use APENAS texto plano. Sem markdown, sem asteriscos, sem bullets, sem títulos com #, sem negrito. Apenas parágrafos separados por quebra de linha.`;
 
 const TOOLS = [
   {
