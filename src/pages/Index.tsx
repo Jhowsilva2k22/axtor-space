@@ -310,8 +310,8 @@ const Index = () => {
 /* ---------- STEPS ---------- */
 
 const HandleStep = ({ handle, setHandle, onSubmit, bioCfg, tenant, partnerCtas }: any) => {
-  const bioPhoto = bioCfg?.avatar_url || "https://axtor.space/wp-content/uploads/2024/04/stefany-perfil.jpg";
-  const bioName = bioCfg?.display_name || "Stefany Mello";
+  const bioPhoto = bioCfg?.avatar_url || "";
+  const bioName = bioCfg?.display_name || "";
 
   return (
     <div className="animate-fade-up text-center">
@@ -330,50 +330,49 @@ const HandleStep = ({ handle, setHandle, onSubmit, bioCfg, tenant, partnerCtas }
         <div className="grid md:grid-cols-[280px_1fr] gap-8 items-center">
           <div className="relative flex justify-center">
             <div className="relative w-full aspect-[4/5] rounded-[32px] overflow-hidden shadow-2xl border border-gold/20">
-              <img
-                src={bioPhoto}
-                alt={bioName}
-                className="w-full h-full object-cover object-top"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=800";
-                }}
-              />
+              {bioPhoto ? (
+                <img
+                  src={bioPhoto}
+                  alt={bioName}
+                  className="w-full h-full object-cover object-top"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-muted/60 to-muted/30 animate-pulse" />
+              )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
             </div>
           </div>
           <div className="space-y-6">
-            <h3 className="font-display text-3xl leading-tight">
-              Quem é <span className="text-gold italic">{bioName}</span>?
-            </h3>
-            <div className="prose prose-invert prose-sm max-w-none">
-              <div className="space-y-4 text-sm leading-relaxed text-muted-foreground/90">
-                {bioCfg?.headline ? (
-                  <>
-                    <p>
-                      <span className="text-foreground font-medium">{bioCfg.display_name}</span> {bioCfg.headline}
-                    </p>
-                    {bioCfg?.sub_headline?.split(/\n\s*\n/).map((paragraph: string, i: number) => (
-                      <p key={i}>{paragraph}</p>
-                    ))}
-                  </>
-                ) : (
-                  <>
-                    <p>
-                      <span className="text-foreground font-medium">Stefany Mello</span> é estrategista de posicionamento e gestão digital para negócios premium.
-                    </p>
-                    <p>
-                      Com visão estratégica e execução orientada a resultado, desenvolve e gerencia estratégias digitais que transformam a presença online de negócios em um ativo comercial real capaz de gerar autoridade, atrair o cliente certo e justificar o preço cobrado.
-                    </p>
-                    <p>
-                      Sua metodologia une posicionamento estratégico, gestão de conteúdo e inteligência editorial para construir uma presença digital consistente, intencional e alinhada ao nível do negócio que representa.
-                    </p>
-                    <p>
-                      Diretora da Axtor, braço de produção e tecnologia do ecossistema, Stefany lidera uma operação que une estratégia de marca, produção de conteúdo premium, cobertura de eventos e soluções com inteligência artificial aplicada ao marketing.
-                    </p>
-                  </>
-                )}
+            {bioCfg ? (
+              <>
+                <h3 className="font-display text-3xl leading-tight">
+                  Quem é <span className="text-gold italic">{bioName}</span>?
+                </h3>
+                <div className="prose prose-invert prose-sm max-w-none">
+                  <div className="space-y-4 text-sm leading-relaxed text-muted-foreground/90">
+                    {bioCfg.headline ? (
+                      <>
+                        <p>
+                          <span className="text-foreground font-medium">{bioCfg.display_name}</span> {bioCfg.headline}
+                        </p>
+                        {bioCfg.sub_headline?.split(/\n\s*\n/).map((paragraph: string, i: number) => (
+                          <p key={i}>{paragraph}</p>
+                        ))}
+                      </>
+                    ) : (
+                      <p className="text-muted-foreground">Nenhuma bio configurada.</p>
+                    )}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="space-y-3">
+                <div className="h-8 bg-muted/50 rounded-lg animate-pulse w-48" />
+                <div className="h-4 bg-muted/30 rounded animate-pulse w-full" />
+                <div className="h-4 bg-muted/30 rounded animate-pulse w-3/4" />
+                <div className="h-4 bg-muted/30 rounded animate-pulse w-5/6" />
               </div>
-            </div>
+            )}
             <div className="pt-2 border-t border-gold/10">
               <p className="text-xs font-medium italic text-foreground/80 leading-relaxed">
                 "Para quem entendeu que presença digital não é sobre estar online.<br />
