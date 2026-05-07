@@ -487,8 +487,6 @@ export default function DeepFunnelPublic() {
                 originalPrice = "";
               }
               const guaranteeDays = isObj ? ((rawBenefits as any).guarantee_days || 7) : 7;
-              const bioImage = funnel?.briefing?.bio_image_url || "https://axtor.space/wp-content/uploads/2024/04/stefany-perfil.jpg";
-
               return (
                 <motion.div
                   key={product.id ?? idx}
@@ -660,9 +658,9 @@ export default function DeepFunnelPublic() {
             >
               <div className="grid md:grid-cols-2 gap-12 items-center">
                 <div className="space-y-6 order-2 md:order-1">
-                  {funnel?.tenant?.display_name && (
+                  {tenant?.display_name && (
                     <h3 className="font-display text-4xl leading-tight">
-                      Quem é <span className="text-gold italic">{funnel.tenant.display_name}</span>?
+                      Quem é <span className="text-gold italic">{tenant.display_name}</span>?
                     </h3>
                   )}
                   <div className="space-y-4 text-sm leading-relaxed text-muted-foreground/90 whitespace-pre-line">
@@ -684,14 +682,20 @@ export default function DeepFunnelPublic() {
 
                 <div className="relative order-1 md:order-2 flex justify-center">
                   <div className="relative w-full aspect-[4/5] max-w-[320px] rounded-[32px] overflow-hidden shadow-2xl border border-gold/20">
-                    <img
-                      src={(funnel?.briefing?.use_global_bio ? tenant?.global_avatar_url : funnel?.briefing?.bio_image_url) || ""}
-                      alt={tenant?.display_name || ""}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=800";
-                      }}
-                    />
+                    {(() => {
+                      const imgSrc = funnel?.briefing?.use_global_bio
+                        ? tenant?.global_avatar_url
+                        : funnel?.briefing?.bio_image_url;
+                      return imgSrc ? (
+                        <img
+                          src={imgSrc}
+                          alt={tenant?.display_name || ""}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-muted/60 to-muted/30" />
+                      );
+                    })()}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                   </div>
                   {/* Elementos decorativos */}
@@ -729,17 +733,19 @@ export default function DeepFunnelPublic() {
                   </p>
                 </div>
 
-                <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
-                  <Button
-                    variant="outline"
-                    className="h-12 rounded-full border-gold/40 hover:bg-gold/10 text-xs uppercase tracking-widest px-8"
-                    asChild
-                  >
-                    <a href={`/${tenant?.slug || "stefany-mello"}`} target="_blank" rel="noreferrer">
-                      Ver rodando na minha Bio
-                    </a>
-                  </Button>
-                </div>
+                {tenant?.slug && (
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
+                    <Button
+                      variant="outline"
+                      className="h-12 rounded-full border-gold/40 hover:bg-gold/10 text-xs uppercase tracking-widest px-8"
+                      asChild
+                    >
+                      <a href={`/${tenant.slug}`} target="_blank" rel="noreferrer">
+                        Ver rodando na minha Bio
+                      </a>
+                    </Button>
+                  </div>
+                )}
               </div>
             </motion.div>
           </motion.div>
