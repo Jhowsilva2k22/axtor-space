@@ -23,7 +23,7 @@ REGRA DE PRODUTOS:
 - O briefing traz "products" com os produtos reais do dono. Copie LITERAL: name, price_hint, session_duration, plan_duration, checkout_url. Output = exatamente o que entra.
 - Se price_hint vier "A combinar", "Sob consulta", "Valor sob consulta", "" (vazio) ou similar — copie LITERAL. Nunca chute número.
 - Se checkout_url vier vazio — deixe vazio no output. Não invente URL nem aponte pra placeholder.
-- Distribua os produtos entre as 5 dores (marketing, gestao, vendas, ia, estrutura). Se houver menos produtos que dores, repita os mais versáteis. Se houver mais, escolha os melhores. Sem inventar nada novo.
+- Distribua os produtos entre as 5 dores (marketing, gestao, vendas, ia, estrutura). Para cada produto, o campo pain_tag pode conter MÚLTIPLAS dores separadas por vírgula (ex: "vendas,gestao"). Use isso para garantir que TODAS as 5 dores tenham pelo menos 1 produto mapeado. Se houver menos produtos que dores, atribua múltiplas dores ao mesmo produto. Se houver mais, escolha os melhores. Sem inventar nada novo.
 - Em todos os casos, gere um template de WhatsApp pronto pra cada produto, usando {{nome}} como placeholder do nome do lead.
 
 USO DOS CAMPOS DE CONTEXTO DO BRIEFING (quando vierem em cada produto):
@@ -92,7 +92,7 @@ const TOOLS_ANTHROPIC = [
             properties: {
               name: { type: "string" },
               description: { type: "string" },
-              pain_tag: { type: "string" },
+              pain_tag: { type: "string", description: "Dores cobertas, separadas por vírgula. Ex: 'vendas' ou 'vendas,gestao'. Garanta cobertura de todas as 5 dores distribuídas entre os produtos." },
               price_hint: { type: "string" },
               session_duration: { type: "string", description: "Duração da sessão (ex: '1 hora'). COPIE LITERAL do briefing; se não houver, deixe vazio." },
               plan_duration: { type: "string", description: "Duração do plano de ação (ex: '30 dias'). COPIE LITERAL do briefing; se não houver, deixe vazio." },
@@ -306,7 +306,9 @@ Deno.serve(async (req) => {
     const validPains = new Set(["marketing", "gestao", "vendas", "ia", "estrutura"]);
     const productsRows = args.products.map((p: any, i: number) => {
       const checkout = p.checkout_url || linkByName.get(String(p.name ?? "").trim().toLowerCase()) || null;
-      const painTag = validPains.has(p.pain_tag) ? p.pain_tag : "vendas";
+      // Aceita comma-separated: filtra só as dores válidas, fallback "vendas"
+      const rawTags = String(p.pain_tag ?? "").split(",").map((t: string) => t.trim()).filter((t: string) => validPains.has(t));
+      const painTag = rawTags.length > 0 ? rawTags.join(",") : "vendas";
       return {
         funnel_id: finalFunnelId,
         position: i,

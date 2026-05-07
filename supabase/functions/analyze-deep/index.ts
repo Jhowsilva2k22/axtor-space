@@ -162,12 +162,27 @@ Deno.serve(async (req) => {
       }),
     });
 
+    // Helper: verifica se produto cobre uma dor (suporta pain_tag comma-separated)
+    const productCoversPain = (p: { pain_tag?: string | null }, pain: string) =>
+      String(p.pain_tag ?? "").split(",").map((t) => t.trim()).includes(pain);
+
+    // Escolhe melhor produto pelo ranking de dores (do score mais alto ao mais baixo)
+    const pickBestProduct = (prods: typeof products, scores: Record<string, number>) => {
+      const ranked = Object.entries(scores)
+        .sort(([, a], [, b]) => (b as number) - (a as number))
+        .map(([k]) => k);
+      for (const pain of ranked) {
+        const match = prods.find((p) => productCoversPain(p, pain));
+        if (match) return match;
+      }
+      return prods[0];
+    };
+
     if (!aiResp.ok) {
       const txt = await aiResp.text();
       console.error("AI error:", aiResp.status, txt);
       const errCode = aiResp.status === 429 ? "rate_limited" : aiResp.status === 402 ? "ai_credits" : "ai_error";
-      // fallback: pega 1º produto da dor dominante
-      const fallback = products.find((p) => p.pain_tag === dominantPain) ?? products[0];
+      const fallback = pickBestProduct(products, pain_scores);
       const cleanName = (lead_name ?? "").toString().trim().split(/\s+/)[0] ?? "";
       const greeting = cleanName ? `${cleanName}, identificamos` : "Identificamos";
       const veredict = `${greeting} sua dor principal em ${dominantPain}. Recomendamos: ${fallback.name}. Continue pelo WhatsApp para entender como aplicar isso ao seu caso.`;
@@ -211,7 +226,7 @@ Deno.serve(async (req) => {
 
     const aiJson = await aiResp.json();
     const toolCall = aiJson.choices?.[0]?.message?.tool_calls?.[0];
-    let recommended = products.find((p) => p.pain_tag === dominantPain) ?? products[0];
+    let recommended = pickBestProduct(products, pain_scores);
     let veredict = `Sua dor principal está em ${dominantPain}. Veja a recomendação abaixo.`;
     let alternativeIds: string[] = [];
     if (toolCall) {
