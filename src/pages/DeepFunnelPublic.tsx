@@ -141,9 +141,11 @@ export default function DeepFunnelPublic() {
 
   // Helpers per-produto (suportam result.products array, com fallback pro result.product antigo)
   const productList: any[] = useMemo(() => {
-    if (Array.isArray(result?.products) && result.products.length > 0) return result.products;
-    if (result?.product) return [result.product];
-    return [];
+    const raw = Array.isArray(result?.products) && result.products.length > 0
+      ? result.products
+      : result?.product ? [result.product] : [];
+    const seen = new Set<string>();
+    return raw.filter((p: any) => p?.id && !seen.has(p.id) && seen.add(p.id));
   }, [result]);
 
   const buildWhatsappUrl = (product: any) => {
@@ -577,13 +579,6 @@ export default function DeepFunnelPublic() {
                         </div>
                       )}
 
-                      {!isExclusive && product.price_hint && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground uppercase tracking-widest">Investimento:</span>
-                          <span className="text-lg font-semibold text-foreground">{product.price_hint}</span>
-                        </div>
-                      )}
-
                       <div className="space-y-3">
                         {(ctaMode === "checkout" || ctaMode === "both") && chkUrl && (
                           <Button
@@ -616,10 +611,22 @@ export default function DeepFunnelPublic() {
                             </a>
                           </Button>
                         )}
-                        {/* Último fallback: nem checkout nem whatsapp configurados → mostra mensagem orientativa */}
-                        {!chkUrl && !wppUrl && (
+                        {/* Último fallback: nem checkout nem whatsapp → tenta número direto do tenant ou mensagem neutra */}
+                        {!chkUrl && !wppUrl && tenant?.whatsapp_number && (
+                          <Button size="lg" className="w-full gap-2 h-12 rounded-full bg-green-600 hover:bg-green-700 animate-pulse" asChild>
+                            <a
+                              href={`https://wa.me/${(tenant.whatsapp_number ?? "").replace(/\D/g, "")}?text=${encodeURIComponent("Olá! Acabei de fazer o diagnóstico e quero saber mais.")}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="flex items-center justify-center text-white"
+                            >
+                              <MessageCircle className="h-4 w-4" /> Falar no WhatsApp
+                            </a>
+                          </Button>
+                        )}
+                        {!chkUrl && !wppUrl && !tenant?.whatsapp_number && (
                           <div className="rounded-2xl border border-border/40 bg-muted/20 p-4 text-center text-xs text-muted-foreground">
-                            Em breve. Entre em contato com a Axtor pelos canais oficiais.
+                            Em breve. Entre em contato pelos canais oficiais.
                           </div>
                         )}
                       </div>
@@ -653,41 +660,33 @@ export default function DeepFunnelPublic() {
             >
               <div className="grid md:grid-cols-2 gap-12 items-center">
                 <div className="space-y-6 order-2 md:order-1">
-                  <h3 className="font-display text-4xl leading-tight">
-                    Quem é <span className="text-gold italic">{funnel?.tenant?.display_name || "Stefany Mello"}</span>?
-                  </h3>
+                  {funnel?.tenant?.display_name && (
+                    <h3 className="font-display text-4xl leading-tight">
+                      Quem é <span className="text-gold italic">{funnel.tenant.display_name}</span>?
+                    </h3>
+                  )}
                   <div className="space-y-4 text-sm leading-relaxed text-muted-foreground/90 whitespace-pre-line">
-                    {funnel?.briefing?.bio_text ? (
+                    {funnel?.briefing?.bio_text && (
                       funnel.briefing.bio_text
-                    ) : (
-                      <>
-                        <p>
-                          {funnel?.tenant?.display_name || "Stefany Mello"} é estrategista de posicionamento e gestão digital para negócios premium.
-                        </p>
-                        <p>
-                          Com visão estratégica e execução orientada a resultado, desenvolve e gerencia estratégias digitais que transformam a presença online de negócios em um ativo comercial real capaz de gerar autoridade, atrair o cliente certo e justificar o preço cobrado.
-                        </p>
-                        <p>
-                          Sua metodologia une posicionamento estratégico, gestão de conteúdo e inteligência editorial para construir uma presença digital consistente, intencional e alinhada ao nível do negócio que representa.
-                        </p>
-                      </>
                     )}
                     <p className="text-foreground font-medium italic pt-2">
                       "Para quem entendeu que presença digital não é sobre estar online. É sobre ser escolhido."
                     </p>
                   </div>
-                  <div className="pt-4">
-                    <div className="inline-flex items-center gap-3 rounded-full border border-gold/30 bg-gold/10 px-4 py-2 text-[10px] uppercase tracking-widest text-gold font-bold">
-                      Diretora Axtor • Estrategista Premium
+                  {funnel?.briefing?.role_label && (
+                    <div className="pt-4">
+                      <div className="inline-flex items-center gap-3 rounded-full border border-gold/30 bg-gold/10 px-4 py-2 text-[10px] uppercase tracking-widest text-gold font-bold">
+                        {funnel.briefing.role_label}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
 
                 <div className="relative order-1 md:order-2 flex justify-center">
                   <div className="relative w-full aspect-[4/5] max-w-[320px] rounded-[32px] overflow-hidden shadow-2xl border border-gold/20">
                     <img
-                      src={(funnel?.briefing?.use_global_bio ? tenant?.global_avatar_url : funnel?.briefing?.bio_image_url) || "https://axtor.space/wp-content/uploads/2024/04/stefany-perfil.jpg"}
-                      alt={tenant?.display_name || "Stefany Mello"}
+                      src={(funnel?.briefing?.use_global_bio ? tenant?.global_avatar_url : funnel?.briefing?.bio_image_url) || ""}
+                      alt={tenant?.display_name || ""}
                       className="w-full h-full object-cover"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=800";
