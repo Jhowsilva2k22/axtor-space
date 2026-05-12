@@ -28,7 +28,8 @@ function BioTextRenderer({ text }: { text: string }) {
   const collapsed = paragraphs.length > 3;
   const visible = expanded || !collapsed ? paragraphs : paragraphs.slice(0, 3);
   return (
-    <div className="space-y-3">
+    // D3: mb-2 adicionado para fechamento limpo sem espaço extra após expand
+    <div className="space-y-3 mb-2">
       {visible.map((p, i) => (
         <p key={i} className="text-sm leading-relaxed">{p}</p>
       ))}
@@ -474,16 +475,7 @@ export default function DeepFunnelPublic() {
                   </div>
                 )}
 
-                {/* Storytelling Bridge / Gancho Condutivo */}
-                <div className="mt-12 space-y-6 text-left border-t border-border/30 pt-8">
-                  <h3 className="font-display text-2xl text-gold">O caminho para o seu próximo nível</h3>
-                  <p className="text-sm leading-relaxed text-muted-foreground">
-                    Baseado no seu momento atual, identificamos que o seu maior gargalo não é apenas técnico, mas sim de <strong>posicionamento estratégico</strong>. Você tem o conhecimento, mas a forma como o mercado te enxerga ainda não reflete o valor real do que você entrega.
-                  </p>
-                  <p className="text-sm leading-relaxed text-muted-foreground">
-                    Para mudar isso, desenhamos uma estratégia que une autoridade imediata com uma estrutura de vendas intencional. Não se trata de "postar mais", mas de ser <strong>escolhido</strong> pelos clientes que não questionam o seu preço.
-                  </p>
-                </div>
+                {/* D1: Bloco "O caminho para o seu próximo nível" removido — conteúdo era hardcoded de marketing genérico */}
               </div>
             </motion.div>
 
@@ -661,9 +653,10 @@ export default function DeepFunnelPublic() {
             })}
 
             {/* Seção de Autoridade: Quem é o especialista */}
+            {/* D2: y: 20 → 0 removido do initial/whileInView para eliminar reflow de scroll snap */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
               className="mt-20 relative overflow-hidden rounded-[32px] bg-card/30 border border-border/40 p-8 md:p-12 text-left"
@@ -675,6 +668,7 @@ export default function DeepFunnelPublic() {
                       Quem é <span className="text-gold italic">{tenant.display_name}</span>?
                     </h3>
                   )}
+                  {/* D3: whitespace-pre-line removido do parent div — BioTextRenderer já divide em <p> elementos */}
                   <div className="space-y-4 text-sm leading-relaxed text-muted-foreground/90">
                     {/* A4: BioTextRenderer divide bio_text em parágrafos com "Continuar lendo →" */}
                     {funnel?.briefing?.bio_text && (
@@ -698,10 +692,13 @@ export default function DeepFunnelPublic() {
                         ? tenant?.global_avatar_url
                         : funnel?.briefing?.bio_image_url;
                       return imgSrc ? (
+                        // D4: loading="eager" + fetchPriority="high" — foto de autoridade é alta prioridade (first impression)
                         <img
                           src={imgSrc}
                           alt={tenant?.display_name || ""}
                           className="w-full h-full object-cover"
+                          loading="eager"
+                          fetchPriority="high"
                         />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-muted/60 to-muted/30" />
