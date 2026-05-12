@@ -250,6 +250,12 @@ const Index = () => {
           setStep("not_found");
           trackFunnel("diag_result_failed", { handle, diagnostic_id: result.diagnostic_id ?? null });
         } else {
+          // Persiste o diagnostic_id da captura pra o imersivo conseguir linkar (parent_diagnostic_id)
+          try {
+            if (result.diagnostic_id) {
+              localStorage.setItem("axtor_last_capture_diagnostic_id", result.diagnostic_id);
+            }
+          } catch {}
           setStep("result");
           trackFunnel("diag_result_view", { handle, diagnostic_id: result.diagnostic_id ?? null, meta: { score, cached: !!result.cached } });
         }
