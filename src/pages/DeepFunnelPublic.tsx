@@ -143,14 +143,25 @@ export default function DeepFunnelPublic() {
     setStep("loading");
     const utm = captureUtm();
     try {
+      // Lê diagnostic_id da captura (analyze-instagram), se houver, pra linkar imersivo → captura
+      let parentDiagnosticId: string | null = null;
+      try {
+        parentDiagnosticId = localStorage.getItem("axtor_last_capture_diagnostic_id");
+      } catch {}
       const { data, error } = await supabase.functions.invoke("analyze-deep", {
         body: {
           funnel_id: funnel.id,
           answers: finalAnswers,
           pain_scores: finalScores,
           session_id: getSessionId(),
-          ...lead,
-          ...utm,
+          lead_name: lead.name,
+          lead_email: lead.email,
+          lead_phone: lead.phone,
+          instagram_handle: lead.instagram_handle,
+          parent_diagnostic_id: parentDiagnosticId || undefined,
+          utm_source: utm.utm_source ?? null,
+          utm_medium: utm.utm_medium ?? null,
+          utm_campaign: utm.utm_campaign ?? null,
         },
       });
       if (error) throw error;
