@@ -21,6 +21,29 @@ const LEAD_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 type Funnel = any;
 type Question = any;
 
+// A4: Renderiza bio_text em parágrafos com expand/collapse após 3 parágrafos.
+function BioTextRenderer({ text }: { text: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const paragraphs = text.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
+  const collapsed = paragraphs.length > 3;
+  const visible = expanded || !collapsed ? paragraphs : paragraphs.slice(0, 3);
+  return (
+    <div className="space-y-3">
+      {visible.map((p, i) => (
+        <p key={i} className="text-sm leading-relaxed">{p}</p>
+      ))}
+      {collapsed && (
+        <button
+          onClick={() => setExpanded((v) => !v)}
+          className="text-xs uppercase tracking-widest text-gold/80 hover:text-gold transition-colors mt-2"
+        >
+          {expanded ? "Mostrar menos" : "Continuar lendo →"}
+        </button>
+      )}
+    </div>
+  );
+}
+
 export default function DeepFunnelPublic() {
   const { slug } = useParams();
   const [funnel, setFunnel] = useState<Funnel | null>(null);
@@ -548,18 +571,7 @@ export default function DeepFunnelPublic() {
                       </div>
                     )}
 
-                    {isExclusive && (
-                      <div className="grid grid-cols-2 gap-4 py-4 border-y border-border/30">
-                        <div className="text-center border-r border-border/30">
-                          <p className="text-2xl font-display text-gold">+28%</p>
-                          <p className="text-[10px] uppercase tracking-tighter text-muted-foreground">Percepção de Autoridade</p>
-                        </div>
-                        <div className="text-center">
-                          <p className="text-2xl font-display text-gold">+22%</p>
-                          <p className="text-[10px] uppercase tracking-tighter text-muted-foreground">Retenção de Audiência</p>
-                        </div>
-                      </div>
-                    )}
+                    {/* A1: Bloco de métricas hardcoded (+28%/+22%) removido */}
 
                     <div className="pt-4 space-y-4 relative z-10">
                       {isExclusive && (
@@ -648,7 +660,7 @@ export default function DeepFunnelPublic() {
               );
             })}
 
-            {/* Seção de Autoridade: Quem é Stefany Mello */}
+            {/* Seção de Autoridade: Quem é o especialista */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -663,13 +675,12 @@ export default function DeepFunnelPublic() {
                       Quem é <span className="text-gold italic">{tenant.display_name}</span>?
                     </h3>
                   )}
-                  <div className="space-y-4 text-sm leading-relaxed text-muted-foreground/90 whitespace-pre-line">
+                  <div className="space-y-4 text-sm leading-relaxed text-muted-foreground/90">
+                    {/* A4: BioTextRenderer divide bio_text em parágrafos com "Continuar lendo →" */}
                     {funnel?.briefing?.bio_text && (
-                      funnel.briefing.bio_text
+                      <BioTextRenderer text={funnel.briefing.bio_text} />
                     )}
-                    <p className="text-foreground font-medium italic pt-2">
-                      "Para quem entendeu que presença digital não é sobre estar online. É sobre ser escolhido."
-                    </p>
+                    {/* A2: Quote hardcoded de Stefany removida */}
                   </div>
                   {funnel?.briefing?.role_label && (
                     <div className="pt-4">
@@ -705,48 +716,30 @@ export default function DeepFunnelPublic() {
               </div>
             </motion.div>
 
-            {/* Seção Estratégica: Você viveu o funil */}
+            {/* Seção Estratégica: Você viveu o funil — versão compacta */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="mt-20 relative overflow-hidden rounded-[32px] border border-gold/30 bg-gold/5 p-10 text-center backdrop-blur-xl"
+              transition={{ duration: 0.4 }}
+              className="mt-12 border-t border-gold/20 pt-6 text-center"
             >
-              <div className="pointer-events-none absolute inset-0 bg-gradient-gold-soft opacity-30" />
-              <div className="relative z-10 space-y-6">
-                <span className="inline-flex items-center gap-2 rounded-full border border-gold/50 bg-background/40 px-4 py-1.5 text-[10px] uppercase tracking-[0.4em] text-gold font-bold">
-                  Consciência de Funil
-                </span>
-
-                <h3 className="font-display text-3xl leading-tight sm:text-4xl">
-                  O caminho que você acabou de fazer é <span className="text-gold italic">o mesmo funil</span> que entrego para os meus clientes.
-                </h3>
-
-                <p className="mx-auto max-w-xl text-muted-foreground leading-relaxed">
-                  Você acaba de experimentar na pele a jornada de alta conversão da <span className="text-foreground font-bold">Axtor</span>. Do topo ao fundo de funil, de forma automática e persuasiva.
-                </p>
-
-                <div className="pt-4">
-                  <p className="text-[11px] uppercase tracking-[0.3em] text-gold/60 font-bold">
-                    DO TOPO AO FUNDO DE FUNIL · VOCÊ ACABOU DE VIVER
-                  </p>
+              <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground/60">
+                Funil criado com <span className="text-gold/80 font-bold">Axtor</span> — você acabou de vivenciar a mesma jornada que é entregue aos clientes.
+              </p>
+              {tenant?.slug && (
+                <div className="mt-3">
+                  <Button
+                    variant="ghost"
+                    className="h-8 rounded-full text-[10px] uppercase tracking-widest text-gold/70 hover:text-gold"
+                    asChild
+                  >
+                    <a href={`/${tenant.slug}`} target="_blank" rel="noreferrer">
+                      Ver bio
+                    </a>
+                  </Button>
                 </div>
-
-                {tenant?.slug && (
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
-                    <Button
-                      variant="outline"
-                      className="h-12 rounded-full border-gold/40 hover:bg-gold/10 text-xs uppercase tracking-widest px-8"
-                      asChild
-                    >
-                      <a href={`/${tenant.slug}`} target="_blank" rel="noreferrer">
-                        Ver rodando na minha Bio
-                      </a>
-                    </Button>
-                  </div>
-                )}
-              </div>
+              )}
             </motion.div>
           </motion.div>
         )}
