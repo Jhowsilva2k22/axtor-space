@@ -149,8 +149,20 @@ export default function DeepFunnelPublic() {
           answers: finalAnswers,
           pain_scores: finalScores,
           session_id: getSessionId(),
-          ...lead,
-          ...utm,
+          lead_name: lead.name,
+          lead_email: lead.email,
+          lead_phone: lead.phone,
+          instagram_handle: lead.instagram_handle,
+          parent_diagnostic_id: (() => {
+            try {
+              return localStorage.getItem("axtor_last_diagnostic_id") || null;
+            } catch {
+              return null;
+            }
+          })(),
+          utm_source: utm.utm_source ?? utm.source ?? null,
+          utm_medium: utm.utm_medium ?? utm.medium ?? null,
+          utm_campaign: utm.utm_campaign ?? utm.campaign ?? null,
         },
       });
       if (error) throw error;
