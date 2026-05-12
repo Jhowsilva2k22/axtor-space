@@ -80,6 +80,7 @@ const Index = () => {
   const [partnerCtas, setPartnerCtas] = useState<PartnerCtas | null>(null);
   const [tenant, setTenant] = useState<any>(null);
   const [bioCfg, setBioCfg] = useState<any>(null);
+  const [primaryFunnelSlug, setPrimaryFunnelSlug] = useState<string | null>(null);
 
   useEffect(() => {
     trackPageView("/");
@@ -134,6 +135,19 @@ const Index = () => {
         if (bc) {
           setBioCfg(bc);
           sessionStorage.setItem(cacheKey, JSON.stringify({ data: bc, timestamp: Date.now() }));
+        }
+
+        // Resolve qual funil imersivo o lead deve cair ao clicar "Fazer Análise Completa".
+        // Pega o mais recente publicado pro tenant carregado — antes era hardcoded pra Stefany.
+        const { data: fnRows } = await supabase
+          .from("deep_funnels")
+          .select("slug")
+          .eq("tenant_id", t.id)
+          .eq("is_published", true)
+          .order("created_at", { ascending: false })
+          .limit(1);
+        if (fnRows && fnRows.length > 0) {
+          setPrimaryFunnelSlug((fnRows[0] as any).slug);
         }
       }
 
@@ -296,7 +310,7 @@ const Index = () => {
         {step === "private" && data && <PrivateStep data={data} onRetry={reset} />}
         {step === "not_found" && <NotFoundStep handle={handle} onRetry={reset} />}
         {step === "blocked" && data && <BlockedStep data={data} />}
-        {step === "result" && data && <ResultStep data={data} onRestart={reset} partnerCtas={partnerCtas} tenant={tenant} bioCfg={bioCfg} />}
+        {step === "result" && data && <ResultStep data={data} onRestart={reset} partnerCtas={partnerCtas} tenant={tenant} bioCfg={bioCfg} primaryFunnelSlug={primaryFunnelSlug} />}
       </main>
 
       <footer className="relative z-10 border-t border-gold/30 text-center text-xs uppercase tracking-[0.25em] text-muted-foreground py-[20px]">
@@ -748,7 +762,7 @@ const ShareButton = ({
   );
 };
 
-const ResultStep = ({ data, onRestart, partnerCtas, tenant, bioCfg }: { data: DiagnosisData; onRestart: () => void; partnerCtas: PartnerCtas | null; tenant: any; bioCfg: any }) => {
+const ResultStep = ({ data, onRestart, partnerCtas, tenant, bioCfg, primaryFunnelSlug }: { data: DiagnosisData; onRestart: () => void; partnerCtas: PartnerCtas | null; tenant: any; bioCfg: any; primaryFunnelSlug: string | null }) => {
   const d = data.diagnosis!;
   const p = data.profile!;
   const score = d.score_geral ?? 0;
@@ -878,7 +892,7 @@ const ResultStep = ({ data, onRestart, partnerCtas, tenant, bioCfg }: { data: Di
               className="btn-luxe h-16 w-full gap-3 rounded-full text-xs font-bold uppercase tracking-[0.2em] animate-gold-pulse"
               asChild
             >
-              <Link to={`/d/funnel/stefany-mello-3bnv`}>
+              <Link to={primaryFunnelSlug ? `/d/funnel/${primaryFunnelSlug}` : "/"}>
                 Fazer Análise Completa (2 min) <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
