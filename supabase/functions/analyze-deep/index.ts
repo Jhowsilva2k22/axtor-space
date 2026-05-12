@@ -6,44 +6,46 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const SYSTEM_PROMPT = `Você é consultor sênior de negócios digitais. A partir do perfil do lead, dor dominante detectada
-e catálogo de produtos do dono, escreva um VEREDICTO PERSUASIVO em PT-BR (180-260 palavras), em primeira pessoa do diagnosticador,
-que: (1) valida a dor sem ser óbvio, (2) conecta a dor à oportunidade real, (3) recomenda o produto que melhor resolve com justificativa direta,
-(4) termina com chamada pra continuar a conversa pelo WhatsApp. Tom: claro, premium, sem clichês, sem emojis em excesso.
+const SYSTEM_PROMPT = `Você é consultor sênior de negócios digitais. Sua tarefa: escrever um VEREDICT PERSUASIVO em PT-BR (180-260 palavras) baseado nas respostas REAIS do lead ao quiz, no briefing do dono do negócio e nos produtos disponíveis.
 
-REGRA CRÍTICA SOBRE NOME:
-- Use EXATAMENTE o "lead_name" fornecido no payload, sem alterar, sem traduzir, sem inventar.
-- Se "lead_name" estiver vazio, nulo ou ausente, NÃO invente nome — comece o veredicto sem vocativo (ex: "Olha, seu diagnóstico…" ou "Os dados mostram…"). NUNCA chute um nome.
-- Use o nome no máximo 1 vez no texto, no início. Não repita.
+REGRAS ABSOLUTAS:
+1. O veredict DEVE citar pelo menos 1 resposta específica do lead (parafraseada, não copiada). Ex: "Você marcou que [X] — isso indica [Y]".
+2. O veredict DEVE usar o vocabulário/nicho do briefing (não generalize com "negócios digitais" se o briefing for paternidade ou outro nicho específico).
+3. O veredict DEVE recomendar 1 produto específico com justificativa direta ("Por isso o {produto} faz sentido pra você AGORA, porque…").
+4. O veredict DEVE terminar com chamada pra continuar pelo WhatsApp.
+5. Tom: claro, premium, sem clichês motivacionais. Vulnerabilidade > performance.
+6. PROIBIDO: markdown (**, ##), listas, emojis (máx 1 no fim), frases prontas tipo "transformação garantida", "fórmula", "destrave", "vai mudar sua vida".
 
-REGRA DE PRODUTOS:
-- Você DEVE escolher 1 produto principal (recommended_product_id) — o que MELHOR resolve a dor dominante.
-- Você DEVE também escolher até 2 produtos alternativos (alternative_product_ids) — produtos diferentes do principal que ainda fazem sentido pra esse perfil (complementares ou caminhos alternativos). Se só houver 1 produto disponível, retorne array vazio.
-- O veredicto deve focar no produto principal, mas pode mencionar brevemente que existem alternativas.
+REGRAS DE NOME:
+- Use EXATAMENTE o "lead_name" passado. Se vazio/null, comece sem vocativo ("Olha, seus dados mostram…" ou "Os números deixam claro que…").
+- Use o nome no máximo 1 vez, no início.
+
+REGRAS DE PRODUTOS:
+- Escolha 1 product como principal (recommended_product_id), o que melhor resolve a dor dominante.
+- Escolha até 2 alternativos (alternative_product_ids). Se houver só 1 produto disponível, retorne array vazio.
 
 FORMATAÇÃO:
 - Use APENAS texto plano. Sem markdown, sem asteriscos, sem bullets, sem títulos com #, sem negrito. Apenas parágrafos separados por quebra de linha.`;
 
-const TOOLS = [
+const TOOLS_ANTHROPIC = [
   {
-    type: "function",
-    function: {
-      name: "deliver_veredict",
-      description: "Retorna o produto principal escolhido, alternativas e veredicto.",
-      parameters: {
-        type: "object",
-        properties: {
-          recommended_product_id: { type: "string" },
-          alternative_product_ids: {
-            type: "array",
-            items: { type: "string" },
-            description: "IDs de até 2 produtos alternativos relevantes pro perfil. Pode ser vazio.",
-          },
-          veredict: { type: "string", description: "Texto persuasivo em PT-BR, 180-260 palavras" },
+    name: "deliver_veredict",
+    description: "Retorna o produto principal escolhido, alternativas e veredicto personalizado.",
+    input_schema: {
+      type: "object",
+      properties: {
+        recommended_product_id: { type: "string" },
+        alternative_product_ids: {
+          type: "array",
+          items: { type: "string" },
+          description: "IDs de até 2 produtos alternativos. Pode ser vazio.",
         },
-        required: ["recommended_product_id", "veredict"],
-        additionalProperties: false,
+        veredict: {
+          type: "string",
+          description: "Veredict persuasivo em PT-BR, 180-260 palavras. DEVE citar pelo menos 1 resposta específica do lead (parafraseada) e usar terminologia/contexto do nicho do tenant. Sem markdown, sem listas, sem **negrito**, sem emojis.",
+        },
       },
+      required: ["recommended_product_id", "veredict"],
     },
   },
 ];
@@ -66,8 +68,8 @@ Deno.serve(async (req) => {
   try {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+    const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+    if (!ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY not configured");
 
     const admin = createClient(SUPABASE_URL, SERVICE_KEY);
 
@@ -94,9 +96,10 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Busca o funnel incluindo briefing para contexto da IA
     const { data: funnel } = await admin
       .from("deep_funnels")
-      .select("id, tenant_id, name, is_published")
+      .select("id, tenant_id, name, is_published, briefing")
       .eq("id", funnel_id)
       .maybeSingle();
     if (!funnel || !funnel.is_published) {
@@ -119,6 +122,13 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Busca perguntas do funil para mapear answers (id -> texto + label)
+    const { data: questions } = await admin
+      .from("deep_funnel_questions")
+      .select("id, question_text, options")
+      .eq("funnel_id", funnel_id)
+      .order("position");
+
     const dominantPain = pickDominantPain(pain_scores);
 
     // Helper: força que o nome no veredicto seja o lead_name real (ou remove vocativo se vazio)
@@ -126,41 +136,14 @@ Deno.serve(async (req) => {
       if (!text) return text;
       const cleanName = (lead_name ?? "").toString().trim();
       const firstName = cleanName.split(/\s+/)[0] ?? "";
-      // Se temos nome real, troca qualquer vocativo "Nome," no início pelo nome correto
       if (firstName) {
         return text.replace(/^([A-Za-zÀ-ÿ]{2,30})\s*,/, (_m, p1) => {
           if (p1.toLowerCase() === firstName.toLowerCase()) return `${firstName},`;
           return `${firstName},`;
         });
       }
-      // Sem nome → remove vocativo inicial "Nome," ou "Nome:" (se IA inventar)
       return text.replace(/^[A-Za-zÀ-ÿ]{2,30}\s*[,:]\s*/, "");
     };
-
-    const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          {
-            role: "user",
-            content: JSON.stringify({
-              lead: { lead_name, instagram_handle },
-              dor_dominante: dominantPain,
-              pain_scores,
-              produtos: products,
-            }),
-          },
-        ],
-        tools: TOOLS,
-        tool_choice: { type: "function", function: { name: "deliver_veredict" } },
-      }),
-    });
 
     // Helper: verifica se produto cobre uma dor (suporta pain_tag comma-separated)
     const productCoversPain = (p: { pain_tag?: string | null }, pain: string) =>
@@ -178,15 +161,97 @@ Deno.serve(async (req) => {
       return prods[0];
     };
 
+    // Monta respostas enriquecidas (texto da pergunta + label da opção selecionada)
+    const enrichedAnswers: Array<{ question: string; answer: string }> = [];
+    if (Array.isArray(questions) && answers && typeof answers === "object") {
+      for (const q of questions) {
+        const selectedValue = answers[q.id];
+        if (selectedValue === undefined || selectedValue === null) continue;
+        const options: Array<{ label: string; value?: string | number }> = Array.isArray(q.options) ? q.options : [];
+        let answerLabel = String(selectedValue);
+        // selectedValue pode ser um único valor ou array (multi)
+        const selectedArr = Array.isArray(selectedValue) ? selectedValue : [selectedValue];
+        const labels = selectedArr
+          .map((val) => {
+            const opt = options.find((o) => String(o.value ?? o.label) === String(val) || o.label === String(val));
+            return opt ? opt.label : String(val);
+          })
+          .filter(Boolean);
+        if (labels.length > 0) answerLabel = labels.join(", ");
+        enrichedAnswers.push({ question: q.question_text, answer: answerLabel });
+      }
+    }
+
+    // Extrai campos relevantes do briefing
+    const briefing = funnel.briefing ?? {};
+    const business_name = briefing.business_name || funnel.name || "";
+    const niche = briefing.niche || "";
+    const ideal_client = briefing.ideal_client || "";
+    const tone_of_voice = briefing.tone_of_voice || "";
+    const transformation = briefing.transformation || "";
+
+    // Monta mensagem estruturada para a IA
+    const answersBlock = enrichedAnswers.length > 0
+      ? enrichedAnswers.map((a) => `- "${a.question}": "${a.answer}"`).join("\n")
+      : "- (sem respostas mapeadas)";
+
+    const productsBlock = products.map((p) => JSON.stringify({
+      id: p.id,
+      name: p.name,
+      description: p.description,
+      pain_tag: p.pain_tag,
+      price_hint: p.price_hint,
+      who_for: p.who_for,
+      benefits: p.benefits,
+    })).join("\n");
+
+    const userMessage = `Briefing do dono:
+- Negócio: ${business_name}
+- Nicho: ${niche}
+- Cliente ideal: ${ideal_client}
+- Tom: ${tone_of_voice}
+- Transformação: ${transformation}
+
+Respostas do lead (perguntas + opções selecionadas):
+${answersBlock}
+
+Pain scores (calculado pelas respostas):
+${JSON.stringify(pain_scores)}
+
+Dor dominante: ${dominantPain}
+
+Produtos disponíveis (escolha 1 principal + até 2 alternativos):
+${productsBlock}
+
+Lead: ${lead_name || "anônimo"} @${instagram_handle || "—"}
+
+Gere o veredict persuasivo agora.`;
+
+    const aiResp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-5",
+        max_tokens: 2048,
+        system: SYSTEM_PROMPT,
+        messages: [{ role: "user", content: userMessage }],
+        tools: TOOLS_ANTHROPIC,
+        tool_choice: { type: "tool", name: "deliver_veredict" },
+      }),
+    });
+
     if (!aiResp.ok) {
       const txt = await aiResp.text();
       console.error("AI error:", aiResp.status, txt);
-      const errCode = aiResp.status === 429 ? "rate_limited" : aiResp.status === 402 ? "ai_credits" : "ai_error";
       const fallback = pickBestProduct(products, pain_scores);
       const cleanName = (lead_name ?? "").toString().trim().split(/\s+/)[0] ?? "";
-      const greeting = cleanName ? `${cleanName}, identificamos` : "Identificamos";
-      const veredict = `${greeting} sua dor principal em ${dominantPain}. Recomendamos: ${fallback.name}. Continue pelo WhatsApp para entender como aplicar isso ao seu caso.`;
-      // Alternativas no fallback: até 2 outros produtos
+      const greeting = cleanName ? `${cleanName}, ` : "";
+      const ownerName = briefing?.business_name || "o time";
+      const veredict = `${greeting}seus dados apontam que a maior alavanca agora está em ${dominantPain}. O caminho mais direto pra você é o "${fallback.name}" — converse com ${ownerName} no WhatsApp pra entender exatamente como aplicar isso ao seu caso.`;
       const alternatives = products.filter((p) => p.id !== fallback.id).slice(0, 2);
       const { data: saved } = await admin
         .from("deep_diagnostics")
@@ -225,12 +290,17 @@ Deno.serve(async (req) => {
     }
 
     const aiJson = await aiResp.json();
-    const toolCall = aiJson.choices?.[0]?.message?.tool_calls?.[0];
+    const toolBlock = Array.isArray(aiJson?.content)
+      ? aiJson.content.find((b: any) => b?.type === "tool_use")
+      : null;
+
     let recommended = pickBestProduct(products, pain_scores);
     let veredict = `Sua dor principal está em ${dominantPain}. Veja a recomendação abaixo.`;
     let alternativeIds: string[] = [];
-    if (toolCall) {
-      const args = JSON.parse(toolCall.function.arguments);
+
+    if (toolBlock) {
+      // Anthropic: toolBlock.input é objeto direto, não JSON string
+      const args = toolBlock.input;
       const found = products.find((p) => p.id === args.recommended_product_id);
       if (found) recommended = found;
       if (args.veredict) veredict = args.veredict;
@@ -240,8 +310,10 @@ Deno.serve(async (req) => {
           .slice(0, 2);
       }
     }
+
     // Aplica trava de nome real
     veredict = enforceLeadName(veredict);
+
     // Resolve alternativas (com fallback caso IA não retorne)
     let alternatives = alternativeIds
       .map((id) => products.find((p) => p.id === id))
