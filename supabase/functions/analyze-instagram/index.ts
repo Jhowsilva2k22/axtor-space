@@ -11,12 +11,127 @@ const APIFY_TOKEN = Deno.env.get("APIFY_API_TOKEN")!;
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+const RESEND_FROM_EMAIL = Deno.env.get("RESEND_FROM_EMAIL") || "noreply@axtor.space";
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
 
 function sanitizeHandle(raw: string): string {
   return raw.trim().replace(/^@+/, "").replace(/\/+$/, "").toLowerCase();
 }
+
+// ---------------------------------------------------------------------------
+// notifyLead — best-effort, NEVER throws, NEVER blocks main response
+// ---------------------------------------------------------------------------
+async function notifyLead(
+  tenantId: string | null,
+  payload: Record<string, unknown>,
+): Promise<void> {
+  try {
+    if (!tenantId) return;
+
+    const { data: cfg, error: cfgErr } = await supabase
+      .from("tenant_capture_config")
+      .select("lead_destination_type, lead_destination_url")
+      .eq("tenant_id", tenantId)
+      .maybeSingle();
+
+    if (cfgErr) {
+      console.error("[notify] tenant_capture_config query error:", cfgErr.message);
+      return;
+    }
+    if (!cfg || !cfg.lead_destination_type) return;
+
+    const { lead_destination_type: destType, lead_destination_url: destUrl } = cfg;
+
+    if (destType === "email") {
+      if (!destUrl) {
+        console.warn("[notify] email destination set but no address configured");
+        return;
+      }
+      if (!RESEND_API_KEY) {
+        console.warn("[notify] RESEND_API_KEY not set — skipping email notification");
+        return;
+      }
+      const leadName = String(payload.lead_name || payload.instagram_handle || "Lead");
+      const handle = payload.instagram_handle ? `@${payload.instagram_handle}` : "";
+      const subject = `[Axtor] Novo lead — ${leadName}${handle ? ` (${handle})` : ""}`;
+      const html = buildLeadEmailHtml(payload);
+      const res = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${RESEND_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from: `Axtor <${RESEND_FROM_EMAIL}>`,
+          to: [destUrl],
+          subject,
+          html,
+        }),
+      });
+      if (!res.ok) {
+        const txt = await res.text();
+        console.error(`[notify] Resend error [${res.status}]:`, txt.slice(0, 300));
+      } else {
+        console.log("[notify] email notification sent to", destUrl);
+      }
+    } else if (destType === "webhook") {
+      if (!destUrl) {
+        console.warn("[notify] webhook destination set but no URL configured");
+        return;
+      }
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+      try {
+        const res = await fetch(destUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          signal: controller.signal,
+        });
+        clearTimeout(timeout);
+        if (!res.ok) {
+          console.error(`[notify] webhook responded [${res.status}] for`, destUrl);
+        } else {
+          console.log("[notify] webhook notification sent to", destUrl);
+        }
+      } catch (e) {
+        clearTimeout(timeout);
+        console.error("[notify] webhook fetch error:", e instanceof Error ? e.message : String(e));
+      }
+    } else if (destType === "whatsapp") {
+      console.log("[notify] WhatsApp destination not yet automated:", destUrl);
+    } else {
+      console.warn("[notify] unknown lead_destination_type:", destType);
+    }
+  } catch (e) {
+    // Must never propagate
+    console.error("[notify] unexpected error in notifyLead:", e instanceof Error ? e.message : String(e));
+  }
+}
+
+function buildLeadEmailHtml(p: Record<string, unknown>): string {
+  const rows = [
+    ["Fonte", p.source],
+    ["Nome", p.lead_name],
+    ["Email", p.lead_email],
+    ["Telefone", p.lead_phone],
+    ["Instagram", p.instagram_handle ? `@${p.instagram_handle}` : null],
+    ["Diagnóstico ID", p.diagnostic_id],
+    ["Score geral", p.score !== undefined ? `${p.score}/100` : null],
+    ["Veredicto", p.veredict],
+    ["Data", p.created_at],
+  ]
+    .filter(([, v]) => v !== null && v !== undefined && v !== "")
+    .map(
+      ([label, value]) =>
+        `<tr><td style="padding:6px 12px;color:#888;font-size:13px;border-bottom:1px solid #222;">${label}</td><td style="padding:6px 12px;color:#f5e9c8;font-size:13px;border-bottom:1px solid #222;">${value}</td></tr>`,
+    )
+    .join("");
+  return `<!DOCTYPE html><html><body style="background:#0d0d0d;font-family:sans-serif;padding:32px"><div style="max-width:520px;margin:0 auto;background:#111;border:1px solid rgba(201,168,76,.2);border-radius:12px;padding:28px"><p style="font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#c9a84c;margin:0 0 20px">axtor · novo lead</p><table style="width:100%;border-collapse:collapse">${rows}</table></div></body></html>`;
+}
+// ---------------------------------------------------------------------------
 
 async function runApifyScraper(handle: string) {
   // apify/instagram-profile-scraper roda síncrono e retorna direto
@@ -337,6 +452,22 @@ Deno.serve(async (req) => {
       })
       .select()
       .single();
+
+    // 5. Notifica o dono do tenant — best-effort, não bloqueia response
+    void notifyLead(resolvedTenantId, {
+      source: "capture",
+      tenant_id: resolvedTenantId,
+      lead_name: fullName ?? null,
+      lead_email: email ?? null,
+      lead_phone: phone ?? null,
+      instagram_handle: handle,
+      diagnostic_id: diag?.id ?? null,
+      score: aiResult.score_geral ?? null,
+      veredict: typeof aiResult.veredicto === "string"
+        ? aiResult.veredicto.split(".")[0]?.trim() ?? null
+        : null,
+      created_at: new Date().toISOString(),
+    });
 
     return new Response(
       JSON.stringify({
