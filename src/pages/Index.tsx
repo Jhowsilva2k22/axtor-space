@@ -238,6 +238,13 @@ const Index = () => {
       if (!result) throw new Error("Sem resposta do servidor");
 
       setData(result);
+      // Salva diagnostic_id da captura pra linkar com imersivo (parent_diagnostic_id)
+      try {
+        if (result?.diagnostic_id) {
+          localStorage.setItem("axtor_last_diagnostic_id", String(result.diagnostic_id));
+        }
+      } catch {}
+
       if (result.status === "private_profile") {
         setStep("private");
         trackFunnel("diag_result_private", { handle, diagnostic_id: result.diagnostic_id ?? null });
