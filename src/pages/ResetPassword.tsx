@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { KeyRound, Loader2 } from "lucide-react";
+import { KeyRound, Loader2, Eye, EyeOff } from "lucide-react";
 import { ThemeToggle, useAdminLockedTheme } from "@/components/ThemeToggle";
 
 const ResetPassword = () => {
@@ -13,7 +13,9 @@ const ResetPassword = () => {
   const [ready, setReady] = useState(false);
   const [validSession, setValidSession] = useState(false);
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [confirm, setConfirm] = useState("");
+  const [showConfirm, setShowConfirm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -107,29 +109,49 @@ const ResetPassword = () => {
               <label className="mb-2 block text-xs uppercase tracking-[0.2em] text-muted-foreground">
                 Nova senha
               </label>
-              <Input
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                type="password"
-                autoComplete="new-password"
-                minLength={8}
-                required
-                className="h-11 rounded-sm border-gold bg-input font-light"
-              />
+              <div className="relative">
+                <Input
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="new-password"
+                  minLength={8}
+                  required
+                  className="h-11 rounded-sm border-gold bg-input pr-11 font-light"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(v => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-gold transition-colors"
+                  aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
             <div>
               <label className="mb-2 block text-xs uppercase tracking-[0.2em] text-muted-foreground">
                 Confirmar senha
               </label>
-              <Input
-                value={confirm}
-                onChange={(e) => setConfirm(e.target.value)}
-                type="password"
-                autoComplete="new-password"
-                minLength={8}
-                required
-                className="h-11 rounded-sm border-gold bg-input font-light"
-              />
+              <div className="relative">
+                <Input
+                  value={confirm}
+                  onChange={(e) => setConfirm(e.target.value)}
+                  type={showConfirm ? "text" : "password"}
+                  autoComplete="new-password"
+                  minLength={8}
+                  required
+                  className="h-11 rounded-sm border-gold bg-input pr-11 font-light"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirm(v => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-gold transition-colors"
+                  aria-label={showConfirm ? "Ocultar confirmação" : "Mostrar confirmação"}
+                >
+                  {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
             <Button
               type="submit"
