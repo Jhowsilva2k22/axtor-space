@@ -62,6 +62,125 @@ function pickDominantPain(scores: Record<string, number>): string {
   return best;
 }
 
+// ---------------------------------------------------------------------------
+// notifyLead — best-effort, NEVER throws, NEVER blocks main response
+// ---------------------------------------------------------------------------
+async function notifyLead(
+  tenantId: string | null,
+  payload: Record<string, unknown>,
+  supabaseUrl: string,
+  serviceKey: string,
+): Promise<void> {
+  try {
+    if (!tenantId) return;
+
+    const admin = createClient(supabaseUrl, serviceKey);
+    const { data: cfg, error: cfgErr } = await admin
+      .from("tenant_capture_config")
+      .select("lead_destination_type, lead_destination_url")
+      .eq("tenant_id", tenantId)
+      .maybeSingle();
+
+    if (cfgErr) {
+      console.error("[notify] tenant_capture_config query error:", cfgErr.message);
+      return;
+    }
+    if (!cfg || !cfg.lead_destination_type) return;
+
+    const { lead_destination_type: destType, lead_destination_url: destUrl } = cfg;
+    const resendApiKey = Deno.env.get("RESEND_API_KEY");
+    const resendFrom = Deno.env.get("RESEND_FROM_EMAIL") || "noreply@axtor.space";
+
+    if (destType === "email") {
+      if (!destUrl) {
+        console.warn("[notify] email destination set but no address configured");
+        return;
+      }
+      if (!resendApiKey) {
+        console.warn("[notify] RESEND_API_KEY not set — skipping email notification");
+        return;
+      }
+      const leadName = String(payload.lead_name || payload.instagram_handle || "Lead");
+      const handle = payload.instagram_handle ? ` (@${payload.instagram_handle})` : "";
+      const subject = `[Axtor] Novo lead — ${leadName}${handle}`;
+      const html = buildLeadEmailHtml(payload);
+      const res = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${resendApiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from: `Axtor <${resendFrom}>`,
+          to: [destUrl],
+          subject,
+          html,
+        }),
+      });
+      if (!res.ok) {
+        const txt = await res.text();
+        console.error(`[notify] Resend error [${res.status}]:`, txt.slice(0, 300));
+      } else {
+        console.log("[notify] email notification sent to", destUrl);
+      }
+    } else if (destType === "webhook") {
+      if (!destUrl) {
+        console.warn("[notify] webhook destination set but no URL configured");
+        return;
+      }
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+      try {
+        const res = await fetch(destUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          signal: controller.signal,
+        });
+        clearTimeout(timeout);
+        if (!res.ok) {
+          console.error(`[notify] webhook responded [${res.status}] for`, destUrl);
+        } else {
+          console.log("[notify] webhook notification sent to", destUrl);
+        }
+      } catch (e) {
+        clearTimeout(timeout);
+        console.error("[notify] webhook fetch error:", e instanceof Error ? e.message : String(e));
+      }
+    } else if (destType === "whatsapp") {
+      console.log("[notify] WhatsApp destination not yet automated:", destUrl);
+    } else {
+      console.warn("[notify] unknown lead_destination_type:", destType);
+    }
+  } catch (e) {
+    // Must never propagate
+    console.error("[notify] unexpected error in notifyLead:", e instanceof Error ? e.message : String(e));
+  }
+}
+
+function buildLeadEmailHtml(p: Record<string, unknown>): string {
+  const rows = [
+    ["Fonte", p.source],
+    ["Nome", p.lead_name],
+    ["Email", p.lead_email],
+    ["Telefone", p.lead_phone],
+    ["Instagram", p.instagram_handle ? `@${p.instagram_handle}` : null],
+    ["Diagnóstico ID", p.diagnostic_id],
+    ["Dor detectada", p.pain_detected],
+    ["Produto recomendado", p.recommended_product],
+    ["Veredicto (resumo)", p.veredict],
+    ["Data", p.created_at],
+  ]
+    .filter(([, v]) => v !== null && v !== undefined && v !== "")
+    .map(
+      ([label, value]) =>
+        `<tr><td style="padding:6px 12px;color:#888;font-size:13px;border-bottom:1px solid #222;">${label}</td><td style="padding:6px 12px;color:#f5e9c8;font-size:13px;border-bottom:1px solid #222;">${value}</td></tr>`,
+    )
+    .join("");
+  return `<!DOCTYPE html><html><body style="background:#0d0d0d;font-family:sans-serif;padding:32px"><div style="max-width:520px;margin:0 auto;background:#111;border:1px solid rgba(201,168,76,.2);border-radius:12px;padding:28px"><p style="font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#c9a84c;margin:0 0 20px">axtor · novo lead (imersivo)</p><table style="width:100%;border-collapse:collapse">${rows}</table></div></body></html>`;
+}
+// ---------------------------------------------------------------------------
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -276,6 +395,22 @@ Gere o veredict persuasivo agora.`;
         })
         .select("id")
         .single();
+
+      // Notifica o dono do tenant — best-effort
+      void notifyLead(funnel.tenant_id ?? null, {
+        source: "imersivo",
+        tenant_id: funnel.tenant_id ?? null,
+        lead_name: lead_name ?? null,
+        lead_email: lead_email ?? null,
+        lead_phone: lead_phone ?? null,
+        instagram_handle: instagram_handle ?? null,
+        diagnostic_id: saved?.id ?? null,
+        pain_detected: dominantPain,
+        recommended_product: fallback.name,
+        veredict: veredict.split(".")[0]?.trim() ?? null,
+        created_at: new Date().toISOString(),
+      }, SUPABASE_URL, SERVICE_KEY);
+
       return new Response(
         JSON.stringify({
           diagnostic_id: saved?.id,
@@ -345,6 +480,21 @@ Gere o veredict persuasivo agora.`;
       })
       .select("id")
       .single();
+
+    // Notifica o dono do tenant — best-effort, não bloqueia response
+    void notifyLead(funnel.tenant_id ?? null, {
+      source: "imersivo",
+      tenant_id: funnel.tenant_id ?? null,
+      lead_name: lead_name ?? null,
+      lead_email: lead_email ?? null,
+      lead_phone: lead_phone ?? null,
+      instagram_handle: instagram_handle ?? null,
+      diagnostic_id: saved?.id ?? null,
+      pain_detected: dominantPain,
+      recommended_product: recommended.name,
+      veredict: veredict.split(".")[0]?.trim() ?? null,
+      created_at: new Date().toISOString(),
+    }, SUPABASE_URL, SERVICE_KEY);
 
     return new Response(
       JSON.stringify({
