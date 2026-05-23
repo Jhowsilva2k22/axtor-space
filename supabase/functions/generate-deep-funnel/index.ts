@@ -6,7 +6,7 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const SYSTEM_PROMPT = `Você é especialista em funis de vendas de alta conversão e diagnóstico de negócios digitais.
+const SYSTEM_PROMPT_QUIZ = `Você é especialista em funis de vendas de alta conversão e diagnóstico de negócios digitais.
 Seu trabalho: a partir de um briefing profundo do dono de um negócio (criador, coach, infoprodutor, agência, mentor, etc),
 gerar um QUIZ DE QUALIFICAÇÃO de 12 perguntas que detecta a DOR DOMINANTE do lead em 5 categorias:
 marketing, gestao, vendas, ia, estrutura.
@@ -17,6 +17,12 @@ Use o vocabulário, nicho e tom do briefing. Linguagem em PT-BR direta, persuasi
 
 Tipos permitidos de pergunta: 'single' (1 escolha), 'multi' (várias), 'scale' (1-5).
 Para 'single' e 'multi': 4-5 opções. Para 'scale': use 5 opções de 1 a 5 com labels descritivos.
+
+Gere também welcome_text (boas-vindas do quiz, 1-2 frases motivadoras) e result_intro (introdução da página de resultado, 1-2 frases).`;
+
+const SYSTEM_PROMPT_PRODUCTS = `Você é especialista em copy de vendas e estruturação de ofertas para negócios digitais.
+A partir do briefing do dono de um negócio, gere os cards de produto para o funil de diagnóstico.
+Linguagem em PT-BR direta, persuasiva, sem clichês. Use o vocabulário e tom do briefing.
 
 REGRA DE PRODUTOS:
 - Use APENAS os produtos do briefing. Não invente nome, preço, duração, link, features, nada. Se algum campo vier vazio no briefing, mantenha vazio no output — não preencha com placeholder, não traduza, não arredonde, não substitua.
@@ -46,10 +52,10 @@ PARA CADA PRODUTO, preencha OBRIGATORIAMENTE os campos de copy estruturada:
 - cta_label: texto do BOTÃO PRINCIPAL adequado ao tipo de oferta. Use frases ativas em 1ª pessoa, ex: "Quero entrar na próxima turma", "Quero agendar minha consultoria", "Quero comprar agora", "Quero garantir minha vaga", "Quero começar agora".
 - cta_secondary_label: texto do botão WhatsApp secundário, ex: "Falar com o time", "Tirar dúvida no WhatsApp", "Quero conversar antes".`;
 
-const TOOLS_ANTHROPIC = [
+const TOOLS_QUIZ = [
   {
-    name: "create_deep_funnel",
-    description: "Cria o funil de qualificação completo a partir do briefing.",
+    name: "create_quiz",
+    description: "Cria o quiz de qualificação com perguntas a partir do briefing.",
     input_schema: {
       type: "object",
       properties: {
@@ -85,6 +91,19 @@ const TOOLS_ANTHROPIC = [
             },
           },
         },
+      },
+      required: ["welcome_text", "questions"],
+    },
+  },
+];
+
+const TOOLS_PRODUCTS = [
+  {
+    name: "create_products",
+    description: "Cria os cards de produto com copy estruturada a partir do briefing.",
+    input_schema: {
+      type: "object",
+      properties: {
         products: {
           type: "array",
           items: {
@@ -108,7 +127,7 @@ const TOOLS_ANTHROPIC = [
           },
         },
       },
-      required: ["welcome_text", "questions", "products"],
+      required: ["products"],
     },
   },
 ];
@@ -201,47 +220,95 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Chama Anthropic Claude direto
-    const aiResp = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "x-api-key": ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-5",
-        max_tokens: 8192,
-        system: SYSTEM_PROMPT,
-        messages: [
-          { role: "user", content: `Briefing do dono:\n\n${JSON.stringify(briefing, null, 2)}\n\nGere o funil completo agora.` },
-        ],
-        tools: TOOLS_ANTHROPIC,
-        tool_choice: { type: "tool", name: "create_deep_funnel" },
-      }),
-    });
+    // Chama Claude em paralelo: quiz e produtos simultaneamente (~55s vs ~100s serial)
+    const briefingMsg = `Briefing do dono:\n\n${JSON.stringify(briefing, null, 2)}`;
+    const anthropicHeaders = {
+      "x-api-key": ANTHROPIC_API_KEY,
+      "anthropic-version": "2023-06-01",
+      "Content-Type": "application/json",
+    };
 
-    if (!aiResp.ok) {
-      const txt = await aiResp.text();
-      console.error("AI error:", aiResp.status, txt);
-      const errCode = aiResp.status === 429 ? "rate_limited" : aiResp.status === 402 ? "ai_credits" : "ai_error";
+    const [quizResp, productsResp] = await Promise.all([
+      fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: anthropicHeaders,
+        body: JSON.stringify({
+          model: "claude-sonnet-4-5",
+          max_tokens: 6000,
+          system: SYSTEM_PROMPT_QUIZ,
+          messages: [{ role: "user", content: briefingMsg + "\n\nGere APENAS o quiz (welcome_text, result_intro e 12 perguntas)." }],
+          tools: TOOLS_QUIZ,
+          tool_choice: { type: "tool", name: "create_quiz" },
+        }),
+      }),
+      fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: anthropicHeaders,
+        body: JSON.stringify({
+          model: "claude-sonnet-4-5",
+          max_tokens: 4000,
+          system: SYSTEM_PROMPT_PRODUCTS,
+          messages: [{ role: "user", content: briefingMsg + "\n\nGere APENAS os cards de produto." }],
+          tools: TOOLS_PRODUCTS,
+          tool_choice: { type: "tool", name: "create_products" },
+        }),
+      }),
+    ]);
+
+    if (!quizResp.ok) {
+      const txt = await quizResp.text();
+      console.error("AI quiz error:", quizResp.status, txt);
+      const errCode = quizResp.status === 429 ? "rate_limited" : quizResp.status === 402 ? "ai_credits" : "ai_error";
       return new Response(JSON.stringify({ error: errCode }), {
-        status: aiResp.status,
+        status: quizResp.status,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (!productsResp.ok) {
+      const txt = await productsResp.text();
+      console.error("AI products error:", productsResp.status, txt);
+      const errCode = productsResp.status === 429 ? "rate_limited" : productsResp.status === 402 ? "ai_credits" : "ai_error";
+      return new Response(JSON.stringify({ error: errCode }), {
+        status: productsResp.status,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const aiJson = await aiResp.json();
-    const toolBlock = Array.isArray(aiJson?.content)
-      ? aiJson.content.find((b: any) => b?.type === "tool_use")
+    const [quizJson, productsJson] = await Promise.all([quizResp.json(), productsResp.json()]);
+
+    const quizBlock = Array.isArray(quizJson?.content)
+      ? quizJson.content.find((b: any) => b?.type === "tool_use")
       : null;
-    if (!toolBlock) {
-      return new Response(JSON.stringify({ error: "no_tool_call", raw: aiJson }), {
+    const productsBlock = Array.isArray(productsJson?.content)
+      ? productsJson.content.find((b: any) => b?.type === "tool_use")
+      : null;
+
+    if (!quizBlock) {
+      return new Response(JSON.stringify({ error: "no_tool_call_quiz", raw: quizJson }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const args = toolBlock.input;
+    if (!productsBlock) {
+      return new Response(JSON.stringify({ error: "no_tool_call_products", raw: productsJson }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const quizArgs = quizBlock.input;
+    const rawProducts: any[] = Array.isArray(productsBlock.input?.products)
+      ? productsBlock.input.products
+      : [];
+
+    // Dedup defensivo por nome (evita duplicação quando Claude repete produto para preencher 5 slots)
+    const seenNames = new Set<string>();
+    const dedupedProducts = rawProducts.filter((p: any) => {
+      const key = String(p.name ?? "").trim().toLowerCase();
+      if (!key || seenNames.has(key)) return false;
+      seenNames.add(key);
+      return true;
+    });
 
     // Cria ou atualiza o funil
     const baseSlug = (briefing.business_name || tenant.display_name || "funil")
@@ -261,8 +328,8 @@ Deno.serve(async (req) => {
           name: briefing.business_name || `${tenant.display_name} — Diagnóstico`,
           slug,
           briefing,
-          welcome_text: args.welcome_text,
-          result_intro: args.result_intro ?? null,
+          welcome_text: quizArgs.welcome_text,
+          result_intro: quizArgs.result_intro ?? null,
           is_published: false,
         })
         .select("id")
@@ -277,8 +344,8 @@ Deno.serve(async (req) => {
         .from("deep_funnels")
         .update({
           briefing,
-          welcome_text: args.welcome_text,
-          result_intro: args.result_intro ?? null,
+          welcome_text: quizArgs.welcome_text,
+          result_intro: quizArgs.result_intro ?? null,
         })
         .eq("id", funnel_id)
         .eq("tenant_id", tenant_id);
@@ -287,7 +354,7 @@ Deno.serve(async (req) => {
       await admin.from("deep_funnel_products").delete().eq("funnel_id", funnel_id);
     }
 
-    const questionsRows = args.questions.map((q: any, i: number) => ({
+    const questionsRows = quizArgs.questions.map((q: any, i: number) => ({
       funnel_id: finalFunnelId,
       position: i,
       question_text: q.question_text,
@@ -295,6 +362,7 @@ Deno.serve(async (req) => {
       question_type: q.question_type,
       options: q.options,
     }));
+
     // Mapa nome->link vindo do briefing pra preservar checkout do dono
     const briefingProducts: Array<{ name?: string; link?: string }> = Array.isArray(briefing?.products)
       ? briefing.products
@@ -304,7 +372,7 @@ Deno.serve(async (req) => {
       if (bp?.name && bp?.link) linkByName.set(bp.name.trim().toLowerCase(), bp.link);
     }
     const validPains = new Set(["marketing", "gestao", "vendas", "ia", "estrutura"]);
-    const productsRows = args.products.map((p: any, i: number) => {
+    const productsRows = dedupedProducts.map((p: any, i: number) => {
       const checkout = p.checkout_url || linkByName.get(String(p.name ?? "").trim().toLowerCase()) || null;
       // Aceita comma-separated: filtra só as dores válidas, fallback "vendas"
       const rawTags = String(p.pain_tag ?? "").split(",").map((t: string) => t.trim()).filter((t: string) => validPains.has(t));
