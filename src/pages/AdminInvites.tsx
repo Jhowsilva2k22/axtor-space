@@ -304,7 +304,7 @@ const AdminInvites = () => {
           </div>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button className="btn-luxe h-11 rounded-sm text-xs uppercase tracking-[0.2em]">
+              <Button className="btn-luxe animate-pulse-soft h-11 rounded-sm text-xs uppercase tracking-[0.2em]">
                 <Plus className="h-3.5 w-3.5" /> Novo convite
               </Button>
             </DialogTrigger>

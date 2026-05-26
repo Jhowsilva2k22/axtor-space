@@ -80,7 +80,7 @@ export const BioBlocksManager = ({
           {canAddBlock ? (
             <Button
               onClick={onAddBlock}
-              className="btn-luxe h-11 rounded-sm px-5 text-xs uppercase tracking-[0.2em]"
+              className="btn-luxe animate-pulse-soft h-11 rounded-sm px-5 text-xs uppercase tracking-[0.2em]"
             >
               <Plus className="h-4 w-4" /> Novo bloco
             </Button>

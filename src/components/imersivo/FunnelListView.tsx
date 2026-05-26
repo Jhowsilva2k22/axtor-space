@@ -23,7 +23,7 @@ export const FunnelListView = ({ funnels, onNew, onEdit, onDelete }: FunnelListV
     >
       <div className="flex items-center justify-between">
         <h1 className="font-display text-3xl">Seus funis</h1>
-        <Button onClick={onNew} className="gap-2">
+        <Button onClick={onNew} className="btn-luxe animate-pulse-soft h-11 rounded-sm gap-2 px-5 text-xs uppercase tracking-[0.2em]">
           <Plus className="h-4 w-4" /> Novo funil
         </Button>
       </div>
