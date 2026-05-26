@@ -530,24 +530,24 @@ export default function DeepFunnelPublic() {
                     }
                   >
                     {isExclusive && (
-                      <>
-                        <div className="pointer-events-none absolute right-0 top-0 h-64 w-64 -translate-y-1/2 translate-x-1/2 rounded-full bg-gold/10 blur-[80px]" />
-                        <div className="absolute top-0 right-0 p-4">
-                          <div className="rounded-full border border-gold/40 bg-background/60 backdrop-blur-sm px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-gold shadow-lg">
-                            Oferta Exclusiva
-                          </div>
-                        </div>
-                      </>
+                      <div className="pointer-events-none absolute right-0 top-0 h-64 w-64 -translate-y-1/2 translate-x-1/2 rounded-full bg-gold/10 blur-[80px]" />
                     )}
 
-                    <div
-                      className={
-                        isExclusive
-                          ? "inline-flex items-center gap-1.5 rounded-full border border-gold/50 bg-gold/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-gold"
-                          : "inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/40 px-3 py-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground"
-                      }
-                    >
-                      {isExclusive ? <><Star className="h-3 w-3 fill-current" /> Recomendado pra você</> : <>Você também pode gostar</>}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <div
+                        className={
+                          isExclusive
+                            ? "inline-flex items-center gap-1.5 rounded-full border border-gold/50 bg-gold/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-gold"
+                            : "inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/40 px-3 py-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground"
+                        }
+                      >
+                        {isExclusive ? <><Star className="h-3 w-3 fill-current" /> Recomendado pra você</> : <>Você também pode gostar</>}
+                      </div>
+                      {isExclusive && (
+                        <div className="rounded-full border border-gold/40 bg-background/60 backdrop-blur-sm px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-gold shadow-lg">
+                          Oferta Exclusiva
+                        </div>
+                      )}
                     </div>
 
                     <div className="space-y-2 relative z-10">
