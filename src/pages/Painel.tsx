@@ -19,6 +19,7 @@ import { MediaGallery } from "@/components/bio/MediaGallery";
 import { MetricsDashboard } from "@/components/bio/MetricsDashboard";
 import { ActivationBanner } from "@/components/ActivationBanner";
 import { FunnelListView } from "@/components/imersivo/FunnelListView";
+import { WhatsAppNumbersManager } from "@/components/imersivo/WhatsAppNumbersManager";
 import { DeepDiagnosticReviewView } from "@/pages/DeepDiagnosticReviewView";
 import { BriefingWizard } from "@/components/imersivo/BriefingWizard";
 import { supabase } from "@/integrations/supabase/client";
@@ -111,7 +112,10 @@ export default function Painel() {
           {/* Aba 1 — Captura (BUILD AGORA) com sub-bloco Integrações (ESTRUTURA AGORA) pendurado embaixo */}
           <TabsContent value="captura" className="mt-6 space-y-4">
             {accessCaptura.canAccess ? (
-              <CaptureConfigForm tenantId={current.id} />
+              <>
+                <CaptureConfigForm tenantId={current.id} />
+                <WhatsAppNumbersManager tenantId={current.id} />
+              </>
             ) : (
               <UpgradeBlock title="Captura" />
             )}
