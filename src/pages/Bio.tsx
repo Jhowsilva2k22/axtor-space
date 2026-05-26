@@ -287,7 +287,7 @@ const Bio = () => {
               );
             })
             .map((b) => (
-              <BlockCard key={b.id} block={b} />
+              <BlockCard key={b.id} block={b} tenantId={tenant?.id} />
             ))}
         </div>
 
@@ -312,13 +312,13 @@ const Bio = () => {
   );
 };
 
-const BlockCard = ({ block }: { block: Block }) => {
+const BlockCard = ({ block, tenantId }: { block: Block; tenantId?: string }) => {
   const Icon = (block.icon && (LucideIcons as any)[block.icon]) || LucideIcons.Link2;
   const isInternal = block.url.startsWith("/");
   const brand = getBrandStyle(block);
   const hasCustomIcon = !!block.icon_url;
   const onTrack = () =>
-    trackBioClick({ id: block.id, kind: block.kind, label: block.label, url: block.url });
+    trackBioClick({ id: block.id, kind: block.kind, label: block.label, url: block.url, tenant_id: tenantId });
   // Layout fixo para manter consistência visual em todos os cards.
   const sizeCls = "gap-4 p-4";
   const iconBoxCls = "h-12 w-12";
