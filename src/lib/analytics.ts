@@ -79,6 +79,7 @@ export async function trackBioClick(block: {
   kind?: string;
   label?: string;
   url?: string;
+  tenant_id?: string;
 }) {
   try {
     const utm = captureUtm();
@@ -87,6 +88,7 @@ export async function trackBioClick(block: {
       block_kind: block.kind ?? null,
       block_label: block.label ?? null,
       block_url: block.url ?? null,
+      tenant_id: block.tenant_id ?? null,
       session_id: getSessionId(),
       referrer: document.referrer || null,
       device: detectDevice(),
