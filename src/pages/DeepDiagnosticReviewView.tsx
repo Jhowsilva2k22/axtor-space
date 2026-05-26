@@ -9,6 +9,9 @@ import { motion } from "framer-motion";
 import { ReviewBoasVindasCard } from "@/components/imersivo/cards/ReviewBoasVindasCard";
 import { ReviewQuestionsCard } from "@/components/imersivo/cards/ReviewQuestionsCard";
 import { ReviewProductsCard } from "@/components/imersivo/cards/ReviewProductsCard";
+import { Card } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Phone } from "lucide-react";
 
 type DeepDiagnosticReviewViewProps = {
   funnelId: string;
@@ -22,6 +25,7 @@ export function DeepDiagnosticReviewView({ funnelId, onBack }: DeepDiagnosticRev
   const [questions, setQuestions] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [funnel, setFunnel] = useState<any>(null);
+  const [wppNumbers, setWppNumbers] = useState<{ id: string; label: string; phone: string }[]>([]);
   const [saving, setSaving] = useState<false | "draft" | "publish">(false);
 
   useEffect(() => {
@@ -40,6 +44,15 @@ export function DeepDiagnosticReviewView({ funnelId, onBack }: DeepDiagnosticRev
     setFunnel(f);
     setQuestions(qs ?? []);
     setProducts(ps ?? []);
+    if (f?.tenant_id) {
+      const { data: nums } = await supabase
+        .from("tenant_whatsapp_numbers")
+        .select("id, label, phone")
+        .eq("tenant_id", f.tenant_id)
+        .order("is_default", { ascending: false })
+        .order("created_at");
+      setWppNumbers(nums ?? []);
+    }
   };
 
   const updateQuestion = (idx: number, patch: any) => {
@@ -118,6 +131,7 @@ export function DeepDiagnosticReviewView({ funnelId, onBack }: DeepDiagnosticRev
         thankyou_media_type: funnel?.thankyou_media_type,
         thankyou_media_caption: funnel?.thankyou_media_caption,
         briefing: funnel?.briefing,
+        whatsapp_number_id: funnel?.whatsapp_number_id ?? null,
       }).eq("id", activeFunnelId);
 
       if (tenantId && funnel.briefing?.use_global_bio && funnel.briefing?.bio_image_url) {
@@ -232,6 +246,36 @@ export function DeepDiagnosticReviewView({ funnelId, onBack }: DeepDiagnosticRev
               onAdd={addProduct}
               onDelete={deleteProduct}
             />
+
+            {wppNumbers.length > 0 && (
+              <Card className="p-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <Phone className="h-4 w-4 text-muted-foreground" />
+                  <h3 className="font-medium text-sm">WhatsApp deste funil</h3>
+                </div>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Escolha qual número aparece no botão de contato. Deixe "Padrão do tenant" para usar o número marcado como padrão nas configurações.
+                </p>
+                <Select
+                  value={funnel?.whatsapp_number_id ?? "__default"}
+                  onValueChange={(v) =>
+                    setFunnel((prev: any) => ({ ...prev, whatsapp_number_id: v === "__default" ? null : v }))
+                  }
+                >
+                  <SelectTrigger className="w-full max-w-sm">
+                    <SelectValue placeholder="Padrão do tenant" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__default">Padrão do tenant</SelectItem>
+                    {wppNumbers.map((n) => (
+                      <SelectItem key={n.id} value={n.id}>
+                        {n.label} — {n.phone}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Card>
+            )}
 
             <div className="sticky bottom-4 flex justify-end gap-2 rounded-md border border-border bg-card p-3 shadow-lg">
               <Button

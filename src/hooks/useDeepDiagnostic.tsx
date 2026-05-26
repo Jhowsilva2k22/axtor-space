@@ -18,6 +18,7 @@ export type DeepFunnel = {
   published_at: string | null;
   created_at: string;
   updated_at: string;
+  whatsapp_number_id: string | null;
 };
 
 export const useDeepDiagnostic = () => {

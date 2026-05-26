@@ -84,14 +84,18 @@ export default function DeepFunnelPublic() {
       if (!slug) return;
       const { data: f } = await supabase.from("deep_funnels").select("*").eq("slug", slug).eq("is_published", true).maybeSingle();
       if (!f) { setLoading(false); return; }
-      const [{ data: qs }, { data: t }, { data: bioCfg }] = await Promise.all([
+      const [{ data: qs }, { data: t }, { data: bioCfg }, { data: wppNum }] = await Promise.all([
         supabase.from("deep_funnel_questions").select("*").eq("funnel_id", f.id).order("position"),
         supabase.from("tenants").select("display_name, whatsapp_number").eq("id", f.tenant_id).maybeSingle(),
         supabase.from("bio_config").select("avatar_url").eq("tenant_id", f.tenant_id).maybeSingle(),
+        f.whatsapp_number_id
+          ? supabase.from("tenant_whatsapp_numbers").select("phone").eq("id", f.whatsapp_number_id).maybeSingle()
+          : supabase.from("tenant_whatsapp_numbers").select("phone").eq("tenant_id", f.tenant_id).eq("is_default", true).maybeSingle(),
       ]);
+      const resolvedPhone = wppNum?.phone ?? t?.whatsapp_number ?? null;
       setFunnel(f);
       setQuestions(qs ?? []);
-      setTenant({ ...t, global_avatar_url: bioCfg?.avatar_url });
+      setTenant({ ...t, global_avatar_url: bioCfg?.avatar_url, whatsapp_number: resolvedPhone });
       setLoading(false);
       // Herda tema da bio do dono — funil fica visualmente coerente com a marca
       void applyTenantTheme(f.tenant_id);
