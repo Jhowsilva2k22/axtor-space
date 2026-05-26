@@ -23,8 +23,24 @@ type BriefingProduct = {
   bonus_garantia: string;
 };
 
-const BRIEFING_FIELDS = [
-  { key: "business_name", label: "Nome do seu negócio/marca *", placeholder: "Ex: Sua Marca Consultoria" },
+type BriefingField = {
+  key: string;
+  label: string;
+  placeholder: string;
+  inputType?: "input";
+  maxLength?: number;
+  minLength?: number;
+  hint?: string;
+};
+
+const BRIEFING_FIELDS: BriefingField[] = [
+  {
+    key: "business_name",
+    label: "Nome do seu negócio/marca *",
+    placeholder: "Ex: Sua Marca Consultoria",
+    inputType: "input",
+    maxLength: 80,
+  },
   { key: "niche", label: "Nicho específico *", placeholder: "Ex: Mentoria pra um público específico que você atende" },
   { key: "ideal_client", label: "Quem é seu cliente ideal? (perfil, idade, momento) *", placeholder: "Ex: Faixa etária, profissão, momento de vida e faturamento médio" },
   { key: "main_pain", label: "Qual a maior dor que você resolve? *", placeholder: "Ex: A principal frustração que seu cliente sente hoje" },
@@ -39,6 +55,13 @@ const BRIEFING_FIELDS = [
   { key: "format", label: "Formato preferido de entrega", placeholder: "Ex: 1:1, grupo, app, presencial — combine como preferir" },
   { key: "ai_use", label: "Você já usa IA no seu negócio? Como?", placeholder: "Ex: Pra roteiros, atendimento, planejamento — ou ainda não uso" },
   { key: "goal_3_months", label: "Sua meta nos próximos 3 meses", placeholder: "Ex: Faturamento, número de clientes ou marco que quer bater" },
+  {
+    key: "bio_text",
+    label: "Bio / Sua história",
+    placeholder: 'Ex: Sou coach de finanças pessoais há 8 anos. Comecei do zero após perder meu emprego em 2016 e hoje já ajudei mais de 500 pessoas a sair do vermelho e construir reservas reais. Meu método combina planilhas simples com mudança de mentalidade — sem enrolação.',
+    minLength: 200,
+    hint: "Aparece no funil antes da oferta principal. Quanto mais pessoal e específica, maior a conexão com o lead.",
+  },
 ];
 
 const EMPTY_PRODUCT: BriefingProduct = {
@@ -155,18 +178,80 @@ export const BriefingWizard = ({ tenantId, onGenerated, onCancel }: BriefingWiza
           Quanto mais detalhe você der, mais sob medida o funil fica. Os 5 primeiros campos são obrigatórios.
         </p>
 
-        {BRIEFING_FIELDS.map((field) => (
-          <div key={field.key} className="space-y-2">
-            <Label htmlFor={field.key}>{field.label}</Label>
-            <Textarea
-              id={field.key}
-              placeholder={field.placeholder}
-              value={briefing[field.key] ?? ""}
-              onChange={(e) => setBriefing((prev) => ({ ...prev, [field.key]: e.target.value }))}
-              className="min-h-[80px]"
-            />
-          </div>
-        ))}
+        {BRIEFING_FIELDS.map((field) => {
+          const value = briefing[field.key] ?? "";
+          const len = value.length;
+
+          if (field.inputType === "input" && field.maxLength) {
+            const atLimit = len >= field.maxLength;
+            return (
+              <div key={field.key} className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor={field.key}>{field.label}</Label>
+                  <span className={`text-xs tabular-nums ${atLimit ? "text-destructive font-medium" : "text-muted-foreground"}`}>
+                    {len}/{field.maxLength}
+                  </span>
+                </div>
+                <Input
+                  id={field.key}
+                  placeholder={field.placeholder}
+                  value={value}
+                  maxLength={field.maxLength}
+                  onChange={(e) => setBriefing((prev) => ({ ...prev, [field.key]: e.target.value }))}
+                />
+                {atLimit && (
+                  <p className="text-xs text-destructive">
+                    Limite de {field.maxLength} caracteres atingido — nomes longos quebram o layout do funil.
+                  </p>
+                )}
+              </div>
+            );
+          }
+
+          if (field.minLength) {
+            const hasContent = len > 0;
+            const insufficient = hasContent && len < field.minLength;
+            const sufficient = len >= field.minLength;
+            return (
+              <div key={field.key} className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor={field.key}>{field.label}</Label>
+                  <span className={`text-xs tabular-nums ${insufficient ? "text-amber-500" : sufficient ? "text-emerald-500" : "text-muted-foreground"}`}>
+                    {len}/{field.minLength} mín.
+                  </span>
+                </div>
+                <Textarea
+                  id={field.key}
+                  placeholder={field.placeholder}
+                  value={value}
+                  onChange={(e) => setBriefing((prev) => ({ ...prev, [field.key]: e.target.value }))}
+                  className="min-h-[120px]"
+                />
+                {field.hint && !insufficient && (
+                  <p className="text-xs text-muted-foreground">{field.hint}</p>
+                )}
+                {insufficient && (
+                  <p className="text-xs text-amber-500">
+                    Adicione mais {field.minLength - len} caracteres — bio curta reduz a personalização do funil.
+                  </p>
+                )}
+              </div>
+            );
+          }
+
+          return (
+            <div key={field.key} className="space-y-2">
+              <Label htmlFor={field.key}>{field.label}</Label>
+              <Textarea
+                id={field.key}
+                placeholder={field.placeholder}
+                value={value}
+                onChange={(e) => setBriefing((prev) => ({ ...prev, [field.key]: e.target.value }))}
+                className="min-h-[80px]"
+              />
+            </div>
+          );
+        })}
 
         <div className="space-y-3 pt-4">
           <div>
