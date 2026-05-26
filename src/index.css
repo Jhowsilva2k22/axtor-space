@@ -146,6 +146,30 @@ All colors MUST be HSL.
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
+
+  .light {
+    /* Superfícies — inverter para claro */
+    --surface-l-bg: 97%;
+    --surface-l-card: 100%;
+    --surface-l-popover: 99%;
+    --surface-l-secondary: 93%;
+    --surface-l-muted: 90%;
+    --surface-l-input: 96%;
+    --surface-l-noir-top: 94%;
+    --surface-l-noir-bottom: 98%;
+
+    /* Texto escuro sobre fundo claro */
+    --foreground-l: 8%;
+    --muted-fg-l: 42%;
+
+    /* Borda dourada clara (brand-l-deep=18% ficaria quase preta no claro) */
+    --border: var(--brand-h) 20% 82%;
+
+    /* Reduzir opacidade dos efeitos de luz */
+    --aurora-opacity-a: 0.07;
+    --aurora-opacity-b: 0.05;
+    --halo-opacity: 0.15;
+  }
 }
 
 @layer base {
