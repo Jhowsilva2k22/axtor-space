@@ -448,23 +448,23 @@ const HandleStep = ({ handle, setHandle, onSubmit, bioCfg, tenant, partnerCtas }
       </div>
 
       {/* Ponte: do diagnóstico pro link-in-bio */}
-      <div className="mt-24 rounded-[32px] border border-gold/20 bg-card/40 p-8 text-left backdrop-blur sm:p-12">
+      <div className="mt-12 rounded-[28px] border border-gold/20 bg-card/40 p-5 text-left backdrop-blur animate-gold-pulse sm:p-6">
         <span className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">
           {partnerCtas ? "Canais Oficiais" : "Bio fraca foi um dos pontos?"}
         </span>
-        <h2 className="mt-3 font-display text-3xl leading-tight sm:text-4xl">
+        <h2 className="mt-2 font-display text-xl leading-tight sm:text-2xl">
           {partnerCtas
             ? <>Conecte-se com <span className="text-gold italic">{partnerCtas.display_name}</span></>
             : <>Crie uma bio <span className="text-gold italic">profissional</span> sem código.</>
           }
         </h2>
-        <p className="mt-3 max-w-xl text-sm text-muted-foreground sm:text-base">
+        <p className="mt-2 max-w-xl text-xs text-muted-foreground sm:text-sm">
           {partnerCtas
             ? "Acesse meus links oficiais, agende uma consultoria ou fale diretamente comigo pelo WhatsApp."
             : "Link-in-bio premium com analytics, campanhas com UTM e visual que converte. Comece grátis, suba pra Pro quando quiser desbloquear tudo."
           }
         </p>
-        <div className="mt-6 flex flex-wrap gap-3">
+        <div className="mt-4 flex flex-wrap gap-2">
           {partnerCtas ? (
             <>
               {partnerCtas.bio_url && (
@@ -899,9 +899,15 @@ const ResultStep = ({ data, onRestart, partnerCtas, tenant, bioCfg, primaryFunne
               className="btn-luxe h-16 w-full gap-3 rounded-full text-xs font-bold uppercase tracking-[0.2em] animate-gold-pulse"
               asChild
             >
-              <Link to={primaryFunnelSlug ? `/d/funnel/${primaryFunnelSlug}` : "/"}>
-                Fazer Análise Completa (2 min) <ArrowRight className="h-4 w-4" />
-              </Link>
+              {primaryFunnelSlug ? (
+                <Link to={`/d/funnel/${primaryFunnelSlug}`}>
+                  Fazer Análise Completa (2 min) <ArrowRight className="h-4 w-4" />
+                </Link>
+              ) : (
+                <a href={waHref ?? bioHref} target="_blank" rel="noopener noreferrer">
+                  Falar com {partnerName} <ArrowRight className="h-4 w-4" />
+                </a>
+              )}
             </Button>
 
             <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground/60">
