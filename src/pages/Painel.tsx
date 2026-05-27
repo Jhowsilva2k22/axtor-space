@@ -445,6 +445,7 @@ const DeepDiagnosticTabPanel = () => {
         tenantId={tenantId}
         initialBriefing={editBriefingFunnel ? (initialBriefingFields as Record<string, string>) : undefined}
         initialProducts={editBriefingFunnel ? (rawProducts as import("@/components/imersivo/BriefingWizard").BriefingProduct[]) : undefined}
+        initialFunnelId={editBriefingFunnel?.id}
         onCancel={() => { setEditBriefingFunnel(null); setView("list"); }}
         onGenerated={(funnelId) => {
           setEditBriefingFunnel(null);

@@ -163,7 +163,7 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { tenant_id, briefing, funnel_id } = body ?? {};
+    const { tenant_id, briefing, funnel_id, keep_products } = body ?? {};
     if (!tenant_id || !briefing) {
       return new Response(JSON.stringify({ error: "missing_params" }), {
         status: 400,
@@ -173,7 +173,7 @@ Deno.serve(async (req) => {
 
     const products = Array.isArray(briefing?.products) ? briefing.products : [];
     const validProducts = products.filter((p: any) => p?.name && p?.description);
-    if (validProducts.length === 0) {
+    if (!keep_products && validProducts.length === 0) {
       return new Response(JSON.stringify({ error: "missing_products" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -228,8 +228,10 @@ Deno.serve(async (req) => {
       "Content-Type": "application/json",
     };
 
-    const [quizResp, productsResp] = await Promise.all([
-      fetch("https://api.anthropic.com/v1/messages", {
+    let quizResp: Response;
+    let productsResp: Response | null = null;
+    if (keep_products) {
+      quizResp = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
         headers: anthropicHeaders,
         body: JSON.stringify({
@@ -240,20 +242,35 @@ Deno.serve(async (req) => {
           tools: TOOLS_QUIZ,
           tool_choice: { type: "tool", name: "create_quiz" },
         }),
-      }),
-      fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: anthropicHeaders,
-        body: JSON.stringify({
-          model: "claude-sonnet-4-5",
-          max_tokens: 4000,
-          system: SYSTEM_PROMPT_PRODUCTS,
-          messages: [{ role: "user", content: briefingMsg + "\n\nGere APENAS os cards de produto." }],
-          tools: TOOLS_PRODUCTS,
-          tool_choice: { type: "tool", name: "create_products" },
+      });
+    } else {
+      [quizResp, productsResp] = await Promise.all([
+        fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: anthropicHeaders,
+          body: JSON.stringify({
+            model: "claude-sonnet-4-5",
+            max_tokens: 6000,
+            system: SYSTEM_PROMPT_QUIZ,
+            messages: [{ role: "user", content: briefingMsg + "\n\nGere APENAS o quiz (welcome_text, result_intro e 12 perguntas)." }],
+            tools: TOOLS_QUIZ,
+            tool_choice: { type: "tool", name: "create_quiz" },
+          }),
         }),
-      }),
-    ]);
+        fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: anthropicHeaders,
+          body: JSON.stringify({
+            model: "claude-sonnet-4-5",
+            max_tokens: 4000,
+            system: SYSTEM_PROMPT_PRODUCTS,
+            messages: [{ role: "user", content: briefingMsg + "\n\nGere APENAS os cards de produto." }],
+            tools: TOOLS_PRODUCTS,
+            tool_choice: { type: "tool", name: "create_products" },
+          }),
+        }),
+      ]);
+    }
 
     if (!quizResp.ok) {
       const txt = await quizResp.text();
@@ -264,7 +281,7 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    if (!productsResp.ok) {
+    if (productsResp && !productsResp.ok) {
       const txt = await productsResp.text();
       console.error("AI products error:", productsResp.status, txt);
       const errCode = productsResp.status === 429 ? "rate_limited" : productsResp.status === 402 ? "ai_credits" : "ai_error";
@@ -274,13 +291,16 @@ Deno.serve(async (req) => {
       });
     }
 
-    const [quizJson, productsJson] = await Promise.all([quizResp.json(), productsResp.json()]);
+    const quizJson = await quizResp.json();
+    const productsJson = productsResp ? await productsResp.json() : null;
 
     const quizBlock = Array.isArray(quizJson?.content)
       ? quizJson.content.find((b: any) => b?.type === "tool_use")
       : null;
-    const productsBlock = Array.isArray(productsJson?.content)
-      ? productsJson.content.find((b: any) => b?.type === "tool_use")
+    const productsBlock = productsJson
+      ? (Array.isArray(productsJson?.content)
+          ? productsJson.content.find((b: any) => b?.type === "tool_use")
+          : null)
       : null;
 
     if (!quizBlock) {
@@ -289,7 +309,7 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    if (!productsBlock) {
+    if (!keep_products && !productsBlock) {
       return new Response(JSON.stringify({ error: "no_tool_call_products", raw: productsJson }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -297,7 +317,7 @@ Deno.serve(async (req) => {
     }
 
     const quizArgs = quizBlock.input;
-    const rawProducts: any[] = Array.isArray(productsBlock.input?.products)
+    const rawProducts: any[] = Array.isArray(productsBlock?.input?.products)
       ? productsBlock.input.products
       : [];
 
@@ -349,9 +369,10 @@ Deno.serve(async (req) => {
         })
         .eq("id", funnel_id)
         .eq("tenant_id", tenant_id);
-      // limpa perguntas e produtos antigos
       await admin.from("deep_funnel_questions").delete().eq("funnel_id", funnel_id);
-      await admin.from("deep_funnel_products").delete().eq("funnel_id", funnel_id);
+      if (!keep_products) {
+        await admin.from("deep_funnel_products").delete().eq("funnel_id", funnel_id);
+      }
     }
 
     const questionsRows = quizArgs.questions.map((q: any, i: number) => ({
@@ -399,7 +420,9 @@ Deno.serve(async (req) => {
     });
 
     await admin.from("deep_funnel_questions").insert(questionsRows);
-    await admin.from("deep_funnel_products").insert(productsRows);
+    if (!keep_products) {
+      await admin.from("deep_funnel_products").insert(productsRows);
+    }
 
     return new Response(
       JSON.stringify({ funnel_id: finalFunnelId, slug, questions_count: questionsRows.length }),
