@@ -207,7 +207,7 @@ const Bio = () => {
         </div>
       )}
 
-      <AmbientPlayer />
+      <AmbientPlayer musicStyle={cfg?.ambient_music_style} />
       <ThemeToggle className="absolute left-5 top-5 z-20" />
       <FeedbackWidget pagePath="/bio" />
 

@@ -17,6 +17,7 @@ export type BioConfig = {
   sub_headline: string | null;
   avatar_url: string | null;
   cover_url: string | null;
+  ambient_music_style?: string | null;
 };
 
 export type BioBlock = {
@@ -43,7 +44,7 @@ export const useBioContent = (tenantId: string | null) => {
       const [{ data: c, error: cErr }, { data: b, error: bErr }] = await Promise.all([
         supabase
           .from("bio_config")
-          .select("tenant_id, display_name, headline, sub_headline, avatar_url, cover_url")
+          .select("tenant_id, display_name, headline, sub_headline, avatar_url, cover_url, ambient_music_style")
           .eq("tenant_id", tenantId)
           .maybeSingle(),
         supabase
