@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useDeepDiagnostic } from "@/hooks/useDeepDiagnostic";
 import { toast } from "@/hooks/use-toast";
 
-type BriefingProduct = {
+export type BriefingProduct = {
   name: string;
   description: string;
   price_hint: string;
@@ -81,12 +81,17 @@ type BriefingWizardProps = {
   tenantId: string;
   onGenerated: (funnelId: string) => void;
   onCancel: () => void;
+  initialBriefing?: Record<string, string>;
+  initialProducts?: BriefingProduct[];
 };
 
-export const BriefingWizard = ({ tenantId, onGenerated, onCancel }: BriefingWizardProps) => {
+export const BriefingWizard = ({ tenantId, onGenerated, onCancel, initialBriefing, initialProducts }: BriefingWizardProps) => {
+  const isEditMode = !!(initialBriefing && Object.keys(initialBriefing).length > 0);
   const { refresh } = useDeepDiagnostic();
-  const [briefing, setBriefing] = useState<Record<string, string>>({});
-  const [briefingProducts, setBriefingProducts] = useState<BriefingProduct[]>([{ ...EMPTY_PRODUCT }]);
+  const [briefing, setBriefing] = useState<Record<string, string>>(initialBriefing ?? {});
+  const [briefingProducts, setBriefingProducts] = useState<BriefingProduct[]>(
+    initialProducts && initialProducts.length > 0 ? initialProducts : [{ ...EMPTY_PRODUCT }]
+  );
   const [generating, setGenerating] = useState(false);
 
   const handleGenerate = async () => {
@@ -173,10 +178,25 @@ export const BriefingWizard = ({ tenantId, onGenerated, onCancel }: BriefingWiza
       className="space-y-6"
     >
       <Card className="space-y-4 p-6">
-        <h1 className="font-display text-3xl">Briefing profundo</h1>
-        <p className="text-sm text-muted-foreground">
-          Quanto mais detalhe você der, mais sob medida o funil fica. Os 5 primeiros campos são obrigatórios.
-        </p>
+        <div className="flex items-center gap-3">
+          <h1 className="font-display text-3xl">
+            {isEditMode ? "Refazer briefing" : "Briefing profundo"}
+          </h1>
+          {isEditMode && (
+            <span className="text-[11px] uppercase tracking-widest font-medium px-2.5 py-0.5 rounded-full bg-gold/10 text-gold border border-gold/20">
+              Editando
+            </span>
+          )}
+        </div>
+        {isEditMode ? (
+          <p className="text-sm text-muted-foreground">
+            Os dados do briefing anterior já estão preenchidos. Ajuste o que quiser e gere um novo funil.
+          </p>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Quanto mais detalhe você der, mais sob medida o funil fica. Os 5 primeiros campos são obrigatórios.
+          </p>
+        )}
 
         {BRIEFING_FIELDS.map((field) => {
           const value = briefing[field.key] ?? "";

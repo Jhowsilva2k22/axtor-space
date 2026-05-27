@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Plus, ExternalLink, Trash2 } from "lucide-react";
+import { Plus, ExternalLink, Trash2, FileEdit } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,10 +9,11 @@ export type FunnelListViewProps = {
   funnels: DeepFunnel[];
   onNew: () => void;
   onEdit: (funnelId: string) => void;
+  onEditBriefing: (funnelId: string) => void;
   onDelete: (funnelId: string, funnelName: string) => void;
 };
 
-export const FunnelListView = ({ funnels, onNew, onEdit, onDelete }: FunnelListViewProps) => {
+export const FunnelListView = ({ funnels, onNew, onEdit, onEditBriefing, onDelete }: FunnelListViewProps) => {
   return (
     <motion.div
       key="list"
@@ -71,6 +72,14 @@ export const FunnelListView = ({ funnels, onNew, onEdit, onDelete }: FunnelListV
                   </a>
                 </Button>
               )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onEditBriefing(f.id)}
+                className="gap-1"
+              >
+                <FileEdit className="h-3 w-3" /> Briefing
+              </Button>
               <Button
                 variant="ghost"
                 size="sm"
