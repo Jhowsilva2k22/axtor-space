@@ -255,6 +255,15 @@ Deno.serve(async (req) => {
       if (rt) resolvedTenantId = rt as unknown as string;
     }
 
+    // Emails isentos de rate limit (equipe interna / demos)
+    const BYPASS_EMAILS = new Set([
+      "contatojhow@icloud.com",
+      "eusoujoanderson1@gmail.com",
+      "contatostefanym@gmail.com",
+      "rafaeldepaula.r3@gmail.com",
+    ]);
+    const isWhitelisted = email ? BYPASS_EMAILS.has(email) : false;
+
     // 0. Verifica limites por @
     const now = Date.now();
     const twelveHoursAgo = new Date(now - 12 * 60 * 60 * 1000).toISOString();
@@ -315,7 +324,7 @@ Deno.serve(async (req) => {
       .gte("created_at", sevenDaysAgo)
       .order("created_at", { ascending: true });
 
-    if (weekly && weekly.length >= 3) {
+    if (!isWhitelisted && weekly && weekly.length >= 1) {
       const oldest = new Date(weekly[0].created_at).getTime();
       const unlocksAt = new Date(oldest + 7 * 24 * 60 * 60 * 1000).toISOString();
       return new Response(
@@ -325,14 +334,14 @@ Deno.serve(async (req) => {
           reason: "weekly_limit",
           unlocks_at: unlocksAt,
           message:
-            "Esse perfil já recebeu 3 análises essa semana. Compartilhe seu diagnóstico ou volte em breve.",
+            "Esse perfil já foi analisado essa semana. Compartilhe seu diagnóstico ou volte em breve.",
         }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
-    // 0.3 Rate limit por email: 5 análises completed nas últimas 24h
-    if (email) {
+    // 0.3 Rate limit por email: 3 análises completed nas últimas 24h
+    if (email && !isWhitelisted) {
       const twentyFourHoursAgo = new Date(now - 24 * 60 * 60 * 1000).toISOString();
       const oneHourAgo = new Date(now - 60 * 60 * 1000).toISOString();
 
@@ -351,13 +360,13 @@ Deno.serve(async (req) => {
           .eq("status", "completed")
           .gte("created_at", twentyFourHoursAgo);
 
-        if ((emailDailyCount ?? 0) >= 5) {
+        if ((emailDailyCount ?? 0) >= 3) {
           return new Response(
             JSON.stringify({
               status: "rate_limited",
               handle,
               reason: "email_daily_limit",
-              message: "Limite de 5 análises por dia atingido. Tente novamente amanhã.",
+              message: "Limite de 3 análises por dia atingido. Tente novamente amanhã.",
             }),
             { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
           );
