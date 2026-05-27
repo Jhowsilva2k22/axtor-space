@@ -20,9 +20,18 @@ const TRACKS = [
   "/music/newdawn.mp3",
 ];
 
-const AmbientPlayer = () => {
+const STYLE_TRACKS: Record<string, string[]> = {
+  jazz:      ["/music/thelounge.mp3", "/music/november.mp3"],
+  bossanova: ["/music/dreams.mp3", "/music/sweet.mp3"],
+  piano:     ["/music/betterdays.mp3", "/music/relaxing.mp3"],
+  violino:   ["/music/deepblue.mp3", "/music/newdawn.mp3"],
+  lofi:      ["/music/november.mp3", "/music/relaxing.mp3"],
+};
+
+const AmbientPlayer = ({ musicStyle }: { musicStyle?: string | null }) => {
+  const pool = musicStyle && STYLE_TRACKS[musicStyle] ? STYLE_TRACKS[musicStyle] : TRACKS;
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const srcRef = useRef<string>(TRACKS[Math.floor(Math.random() * TRACKS.length)]);
+  const srcRef = useRef<string>(pool[Math.floor(Math.random() * pool.length)]);
   const src = srcRef.current;
   const fadeTimer = useRef<number | null>(null);
   const [playing, setPlaying] = useState(false);

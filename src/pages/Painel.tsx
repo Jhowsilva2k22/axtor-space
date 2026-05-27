@@ -15,6 +15,7 @@ import { BioBlocksManagerStandalone } from "@/components/bio/BioBlocksManagerSta
 import { CategoriesManager } from "@/components/CategoriesManager";
 import { BioFullPreview } from "@/components/bio/BioFullPreview";
 import { BioThemePickerStandalone } from "@/components/bio/BioThemePickerStandalone";
+import { BioMusicPickerStandalone } from "@/components/bio/BioMusicPickerStandalone";
 import { MediaGallery } from "@/components/bio/MediaGallery";
 import { MetricsDashboard } from "@/components/bio/MetricsDashboard";
 import { ActivationBanner } from "@/components/ActivationBanner";
@@ -360,6 +361,7 @@ const BioTabPanel = ({
           </div>
           <CategoriesManager tenantId={tenantId} />
           <BioThemePickerStandalone tenantId={tenantId} />
+          <BioMusicPickerStandalone tenantId={tenantId} />
           <PartnerCtasEditor tenantId={tenantId} slug={slug} />
         </div>
         <aside className="xl:sticky xl:top-6 xl:self-start">
