@@ -1,9 +1,16 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Sparkles, Plus, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -83,9 +90,10 @@ type BriefingWizardProps = {
   onCancel: () => void;
   initialBriefing?: Record<string, string>;
   initialProducts?: BriefingProduct[];
+  initialFunnelId?: string;
 };
 
-export const BriefingWizard = ({ tenantId, onGenerated, onCancel, initialBriefing, initialProducts }: BriefingWizardProps) => {
+export const BriefingWizard = ({ tenantId, onGenerated, onCancel, initialBriefing, initialProducts, initialFunnelId }: BriefingWizardProps) => {
   const isEditMode = !!(initialBriefing && Object.keys(initialBriefing).length > 0);
   const { refresh } = useDeepDiagnostic();
   const [briefing, setBriefing] = useState<Record<string, string>>(initialBriefing ?? {});
@@ -93,8 +101,12 @@ export const BriefingWizard = ({ tenantId, onGenerated, onCancel, initialBriefin
     initialProducts && initialProducts.length > 0 ? initialProducts : [{ ...EMPTY_PRODUCT }]
   );
   const [generating, setGenerating] = useState(false);
+  const [showProductDialog, setShowProductDialog] = useState(false);
+  const [keepProducts, setKeepProducts] = useState<boolean | null>(null);
+  const [productsConfirmed, setProductsConfirmed] = useState(false);
+  const productsRef = useRef<HTMLDivElement>(null);
 
-  const handleGenerate = async () => {
+  const handleGenerate = async (keepProductsOverride?: boolean) => {
     if (!tenantId) return;
     const required = ["business_name", "niche", "ideal_client", "main_pain", "transformation"];
     const missing = required.filter((k) => !briefing[k]?.trim());
@@ -122,8 +134,14 @@ export const BriefingWizard = ({ tenantId, onGenerated, onCancel, initialBriefin
           bonus_garantia: p.bonus_garantia.trim(),
         }))
         .filter((p) => p.name.length > 0);
+      const effectiveKeepProducts = keepProductsOverride ?? keepProducts;
       const { data, error } = await supabase.functions.invoke("generate-deep-funnel", {
-        body: { tenant_id: tenantId, briefing: { ...briefing, products: cleanProducts } },
+        body: {
+          tenant_id: tenantId,
+          briefing: { ...briefing, products: cleanProducts },
+          ...(isEditMode && initialFunnelId ? { funnel_id: initialFunnelId } : {}),
+          ...(effectiveKeepProducts === true ? { keep_products: true } : {}),
+        },
       });
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
@@ -160,9 +178,13 @@ export const BriefingWizard = ({ tenantId, onGenerated, onCancel, initialBriefin
           >
             <Sparkles className="h-10 w-10 text-primary" />
           </motion.div>
-          <h2 className="font-display text-2xl">Gerando seu funil...</h2>
+          <h2 className="font-display text-2xl">
+            {keepProducts === true ? "Atualizando perguntas..." : "Gerando seu funil..."}
+          </h2>
           <p className="text-sm text-muted-foreground">
-            A IA está montando 12 perguntas e 5 produtos. Isso leva uns 30 segundos.
+            {keepProducts === true
+              ? "A IA está remontando as 12 perguntas com base no briefing atualizado. Uns 20 segundos."
+              : "A IA está montando 12 perguntas e os produtos. Isso leva uns 30 segundos."}
           </p>
         </Card>
       </motion.div>
@@ -273,7 +295,7 @@ export const BriefingWizard = ({ tenantId, onGenerated, onCancel, initialBriefin
           );
         })}
 
-        <div className="space-y-3 pt-4">
+        <div ref={productsRef} className="space-y-3 pt-4">
           <div>
             <h2 className="font-display text-xl">Seus produtos / serviços principais</h2>
             <p className="text-xs text-muted-foreground">
@@ -428,6 +450,19 @@ export const BriefingWizard = ({ tenantId, onGenerated, onCancel, initialBriefin
               <Plus className="h-4 w-4" /> Adicionar produto
             </Button>
           )}
+
+          {isEditMode && keepProducts === false && (
+            <div className="flex items-center gap-3 rounded-lg border border-gold/20 bg-gold/5 p-3">
+              <Checkbox
+                id="products-confirmed"
+                checked={productsConfirmed}
+                onCheckedChange={(checked) => setProductsConfirmed(checked === true)}
+              />
+              <label htmlFor="products-confirmed" className="text-sm cursor-pointer select-none">
+                Produtos atualizados ✓
+              </label>
+            </div>
+          )}
         </div>
       </Card>
 
@@ -436,13 +471,52 @@ export const BriefingWizard = ({ tenantId, onGenerated, onCancel, initialBriefin
           Cancelar
         </Button>
         <Button
-          onClick={handleGenerate}
-          disabled={!hasValidProduct}
+          onClick={() => {
+            if (isEditMode && keepProducts === null) {
+              setShowProductDialog(true);
+            } else {
+              handleGenerate();
+            }
+          }}
+          disabled={!hasValidProduct || (isEditMode && keepProducts === false && !productsConfirmed)}
           className="gap-2 transition-transform hover:scale-[1.02]"
         >
-          <Sparkles className="h-4 w-4" /> Gerar funil com IA
+          <Sparkles className="h-4 w-4" />
+          {isEditMode ? "Atualizar Funil" : "Gerar funil com IA"}
         </Button>
       </div>
+
+      <Dialog open={showProductDialog} onOpenChange={setShowProductDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Deseja manter os produtos atuais?</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Se os seus produtos não mudaram, a IA só refaz as perguntas do quiz. Se quiser atualizar os produtos, edite-os no formulário e confirme antes de gerar.
+          </p>
+          <div className="flex flex-col gap-2 pt-2">
+            <Button
+              onClick={() => {
+                setKeepProducts(true);
+                setShowProductDialog(false);
+                handleGenerate(true);
+              }}
+            >
+              Sim, manter os produtos atuais
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setKeepProducts(false);
+                setShowProductDialog(false);
+                productsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+            >
+              Vou atualizar os produtos
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 };
