@@ -371,6 +371,14 @@ const DeepDiagnosticTabPanel = () => {
   const { funnels, loading, tenantId, refresh } = useDeepDiagnostic();
   const [view, setView] = useState<"list" | "briefing" | "review">("list");
   const [activeFunnelId, setActiveFunnelId] = useState<string | null>(null);
+  const [editBriefingFunnel, setEditBriefingFunnel] = useState<import("@/hooks/useDeepDiagnostic").DeepFunnel | null>(null);
+
+  const handleEditBriefing = (funnelId: string) => {
+    const funnel = funnels.find((f) => f.id === funnelId);
+    if (!funnel) return;
+    setEditBriefingFunnel(funnel);
+    setView("briefing");
+  };
 
   const handleDelete = async (funnelId: string, funnelName: string) => {
     if (!confirm(`Excluir o funil "${funnelName}"? Essa ação não pode ser desfeita.`)) return;
@@ -400,11 +408,15 @@ const DeepDiagnosticTabPanel = () => {
   }
 
   if (view === "briefing" && tenantId) {
+    const { products: rawProducts, ...initialBriefingFields } = (editBriefingFunnel?.briefing as Record<string, any>) ?? {};
     return (
       <BriefingWizard
         tenantId={tenantId}
-        onCancel={() => setView("list")}
+        initialBriefing={editBriefingFunnel ? (initialBriefingFields as Record<string, string>) : undefined}
+        initialProducts={editBriefingFunnel ? (rawProducts as import("@/components/imersivo/BriefingWizard").BriefingProduct[]) : undefined}
+        onCancel={() => { setEditBriefingFunnel(null); setView("list"); }}
         onGenerated={(funnelId) => {
+          setEditBriefingFunnel(null);
           setActiveFunnelId(funnelId);
           setView("review");
         }}
@@ -426,6 +438,7 @@ const DeepDiagnosticTabPanel = () => {
       funnels={funnels}
       onNew={() => setView("briefing")}
       onEdit={(funnelId) => { setActiveFunnelId(funnelId); setView("review"); }}
+      onEditBriefing={handleEditBriefing}
       onDelete={handleDelete}
     />
   );
