@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
+import { PublicFooter } from "@/components/PublicFooter";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Loader2, Sparkles } from "lucide-react";
@@ -109,6 +110,7 @@ const SharePage = () => {
           </Link>
         </div>
       </main>
+      <PublicFooter />
     </div>
   );
 };

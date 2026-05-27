@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -746,6 +746,11 @@ export default function DeepFunnelPublic() {
             >
               <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground/60">
                 Funil criado com <span className="text-gold/80 font-bold">Axtor</span> — você acabou de vivenciar a mesma jornada que é entregue aos clientes.
+              </p>
+              <p className="mt-3 text-[10px] uppercase tracking-[0.3em] text-muted-foreground/40">
+                <Link to="/termos" className="transition-colors hover:text-primary">Termos</Link>
+                {" "}·{" "}
+                <Link to="/privacidade" className="transition-colors hover:text-primary">Privacidade</Link>
               </p>
               {tenant?.slug && (
                 <div className="mt-3">

@@ -321,7 +321,10 @@ const Index = () => {
       </main>
 
       <footer className="relative z-10 border-t border-gold/30 text-center text-xs uppercase tracking-[0.25em] text-muted-foreground py-[20px]">
-        Diagnóstico Premium · feito para quem leva o digital a sério
+        Diagnóstico Premium · feito para quem leva o digital a sério ·{" "}
+        <Link to="/termos" className="transition-colors hover:text-primary">Termos</Link>
+        {" "}·{" "}
+        <Link to="/privacidade" className="transition-colors hover:text-primary">Privacidade</Link>
       </footer>
       <FeedbackWidget pagePath="/" />
     </div>

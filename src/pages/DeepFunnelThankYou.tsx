@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams, Link } from "react-router-dom";
+import { PublicFooter } from "@/components/PublicFooter";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -165,6 +166,7 @@ export default function DeepFunnelThankYou() {
           </motion.div>
         )}
       </div>
+      <PublicFooter />
     </div>
   );
 }
