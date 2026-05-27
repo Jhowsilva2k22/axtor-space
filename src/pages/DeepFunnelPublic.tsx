@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, MessageCircle, Sparkles, ArrowRight, Check, Clock, Users, Cog, Star, ShieldCheck } from "lucide-react";
+import { Loader2, MessageCircle, Sparkles, ArrowRight, Check, Clock, Users, Cog, Star, ShieldCheck, ExternalLink } from "lucide-react";
 import { getSessionId, captureUtm } from "@/lib/analytics";
 import { applyTenantTheme } from "@/lib/applyTenantTheme";
 import { motion, AnimatePresence } from "framer-motion";
@@ -643,9 +643,16 @@ export default function DeepFunnelPublic() {
                           </Button>
                         )}
                         {!chkUrl && !wppUrl && !tenant?.whatsapp_number && (
-                          <div className="rounded-2xl border border-border/40 bg-muted/20 p-4 text-center text-xs text-muted-foreground">
-                            Em breve. Entre em contato pelos canais oficiais.
-                          </div>
+                          <Button size="lg" variant="outline" className="w-full gap-2 h-12 rounded-full border-gold/40 text-gold hover:border-gold hover:bg-gold/5" asChild>
+                            <a
+                              href={`/${tenant?.slug ?? ""}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="flex items-center justify-center"
+                            >
+                              <ExternalLink className="h-4 w-4" /> Ver todos os links
+                            </a>
+                          </Button>
                         )}
                       </div>
 
