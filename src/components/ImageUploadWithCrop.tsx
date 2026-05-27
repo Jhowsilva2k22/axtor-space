@@ -11,18 +11,36 @@ interface Props {
   value?: string;
   onChange: (url: string) => void;
   folder?: string;
+  bucket?: string;
 }
 
-export function ImageUploadWithCrop({ value, onChange, folder = "avatars" }: Props) {
+type AspectOption = { label: string; value: number | undefined };
+
+const ASPECT_OPTIONS: AspectOption[] = [
+  { label: "Livre",    value: undefined },
+  { label: "1:1",      value: 1 },
+  { label: "4:5",      value: 4 / 5 },
+  { label: "16:9",     value: 16 / 9 },
+];
+
+export function ImageUploadWithCrop({
+  value,
+  onChange,
+  folder = "avatars",
+  bucket = "avatars",
+}: Props) {
   const [image, setImage] = useState<string | null>(null);
   const [cropping, setCropping] = useState(false);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [aspectIdx, setAspectIdx] = useState(1); // 1:1 como padrão
 
-  const onCropComplete = useCallback((_croppedArea: any, croppedAreaPixels: any) => {
-    setCroppedAreaPixels(croppedAreaPixels);
+  const currentAspect = ASPECT_OPTIONS[aspectIdx].value;
+
+  const onCropComplete = useCallback((_croppedArea: any, pixels: any) => {
+    setCroppedAreaPixels(pixels);
   }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -31,6 +49,8 @@ export function ImageUploadWithCrop({ value, onChange, folder = "avatars" }: Pro
       reader.addEventListener("load", () => {
         setImage(reader.result as string);
         setCropping(true);
+        setCrop({ x: 0, y: 0 });
+        setZoom(1);
       });
       reader.readAsDataURL(e.target.files[0]);
     }
@@ -38,36 +58,35 @@ export function ImageUploadWithCrop({ value, onChange, folder = "avatars" }: Pro
 
   const createImage = (url: string): Promise<HTMLImageElement> =>
     new Promise((resolve, reject) => {
-      const image = new Image();
-      image.addEventListener("load", () => resolve(image));
-      image.addEventListener("error", (error) => reject(error));
-      image.setAttribute("crossOrigin", "anonymous");
-      image.src = url;
+      const img = new Image();
+      img.addEventListener("load", () => resolve(img));
+      img.addEventListener("error", (error) => reject(error));
+      img.setAttribute("crossOrigin", "anonymous");
+      img.src = url;
     });
 
   const getCroppedImg = async (imageSrc: string, pixelCrop: any): Promise<Blob> => {
-    const image = await createImage(imageSrc);
+    const img = await createImage(imageSrc);
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
 
     if (!ctx) throw new Error("No 2d context");
 
-    // Limit resolution for performance (max 800px)
-    const MAX_SIZE = 800;
+    const MAX_SIZE = 1200;
     let targetWidth = pixelCrop.width;
     let targetHeight = pixelCrop.height;
 
     if (targetWidth > MAX_SIZE || targetHeight > MAX_SIZE) {
       const scale = MAX_SIZE / Math.max(targetWidth, targetHeight);
-      targetWidth *= scale;
-      targetHeight *= scale;
+      targetWidth = Math.round(targetWidth * scale);
+      targetHeight = Math.round(targetHeight * scale);
     }
 
     canvas.width = targetWidth;
     canvas.height = targetHeight;
 
     ctx.drawImage(
-      image,
+      img,
       pixelCrop.x,
       pixelCrop.y,
       pixelCrop.width,
@@ -79,9 +98,7 @@ export function ImageUploadWithCrop({ value, onChange, folder = "avatars" }: Pro
     );
 
     return new Promise((resolve) => {
-      canvas.toBlob((blob) => {
-        resolve(blob!);
-      }, "image/jpeg", 0.85); // 0.85 quality for compression
+      canvas.toBlob((blob) => resolve(blob!), "image/jpeg", 0.88);
     });
   };
 
@@ -91,17 +108,16 @@ export function ImageUploadWithCrop({ value, onChange, folder = "avatars" }: Pro
     setLoading(true);
     try {
       const croppedBlob = await getCroppedImg(image, croppedAreaPixels);
-      const fileExt = "jpg";
-      const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const fileName = `${Math.random().toString(36).substring(2)}.jpg`;
       const filePath = `${folder}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from("avatars")
+        .from(bucket)
         .upload(filePath, croppedBlob);
 
       if (uploadError) throw uploadError;
 
-      const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
+      const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);
       onChange(data.publicUrl);
       setCropping(false);
       setImage(null);
@@ -123,7 +139,7 @@ export function ImageUploadWithCrop({ value, onChange, folder = "avatars" }: Pro
               <Upload className="w-5 h-5 text-white" />
               <input type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
             </label>
-            <button 
+            <button
               onClick={() => onChange("")}
               className="p-2 hover:bg-red-500/40 rounded-full transition-colors"
             >
@@ -142,37 +158,67 @@ export function ImageUploadWithCrop({ value, onChange, folder = "avatars" }: Pro
       )}
 
       <Dialog open={cropping} onOpenChange={setCropping}>
-        <DialogContent className="max-w-xl bg-card border-gold/20">
+        <DialogContent className="max-w-2xl bg-card border-gold/20">
           <DialogHeader>
             <DialogTitle className="font-display text-2xl">Enquadrar Foto</DialogTitle>
           </DialogHeader>
-          <div className="relative w-full h-80 bg-black/20 rounded-xl overflow-hidden mt-4">
+
+          {/* Seletor de proporção */}
+          <div className="flex items-center gap-2 mt-2">
+            <span className="text-[10px] uppercase tracking-widest text-muted-foreground shrink-0">Proporção</span>
+            <div className="flex gap-1.5">
+              {ASPECT_OPTIONS.map((opt, i) => (
+                <button
+                  key={opt.label}
+                  type="button"
+                  onClick={() => { setAspectIdx(i); setCrop({ x: 0, y: 0 }); }}
+                  className={`px-3 py-1 rounded-full text-[11px] font-medium border transition-colors ${
+                    aspectIdx === i
+                      ? "border-gold bg-gold/15 text-gold"
+                      : "border-gold/20 text-muted-foreground hover:border-gold/40 hover:text-primary"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Área de crop — maior e mais respiraçada */}
+          <div className="relative w-full h-[460px] bg-black/30 rounded-2xl overflow-hidden mt-3">
             {image && (
               <Cropper
                 image={image}
                 crop={crop}
                 zoom={zoom}
-                aspect={1}
+                aspect={currentAspect}
                 onCropChange={setCrop}
                 onCropComplete={onCropComplete}
                 onZoomChange={setZoom}
+                showGrid={true}
+                style={{
+                  containerStyle: { borderRadius: "16px" },
+                }}
               />
             )}
           </div>
-          <div className="space-y-4 mt-6">
-            <div className="flex items-center gap-4">
-              <span className="text-xs uppercase tracking-widest text-muted-foreground">Zoom</span>
-              <Slider
-                value={[zoom]}
-                min={1}
-                max={3}
-                step={0.1}
-                onValueChange={([val]) => setZoom(val)}
-                className="flex-1"
-              />
-            </div>
+
+          <div className="flex items-center gap-4 mt-4">
+            <span className="text-xs uppercase tracking-widest text-muted-foreground shrink-0">Zoom</span>
+            <Slider
+              value={[zoom]}
+              min={1}
+              max={3}
+              step={0.05}
+              onValueChange={([val]) => setZoom(val)}
+              className="flex-1"
+            />
+            <span className="text-xs tabular-nums text-muted-foreground w-8 text-right">
+              {zoom.toFixed(1)}×
+            </span>
           </div>
-          <DialogFooter className="mt-6">
+
+          <DialogFooter className="mt-4">
             <Button variant="ghost" onClick={() => setCropping(false)} disabled={loading}>
               Cancelar
             </Button>
