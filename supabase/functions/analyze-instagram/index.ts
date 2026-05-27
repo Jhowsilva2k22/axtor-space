@@ -331,6 +331,58 @@ Deno.serve(async (req) => {
       );
     }
 
+    // 0.3 Rate limit por email: 5 análises completed nas últimas 24h
+    if (email) {
+      const twentyFourHoursAgo = new Date(now - 24 * 60 * 60 * 1000).toISOString();
+      const oneHourAgo = new Date(now - 60 * 60 * 1000).toISOString();
+
+      const { data: emailLeads } = await supabase
+        .from("leads")
+        .select("id")
+        .eq("email", email);
+
+      if (emailLeads && emailLeads.length > 0) {
+        const leadIds = emailLeads.map((l: { id: string }) => l.id);
+
+        const { count: emailDailyCount } = await supabase
+          .from("diagnostics")
+          .select("id", { count: "exact", head: true })
+          .in("lead_id", leadIds)
+          .eq("status", "completed")
+          .gte("created_at", twentyFourHoursAgo);
+
+        if ((emailDailyCount ?? 0) >= 5) {
+          return new Response(
+            JSON.stringify({
+              status: "rate_limited",
+              handle,
+              reason: "email_daily_limit",
+              message: "Limite de 5 análises por dia atingido. Tente novamente amanhã.",
+            }),
+            { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+          );
+        }
+
+        // Detecção de padrão: mesmo email, >3 handles distintos em 1h → log suspeito
+        const { data: recentDiags } = await supabase
+          .from("diagnostics")
+          .select("instagram_handle")
+          .in("lead_id", leadIds)
+          .gte("created_at", oneHourAgo);
+
+        if (recentDiags && recentDiags.length > 0) {
+          const distinctHandles = new Set(
+            recentDiags.map((d: { instagram_handle: string }) => d.instagram_handle),
+          );
+          if (distinctHandles.size > 3) {
+            console.warn(
+              `[security:suspect] email="${email}" analisou ${distinctHandles.size} handles distintos em 1h: ${[...distinctHandles].join(", ")}`,
+            );
+          }
+        }
+      }
+    }
+
     // 1. Cria/atualiza lead
     const { data: lead, error: leadErr } = await supabase
       .from("leads")
