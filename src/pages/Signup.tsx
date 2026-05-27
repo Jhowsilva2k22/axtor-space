@@ -113,7 +113,7 @@ const Signup = () => {
       </div>
     );
   }
-  if (user && !created) return <Navigate to="/admin" replace />;
+  if (user && !created) return <Navigate to="/painel" replace />;
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -140,7 +140,7 @@ const Signup = () => {
       email: email.trim().toLowerCase(),
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/admin`,
+        emailRedirectTo: `${window.location.origin}/painel`,
         data: { full_name: name.trim() },
       },
     });
@@ -183,7 +183,7 @@ const Signup = () => {
           templateData: {
             name: name.trim(),
             bioUrl: result.url,
-            adminUrl: `${window.location.origin}/admin`,
+            adminUrl: `${window.location.origin}/painel`,
             slug: result.slug,
             plan: planLabel ?? "free",
           },
@@ -214,7 +214,7 @@ const Signup = () => {
           </button>
           <div className="mt-10 grid grid-cols-2 gap-3">
             <Button asChild className="btn-luxe h-12 rounded-full text-xs font-bold uppercase tracking-[0.2em]">
-              <button onClick={() => nav("/admin")}>Ir pro admin</button>
+              <button onClick={() => nav("/painel")}>Ir pro painel</button>
             </Button>
             <Button asChild variant="outline" className="h-12 rounded-full border-gold/30 bg-card/40 text-xs font-bold uppercase tracking-[0.2em] transition-all hover:shadow-gold/20 hover:shadow-lg">
               <a href={created.url} target="_blank" rel="noopener noreferrer">

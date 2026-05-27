@@ -39,6 +39,8 @@ const DeepDiagnosticDemo = lazy(() => import("./pages/DeepDiagnosticDemo.tsx"));
 const DeepFunnelPublic = lazy(() => import("./pages/DeepFunnelPublic.tsx"));
 const DeepFunnelThankYou = lazy(() => import("./pages/DeepFunnelThankYou.tsx"));
 const Painel = lazy(() => import("./pages/Painel.tsx"));
+const PainelConfiguracoes = lazy(() => import("./pages/PainelConfiguracoes.tsx"));
+const PainelInvites = lazy(() => import("./pages/PainelInvites.tsx"));
 const Loja = lazy(() => import("./pages/Loja.tsx"));
 const BemVindo = lazy(() => import("./pages/BemVindo.tsx"));
 const Privacidade = lazy(() => import("./pages/Privacidade.tsx"));
@@ -91,6 +93,8 @@ const App = () => (
             <Route path="/admin/diagnostics" element={<AdminDiagnostics />} />
             <Route path="/admin/deep-diagnostic/demo" element={<DeepDiagnosticDemo />} />
             <Route path="/painel" element={<Painel />} />
+            <Route path="/painel/configuracoes" element={<PainelConfiguracoes />} />
+            <Route path="/painel/convites" element={<PainelInvites />} />
             <Route path="/painel/loja" element={<Loja />} />
             <Route path="/loja" element={<Loja />} />
             <Route path="/bem-vindo" element={<BemVindo />} />

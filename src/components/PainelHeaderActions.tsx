@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import QRCode from "qrcode";
-import { ExternalLink, QrCode, Download, Copy, LogOut } from "lucide-react";
+import { ExternalLink, QrCode, Download, Copy, LogOut, Settings, Ticket } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 /**
  * Onda 3 v2 Fase 3 — utilitários do header do Painel.
@@ -26,6 +27,7 @@ import { supabase } from "@/integrations/supabase/client";
 export const PainelHeaderActions = ({ slug }: { slug: string }) => {
   const bioUrl = `${window.location.origin}/${slug}`;
   const nav = useNavigate();
+  const { isAdmin } = useAuth();
   const [signingOut, setSigningOut] = useState(false);
 
   const handleSignOut = async () => {
@@ -56,6 +58,34 @@ export const PainelHeaderActions = ({ slug }: { slug: string }) => {
       <QRCodeButton bioUrl={bioUrl} slug={slug} />
 
       <ThemeToggle />
+
+      {isAdmin && (
+        <Button
+          variant="outline"
+          size="icon"
+          asChild
+          className="h-10 w-10 rounded-full border-gold/40 bg-card/60 text-gold hover:border-gold hover:shadow-gold"
+          aria-label="Convites"
+          title="Gerenciar convites"
+        >
+          <Link to="/painel/convites">
+            <Ticket className="h-4 w-4" />
+          </Link>
+        </Button>
+      )}
+
+      <Button
+        variant="outline"
+        size="icon"
+        asChild
+        className="h-10 w-10 rounded-full border-gold/40 bg-card/60 text-muted-foreground hover:border-gold/60 hover:text-gold"
+        aria-label="Configurações"
+        title="Configurações"
+      >
+        <Link to="/painel/configuracoes">
+          <Settings className="h-4 w-4" />
+        </Link>
+      </Button>
 
       <Button
         variant="outline"
