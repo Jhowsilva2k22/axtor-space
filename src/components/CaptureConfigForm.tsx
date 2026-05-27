@@ -223,7 +223,7 @@ const previewClassName = (style: ButtonStyle): string => {
     "inline-flex items-center justify-center rounded-md px-6 py-3 text-sm font-medium transition";
   switch (style) {
     case "gold-pulse":
-      return `${base} animate-gold-pulse bg-gold text-black`;
+      return `${base} animate-gold-pulse btn-luxe`;
     case "green-pulse":
       return `${base} animate-green-pulse bg-emerald-500 text-white`;
     case "flat":

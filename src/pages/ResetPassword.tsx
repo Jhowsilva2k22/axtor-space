@@ -62,7 +62,7 @@ const ResetPassword = () => {
       return;
     }
     toast.success("Senha atualizada");
-    nav("/admin", { replace: true });
+    nav("/painel", { replace: true });
   };
 
   if (!ready) {
