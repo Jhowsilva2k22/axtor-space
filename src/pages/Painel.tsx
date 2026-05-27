@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { Navigate } from "react-router-dom";
 import { Loader2, Lock } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -18,6 +18,9 @@ import { BioThemePickerStandalone } from "@/components/bio/BioThemePickerStandal
 import { MediaGallery } from "@/components/bio/MediaGallery";
 import { MetricsDashboard } from "@/components/bio/MetricsDashboard";
 import { ActivationBanner } from "@/components/ActivationBanner";
+import { OnboardingChecklist } from "@/components/OnboardingChecklist";
+import { MyLinksCard } from "@/components/MyLinksCard";
+import { PartnerCtasEditor } from "@/components/PartnerCtasEditor";
 import { FunnelListView } from "@/components/imersivo/FunnelListView";
 import { WhatsAppNumbersManager } from "@/components/imersivo/WhatsAppNumbersManager";
 import { DeepDiagnosticReviewView } from "@/pages/DeepDiagnosticReviewView";
@@ -99,6 +102,11 @@ export default function Painel() {
         {/* Banner que aparece quando o user chega após pagar (?activated=true).
             Botão "Ir agora" troca a aba ativa pro produto comprado. */}
         <ActivationBanner onAction={(tab) => setActiveTab(tab)} />
+
+        {/* Todos os links do tenant: bio, funil publicado, UTM parceiro, painel */}
+        <div className="mb-6">
+          <MyLinksCard slug={current.slug} tenantId={current.id} />
+        </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-3 sm:grid-cols-5">
@@ -257,6 +265,9 @@ const BioTabPanel = ({
   slug: string;
   displayName: string;
 }) => {
+  const headerRef = useRef<HTMLDivElement>(null);
+  const blocksRef = useRef<HTMLDivElement>(null);
+
   const [liveCfg, setLiveCfg] = useState<{
     display_name?: string | null;
     headline?: string | null;
@@ -316,30 +327,50 @@ const BioTabPanel = ({
     );
   }, []);
 
+  const hasAvatar = !!(liveCfg?.avatar_url);
+  const hasHeadline = !!(liveCfg?.headline);
+  const hasActiveBlock = !!liveBlocks?.some((b) => b.is_active);
+  const bioUrl = `${window.location.origin}/${slug}`;
+
   return (
-    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_400px]">
-      <div className="min-w-0 space-y-6">
-        <BioHeaderEditorStandalone
-          tenantId={tenantId}
-          slug={slug}
-          displayName={displayName}
-          onCfgChange={handleCfgChange}
-        />
-        <BioBlocksManagerStandalone
-          tenantId={tenantId}
-          onBlocksChange={handleBlocksChange}
-        />
-        <CategoriesManager tenantId={tenantId} />
-        <BioThemePickerStandalone tenantId={tenantId} />
+    <div className="space-y-6">
+      <OnboardingChecklist
+        hasAvatar={hasAvatar}
+        hasHeadline={hasHeadline}
+        hasActiveBlock={hasActiveBlock}
+        bioUrl={bioUrl}
+        onFocusHeader={() => headerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
+        onFocusBlocks={() => blocksRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
+      />
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_400px]">
+        <div className="min-w-0 space-y-6">
+          <div ref={headerRef}>
+            <BioHeaderEditorStandalone
+              tenantId={tenantId}
+              slug={slug}
+              displayName={displayName}
+              onCfgChange={handleCfgChange}
+            />
+          </div>
+          <div ref={blocksRef}>
+            <BioBlocksManagerStandalone
+              tenantId={tenantId}
+              onBlocksChange={handleBlocksChange}
+            />
+          </div>
+          <CategoriesManager tenantId={tenantId} />
+          <BioThemePickerStandalone tenantId={tenantId} />
+          <PartnerCtasEditor tenantId={tenantId} slug={slug} />
+        </div>
+        <aside className="xl:sticky xl:top-6 xl:self-start">
+          <BioFullPreview
+            tenantId={tenantId}
+            slug={slug}
+            liveConfig={liveCfg ?? undefined}
+            liveBlocks={liveBlocks ?? undefined}
+          />
+        </aside>
       </div>
-      <aside className="xl:sticky xl:top-6 xl:self-start">
-        <BioFullPreview
-          tenantId={tenantId}
-          slug={slug}
-          liveConfig={liveCfg ?? undefined}
-          liveBlocks={liveBlocks ?? undefined}
-        />
-      </aside>
     </div>
   );
 };
