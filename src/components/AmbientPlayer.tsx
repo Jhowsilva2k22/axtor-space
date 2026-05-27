@@ -9,24 +9,15 @@ const FADE_DURATION_MS = 4000;
  * Player ambiente premium — fade-in lento, loop suave, controle discreto,
  * lembra preferência do visitante. Tenta autoplay mudo + convite a ativar.
  */
-const TRACKS = [
-  "/music/dreams.mp3",
-  "/music/betterdays.mp3",
-  "/music/deepblue.mp3",
-  "/music/relaxing.mp3",
-  "/music/sweet.mp3",
-  "/music/november.mp3",
-  "/music/thelounge.mp3",
-  "/music/newdawn.mp3",
-];
-
 const STYLE_TRACKS: Record<string, string[]> = {
-  jazz:      ["/music/thelounge.mp3", "/music/november.mp3"],
-  bossanova: ["/music/dreams.mp3", "/music/sweet.mp3"],
-  piano:     ["/music/betterdays.mp3", "/music/relaxing.mp3"],
-  violino:   ["/music/deepblue.mp3", "/music/newdawn.mp3"],
-  lofi:      ["/music/november.mp3", "/music/relaxing.mp3"],
+  jazz:      ["/music/jazz-1.mp3", "/music/jazz-2.mp3", "/music/jazz-3.mp3", "/music/jazz-4.mp3"],
+  bossanova: ["/music/bossanova-1.mp3", "/music/bossanova-2.mp3", "/music/bossanova-3.mp3", "/music/bossanova-4.mp3"],
+  piano:     ["/music/piano-1.mp3", "/music/piano-2.mp3", "/music/piano-3.mp3", "/music/piano-4.mp3"],
+  violino:   ["/music/violino-1.mp3", "/music/violino-2.mp3", "/music/violino-3.mp3", "/music/violino-4.mp3"],
+  lofi:      ["/music/lofi-1.mp3", "/music/lofi-2.mp3", "/music/lofi-3.mp3", "/music/lofi-4.mp3"],
 };
+
+const TRACKS = Object.values(STYLE_TRACKS).flat();
 
 const AmbientPlayer = ({ musicStyle }: { musicStyle?: string | null }) => {
   const pool = musicStyle && STYLE_TRACKS[musicStyle] ? STYLE_TRACKS[musicStyle] : TRACKS;
