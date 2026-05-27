@@ -116,7 +116,10 @@ const Landing = () => {
 
         <footer className="mx-auto max-w-5xl px-6 py-10 text-center">
           <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground/60">
-            © {new Date().getFullYear()} axtor · sua bio profissional
+            © {new Date().getFullYear()} axtor · sua bio profissional ·{" "}
+            <Link to="/termos" className="transition-colors hover:text-primary">Termos</Link>
+            {" "}·{" "}
+            <Link to="/privacidade" className="transition-colors hover:text-primary">Privacidade</Link>
           </p>
         </footer>
       </main>

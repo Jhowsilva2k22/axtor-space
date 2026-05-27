@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Loader2, Sparkles, Check, X, ExternalLink, Copy, Gift, Eye, EyeOff } from "lucide-react";
 import { ThemeToggle, useAdminLockedTheme } from "@/components/ThemeToggle";
+import { PublicFooter } from "@/components/PublicFooter";
 import { savePendingSignup, clearPendingSignup } from "@/lib/pendingSignup";
 
 const slugify = (s: string) =>
@@ -349,6 +350,7 @@ const Signup = () => {
           Já tem conta? <Link to="/admin/login" className="font-bold text-gold hover:underline">Entrar</Link>
         </p>
       </form>
+      <PublicFooter />
     </div>
   );
 };
