@@ -1,7 +1,8 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { Loader2, Lock } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TenantSelector } from "@/components/TenantSelector";
 import { useAuth } from "@/hooks/useAuth";
@@ -40,6 +41,7 @@ const PLAN_LABELS: Record<string, string> = {
 
 export default function Painel() {
   const [activeTab, setActiveTab] = useState("captura");
+  const nav = useNavigate();
   const { user, isAdmin, loading: authLoading } = useAuth();
   const { current, loading: tenantLoading, refresh } = useCurrentTenant();
 
@@ -144,9 +146,16 @@ export default function Painel() {
           <Card className="max-w-md p-8 text-center">
             <h2 className="mb-3 font-display text-2xl">Erro ao configurar conta</h2>
             <p className="mb-4 text-sm text-muted-foreground">{provisionError}</p>
-            <p className="text-xs text-muted-foreground">
+            <p className="mb-6 text-xs text-muted-foreground">
               Suporte: axtormail@axtor.space
             </p>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => { clearPendingSignup(); nav("/signup"); }}
+            >
+              Tentar com outra conta
+            </Button>
           </Card>
         </div>
       );
@@ -156,9 +165,12 @@ export default function Painel() {
       <div className="flex min-h-screen items-center justify-center bg-background px-6">
         <Card className="max-w-md p-8 text-center">
           <h2 className="mb-3 font-display text-2xl">Nenhum tenant encontrado</h2>
-          <p className="text-sm text-muted-foreground">
+          <p className="mb-6 text-sm text-muted-foreground">
             Você não tem nenhum tenant configurado nesta conta. Crie um para começar.
           </p>
+          <Button asChild className="w-full">
+            <a href="/signup">Criar minha bio</a>
+          </Button>
         </Card>
       </div>
     );
