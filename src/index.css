@@ -511,7 +511,8 @@ All colors MUST be HSL.
 /* ============== TEMA CLARO — Ivory & Gold (opt-in via .theme-ivory) ============== */
 .theme-ivory {
   --background: 38 35% 96%;
-  --aurora-opacity: 0.05;
+  --aurora-opacity-a: 0.07;
+  --aurora-opacity-b: 0.05;
   --foreground: 30 25% 8%;
   --card: 38 30% 97%;
   --card-foreground: 30 25% 8%;
