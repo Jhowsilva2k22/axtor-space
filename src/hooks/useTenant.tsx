@@ -43,6 +43,18 @@ const RESERVED_PATHS = new Set([
   "favicon.ico",
   "robots.txt",
   "sitemap.xml",
+  // rotas de app autenticadas
+  "painel",
+  "loja",
+  "bem-vindo",
+  "planos",
+  "obrigado",
+  "privacidade",
+  "privacy",
+  "termos",
+  "terms",
+  "unsubscribe",
+  "reset",
 ]);
 
 const SLUG_RE = /^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$/;
