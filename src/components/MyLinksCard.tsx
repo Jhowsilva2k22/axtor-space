@@ -233,9 +233,9 @@ export const MyLinksCard = ({ slug, tenantId }: Props) => {
                   Você ainda não tem um link na landing principal axtor.space.{" "}
                   {isAdmin ? (
                     <>
-                      Cadastre um UTM em{" "}
-                      <Link to="/admin/landing-partners" className="text-primary underline-offset-2 hover:underline">
-                        Parceiros landing
+                      Configure sua tela de captura na{" "}
+                      <Link to="/painel" className="text-primary underline-offset-2 hover:underline">
+                        aba Captura do Painel
                       </Link>{" "}
                       pra ativar.
                     </>
