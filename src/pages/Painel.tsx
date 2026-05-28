@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { Navigate } from "react-router-dom";
 import { Loader2, Lock } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -28,6 +28,7 @@ import { DeepDiagnosticReviewView } from "@/pages/DeepDiagnosticReviewView";
 import { BriefingWizard } from "@/components/imersivo/BriefingWizard";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { readPendingSignup, clearPendingSignup } from "@/lib/pendingSignup";
 
 const PLAN_LABELS: Record<string, string> = {
   free: "Free",
@@ -40,7 +41,7 @@ const PLAN_LABELS: Record<string, string> = {
 export default function Painel() {
   const [activeTab, setActiveTab] = useState("captura");
   const { user, isAdmin, loading: authLoading } = useAuth();
-  const { current, loading: tenantLoading } = useCurrentTenant();
+  const { current, loading: tenantLoading, refresh } = useCurrentTenant();
 
   // Guards de tier — uma chamada por aba (cacheado via React Query, sem N round-trips reais).
   const accessCaptura = useCanAccessTab("captura");
@@ -49,6 +50,68 @@ export default function Painel() {
   const accessImagens = useCanAccessTab("imagens");
   const accessMetricas = useCanAccessTab("metricas");
   const accessIntegracoes = useCanAccessTab("integracoes");
+
+  // Auto-provisioning para usuários que confirmaram email
+  const hasPendingSignup = useMemo(() => readPendingSignup() !== null, []);
+  const [provisioning, setProvisioning] = useState(false);
+  const [provisionError, setProvisionError] = useState<string | null>(null);
+  const provisionAttempted = useRef(false);
+
+  useEffect(() => {
+    if (authLoading || tenantLoading) return;
+    if (!user || current || provisionAttempted.current) return;
+
+    const pending = readPendingSignup();
+    if (!pending) return;
+
+    provisionAttempted.current = true;
+    setProvisioning(true);
+
+    const run = async () => {
+      const { data, error } = await (supabase as any).rpc(
+        "create_tenant_for_user",
+        {
+          _slug: pending.slug,
+          _display_name: pending.displayName,
+          _invite_code: pending.inviteCode ?? null,
+        },
+      );
+
+      if (error) {
+        setProvisionError(error.message);
+        setProvisioning(false);
+        return;
+      }
+
+      const result = data as any;
+      clearPendingSignup();
+
+      // Fire-and-forget — falha no email não bloqueia o acesso ao painel
+      supabase.functions
+        .invoke("send-transactional-email", {
+          body: {
+            templateName: "welcome-tenant",
+            recipientEmail: pending.email,
+            idempotencyKey: `welcome-${result.tenant_id}`,
+            templateData: {
+              name: pending.displayName,
+              bioUrl: result.url,
+              adminUrl: `${window.location.origin}/painel`,
+              slug: result.slug,
+              plan: result.plan ?? "free",
+            },
+          },
+        })
+        .catch((err: unknown) =>
+          console.error("[provision] welcome email failed:", err),
+        );
+
+      await refresh();
+      setProvisioning(false);
+    };
+
+    void run();
+  }, [authLoading, tenantLoading, user, current, refresh]);
 
   if (authLoading || tenantLoading) {
     return (
@@ -63,6 +126,32 @@ export default function Painel() {
   }
 
   if (!current) {
+    if (provisioning || (hasPendingSignup && !provisionAttempted.current)) {
+      return (
+        <div className="flex min-h-screen items-center justify-center bg-background px-6">
+          <div className="text-center">
+            <Loader2 className="mx-auto mb-4 h-8 w-8 animate-spin text-primary" />
+            <p className="font-display text-lg">Configurando sua conta…</p>
+            <p className="mt-2 text-sm text-muted-foreground">Só um instante.</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (provisionError) {
+      return (
+        <div className="flex min-h-screen items-center justify-center bg-background px-6">
+          <Card className="max-w-md p-8 text-center">
+            <h2 className="mb-3 font-display text-2xl">Erro ao configurar conta</h2>
+            <p className="mb-4 text-sm text-muted-foreground">{provisionError}</p>
+            <p className="text-xs text-muted-foreground">
+              Suporte: axtormail@axtor.space
+            </p>
+          </Card>
+        </div>
+      );
+    }
+
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-6">
         <Card className="max-w-md p-8 text-center">
