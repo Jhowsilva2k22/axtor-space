@@ -1,6 +1,6 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
@@ -62,12 +62,23 @@ const RouteFallback = () => (
   </div>
 );
 
+const PathNormalizer = () => {
+  const { pathname, search, hash } = useLocation();
+  const navigate = useNavigate();
+  useEffect(() => {
+    const lower = pathname.toLowerCase();
+    if (lower !== pathname) navigate(lower + search + hash, { replace: true });
+  }, [pathname, search, hash, navigate]);
+  return null;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <PathNormalizer />
         <AuthProvider>
           <TenantProvider>
             <CurrentTenantProvider>
