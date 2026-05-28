@@ -59,6 +59,7 @@ const Signup = () => {
   const [accept, setAccept] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [created, setCreated] = useState<Created | null>(null);
+  const [emailSent, setEmailSent] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(!!initialInvite);
   const [inviteCode, setInviteCode] = useState(initialInvite);
   const [inviteChecking, setInviteChecking] = useState(false);
@@ -153,7 +154,7 @@ const Signup = () => {
 
     if (!signUpData.session) {
       setSubmitting(false);
-      toast.success("conta criada! confirme seu email — sua bio será liberada automaticamente quando você voltar");
+      setEmailSent(true);
       return;
     }
 
@@ -194,6 +195,39 @@ const Signup = () => {
       console.error("welcome email failed:", err);
     }
   };
+
+  if (emailSent) {
+    return (
+      <div className="relative flex min-h-screen items-center justify-center px-6 grain">
+        <div className="aurora-a" />
+        <div className="aurora-b" />
+        <ThemeToggle className="absolute right-5 top-5 z-20" />
+        <div className="relative z-10 w-full max-w-md rounded-[32px] border border-gold/20 bg-card/40 p-10 shadow-2xl backdrop-blur-xl text-center">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-gold/30 bg-gradient-gold-soft shadow-gold/20 shadow-lg">
+            <Sparkles className="h-6 w-6 text-primary" />
+          </div>
+          <h1 className="mt-8 font-display text-4xl">Confirme seu <span className="text-gold italic">email</span></h1>
+          <p className="mt-4 text-sm text-muted-foreground">
+            Enviamos um link de confirmação para
+          </p>
+          <p className="mt-1 font-medium text-primary">{email}</p>
+          <p className="mt-4 text-sm text-muted-foreground">
+            Clique no link para ativar sua conta — sua bio será liberada automaticamente.
+          </p>
+          <p className="mt-8 text-xs text-muted-foreground">
+            Não encontrou? Verifique a caixa de spam ou{" "}
+            <button
+              type="button"
+              onClick={() => setEmailSent(false)}
+              className="font-medium text-gold hover:underline"
+            >
+              tente outro email
+            </button>
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (created) {
     return (
