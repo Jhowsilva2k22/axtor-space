@@ -45,7 +45,7 @@ const GOLD_NOIR_FALLBACK: Theme = {
     fontBody: "Manrope, sans-serif",
     auroraEnabled: true,
     auroraOpacity: 0.45,
-    radius: "0.125rem",
+    radius: "1.5rem",
   },
 };
 

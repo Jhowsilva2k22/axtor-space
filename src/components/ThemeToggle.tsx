@@ -16,7 +16,7 @@ const GOLD_NOIR_TOKENS: Record<string, string> = {
   "--font-display": "Cormorant Garamond, serif",
   "--font-body": "Manrope, sans-serif",
   "--aurora-opacity": "0.45",
-  "--radius": "0.125rem",
+  "--radius": "1.5rem",
 };
 
 type Theme = "noir" | "ivory";
