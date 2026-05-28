@@ -95,11 +95,11 @@ export function FeedbackWidget({ pagePath }: Props) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <button
-          aria-label="Enviar sugestão"
+          aria-label="Suporte"
           className="fixed bottom-5 right-5 z-40 flex items-center gap-2 rounded-full bg-primary px-4 py-3 text-primary-foreground shadow-lg shadow-primary/30 transition hover:scale-105 hover:shadow-primary/50"
         >
           <MessageSquarePlus className="h-4 w-4" />
-          <span className="text-sm font-medium">Sugerir</span>
+          <span className="text-sm font-medium">Suporte</span>
         </button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
