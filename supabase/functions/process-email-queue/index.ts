@@ -1,4 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { captureException } from '../_shared/sentry.ts'
 
 const MAX_RETRIES = 5
 const DEFAULT_BATCH_SIZE = 10
@@ -333,6 +334,7 @@ Deno.serve(async (req) => {
           )
         }
 
+        await captureException(error, { function: 'process-email-queue', extra: { queue, msg_id: msg.msg_id } })
         await supabase.from('email_send_log').insert({
           message_id: payload.message_id,
           template_name: payload.label || queue,

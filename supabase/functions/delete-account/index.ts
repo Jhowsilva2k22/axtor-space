@@ -1,4 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { captureException } from '../_shared/sentry.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': 'https://axtor.space',
@@ -92,6 +93,7 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } catch (err) {
+    await captureException(err, { function: 'delete-account' })
     console.error('[delete-account] unexpected error:', err)
     return new Response(JSON.stringify({ error: 'Erro interno' }), {
       status: 500,
