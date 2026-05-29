@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Loader2, Plus, Save, Trash2, ArrowUp, ArrowDown, LogOut, ExternalLink, Eye, EyeOff, BarChart3, GripVertical, FileEdit, Send, Undo2, Copy, Palette, Sparkles, Gift, Menu, Stethoscope, MoreVertical, Droplet, Megaphone } from "lucide-react";
+import { Loader2, Plus, Save, Trash2, ArrowUp, ArrowDown, LogOut, ExternalLink, Eye, EyeOff, BarChart3, GripVertical, FileEdit, Send, Undo2, Copy, Palette, Sparkles, Gift, Menu, Stethoscope, MoreVertical, Droplet, Megaphone, LayoutDashboard } from "lucide-react";
 import { Upload } from "lucide-react";
 import { ThemeToggle, useAdminLockedTheme } from "@/components/ThemeToggle";
 import {
@@ -695,6 +695,11 @@ const Admin = () => {
                 DIAGNÓSTICO
               </Link>
             )}
+            {isAdmin && (
+              <Link to="/admin/hub" className="inline-flex h-10 items-center gap-2 rounded-sm border border-zinc-600 bg-zinc-900 px-4 text-[11px] uppercase tracking-[0.2em] text-zinc-300 transition-all hover:bg-zinc-800 hover:text-white">
+                Hub <LayoutDashboard className="h-3.5 w-3.5" />
+              </Link>
+            )}
             {currentTenant && (
               <QRCodeDialog
                 url={`${window.location.origin}/${currentTenant.slug}`}
@@ -792,6 +797,12 @@ const Admin = () => {
                   {isAdmin && (
                     <Link to="/admin/diagnostics" className="inline-flex h-11 items-center justify-between gap-2 rounded-sm border border-gold bg-card/40 px-4 text-[11px] uppercase tracking-[0.2em] text-primary transition-all hover:bg-gradient-gold-soft">
                       <span>Diagnóstico</span> <Stethoscope className="h-3.5 w-3.5" />
+                    </Link>
+                  )}
+
+                  {isAdmin && (
+                    <Link to="/admin/hub" className="inline-flex h-11 items-center justify-between gap-2 rounded-sm border border-zinc-600 bg-zinc-900 px-4 text-[11px] uppercase tracking-[0.2em] text-zinc-300 transition-all hover:bg-zinc-800 hover:text-white">
+                      <span>Hub</span> <LayoutDashboard className="h-3.5 w-3.5" />
                     </Link>
                   )}
 

@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
-import { Loader2, Lock } from "lucide-react";
+import { Navigate, useNavigate, Link } from "react-router-dom";
+import { Loader2, Lock, LayoutDashboard } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -211,6 +211,14 @@ export default function Painel() {
           <div className="flex flex-wrap items-center gap-3">
             <PainelHeaderActions slug={current.slug} />
             <TenantSelector />
+            {isAdmin && (
+              <Link
+                to="/admin/hub"
+                className="inline-flex h-9 items-center gap-1.5 rounded-sm border border-zinc-600 bg-zinc-900 px-3 text-[10px] uppercase tracking-[0.2em] text-zinc-300 transition-all hover:bg-zinc-800 hover:text-white"
+              >
+                Hub <LayoutDashboard className="h-3 w-3" />
+              </Link>
+            )}
           </div>
         </header>
 

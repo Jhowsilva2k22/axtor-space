@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, ReactNode } from "react";
+import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/hooks/useTenant";
 
@@ -50,6 +51,7 @@ const GOLD_NOIR_FALLBACK: Theme = {
 };
 
 const PREVIEW_KEY = "bio-theme-preview";
+const ADMIN_PATHS = ["/admin", "/signup", "/forgot-password", "/reset-password"];
 
 const readPreviewSlug = (): string | null => {
   if (typeof window === "undefined") return null;
@@ -101,9 +103,11 @@ const applyTokensToRoot = (tokens: ThemeTokens) => {
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const { tenant } = useTenant();
+  const location = useLocation();
   const [theme, setTheme] = useState<Theme>(GOLD_NOIR_FALLBACK);
   const [activeSlug, setActiveSlug] = useState<string>("gold-noir");
   const [previewSlug, setPreviewSlugState] = useState<string | null>(readPreviewSlug);
+  const lastTokensRef = useRef<ThemeTokens>(GOLD_NOIR_FALLBACK.tokens);
 
   const setPreview = (slug: string | null) => {
     // Não persiste se vier da URL — preview de iframe é volátil
@@ -145,18 +149,28 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
         if (!cancelled && t) {
           const next = { ...(t as any), tokens: (t as any).tokens as ThemeTokens } as Theme;
           setTheme(next);
+          lastTokensRef.current = next.tokens;
           applyTokensToRoot(next.tokens);
         } else if (!cancelled) {
+          lastTokensRef.current = GOLD_NOIR_FALLBACK.tokens;
           applyTokensToRoot(GOLD_NOIR_FALLBACK.tokens);
         }
       } catch {
-        if (!cancelled) applyTokensToRoot(GOLD_NOIR_FALLBACK.tokens);
+        if (!cancelled) {
+          lastTokensRef.current = GOLD_NOIR_FALLBACK.tokens;
+          applyTokensToRoot(GOLD_NOIR_FALLBACK.tokens);
+        }
       }
     })();
     return () => {
       cancelled = true;
     };
   }, [previewSlug, tenant?.id]);
+
+  useEffect(() => {
+    const isAdmin = ADMIN_PATHS.some(p => location.pathname.startsWith(p));
+    if (!isAdmin) applyTokensToRoot(lastTokensRef.current);
+  }, [location.pathname]);
 
   return (
     <ThemeCtx.Provider value={{ theme, activeSlug, previewSlug, setPreview }}>

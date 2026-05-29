@@ -45,6 +45,7 @@ const Loja = lazy(() => import("./pages/Loja.tsx"));
 const BemVindo = lazy(() => import("./pages/BemVindo.tsx"));
 const Privacidade = lazy(() => import("./pages/Privacidade.tsx"));
 const Termos = lazy(() => import("./pages/Termos.tsx"));
+const AdminHub = lazy(() => import("./pages/AdminHub.tsx"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -104,6 +105,7 @@ const App = () => (
             <Route path="/admin/landing-partners" element={<AdminLandingPartners />} />
             <Route path="/admin/diagnostics" element={<AdminDiagnostics />} />
             <Route path="/admin/deep-diagnostic/demo" element={<DeepDiagnosticDemo />} />
+            <Route path="/admin/hub" element={<AdminHub />} />
             <Route path="/painel" element={<Painel />} />
             <Route path="/painel/configuracoes" element={<PainelConfiguracoes />} />
             <Route path="/painel/convites" element={<PainelInvites />} />
