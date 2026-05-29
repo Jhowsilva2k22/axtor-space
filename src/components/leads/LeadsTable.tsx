@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Download, ChevronLeft, ChevronRight, Loader2, Users } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,10 +32,16 @@ export const LeadsTable = ({ tenantId }: { tenantId: string }) => {
     useLeads(tenantId);
 
   const [draft, setDraft] = useState<LeadsFilters>(filters);
+  const [clearKey, setClearKey] = useState(0);
+
+  useEffect(() => {
+    setDraft(filters);
+  }, [filters]);
 
   const handleApply = () => applyFilters(draft);
   const handleClear = () => {
     const empty: LeadsFilters = { status: "", dateFrom: "", dateTo: "" };
+    setClearKey((k) => k + 1);
     setDraft(empty);
     applyFilters(empty);
   };
@@ -66,6 +72,7 @@ export const LeadsTable = ({ tenantId }: { tenantId: string }) => {
           <div className="space-y-1.5">
             <Label className="text-xs">De</Label>
             <Input
+              key={`from-${clearKey}`}
               type="date"
               className="h-8 w-36 text-xs"
               value={draft.dateFrom}
@@ -76,6 +83,7 @@ export const LeadsTable = ({ tenantId }: { tenantId: string }) => {
           <div className="space-y-1.5">
             <Label className="text-xs">Até</Label>
             <Input
+              key={`to-${clearKey}`}
               type="date"
               className="h-8 w-36 text-xs"
               value={draft.dateTo}
