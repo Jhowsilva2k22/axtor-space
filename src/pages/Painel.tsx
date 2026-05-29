@@ -59,6 +59,7 @@ export default function Painel() {
   const hasPendingSignup = useMemo(() => readPendingSignup() !== null, []);
   const [provisioning, setProvisioning] = useState(false);
   const [provisionError, setProvisionError] = useState<string | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
   const provisionAttempted = useRef(false);
 
   useEffect(() => {
@@ -115,7 +116,7 @@ export default function Painel() {
     };
 
     void run();
-  }, [authLoading, tenantLoading, user, current, refresh]);
+  }, [authLoading, tenantLoading, user, current, refresh, retryKey]);
 
   if (authLoading || tenantLoading) {
     return (
@@ -151,6 +152,16 @@ export default function Painel() {
             <p className="mb-6 text-xs text-muted-foreground">
               Suporte: axtormail@axtor.space
             </p>
+            <Button
+              className="mb-3 w-full"
+              onClick={() => {
+                provisionAttempted.current = false;
+                setProvisionError(null);
+                setRetryKey((k) => k + 1);
+              }}
+            >
+              Tentar novamente
+            </Button>
             <Button
               variant="outline"
               className="w-full"
