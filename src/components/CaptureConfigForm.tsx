@@ -29,7 +29,7 @@ const DESTINATION_LABELS: Record<LeadDestinationType, string> = {
   crm: "CRM externo (URL/webhook)",
   sheet: "Google Sheets / planilha",
   email: "Notificação por e-mail",
-  whatsapp: "Mensagem direta no WhatsApp",
+  whatsapp: "Mensagem no WhatsApp (em breve)",
 };
 
 const DESTINATION_HINT: Record<LeadDestinationType, string> = {
@@ -136,7 +136,7 @@ export const CaptureConfigForm = ({ tenantId }: { tenantId: string }) => {
             </SelectTrigger>
             <SelectContent>
               {(Object.keys(DESTINATION_LABELS) as LeadDestinationType[]).map((d) => (
-                <SelectItem key={d} value={d}>
+                <SelectItem key={d} value={d} disabled={d === "whatsapp"}>
                   {DESTINATION_LABELS[d]}
                 </SelectItem>
               ))}
