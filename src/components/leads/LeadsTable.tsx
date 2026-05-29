@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Download, ChevronLeft, ChevronRight, Loader2, Users, Trash2, Eye, EyeOff } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -61,6 +61,7 @@ export const LeadsTable = ({ tenantId }: { tenantId: string }) => {
     error: "",
   });
   const [showPassword, setShowPassword] = useState(false);
+  const hidePasswordTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => { setDraft(filters); }, [filters]);
   useEffect(() => { setSelectedIds(new Set()); }, [page]);
@@ -360,6 +361,7 @@ export const LeadsTable = ({ tenantId }: { tenantId: string }) => {
           if (!deleteDialog.loading) {
             setDeleteDialog({ open, password: "", loading: false, error: "" });
             setShowPassword(false);
+            if (hidePasswordTimer.current) clearTimeout(hidePasswordTimer.current);
           }
         }}
       >
@@ -394,7 +396,15 @@ export const LeadsTable = ({ tenantId }: { tenantId: string }) => {
               />
               <button
                 type="button"
-                onClick={() => setShowPassword((v) => !v)}
+                onClick={() => {
+                  if (showPassword) {
+                    if (hidePasswordTimer.current) clearTimeout(hidePasswordTimer.current);
+                    setShowPassword(false);
+                  } else {
+                    setShowPassword(true);
+                    hidePasswordTimer.current = setTimeout(() => setShowPassword(false), 3000);
+                  }
+                }}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 tabIndex={-1}
                 aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
@@ -416,6 +426,7 @@ export const LeadsTable = ({ tenantId }: { tenantId: string }) => {
               onClick={() => {
                 setDeleteDialog({ open: false, password: "", loading: false, error: "" });
                 setShowPassword(false);
+                if (hidePasswordTimer.current) clearTimeout(hidePasswordTimer.current);
               }}
               disabled={deleteDialog.loading}
             >
