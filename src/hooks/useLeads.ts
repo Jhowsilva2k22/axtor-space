@@ -34,6 +34,7 @@ export function useLeads(tenantId: string) {
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<LeadsFilters>(DEFAULT_FILTERS);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const fetchLeads = useCallback(async () => {
     setLoading(true);
@@ -63,17 +64,50 @@ export function useLeads(tenantId: string) {
       setTotal(count ?? 0);
     }
     setLoading(false);
-  }, [tenantId, page, filters]);
+  }, [tenantId, page, filters, refreshKey]);
 
   useEffect(() => {
     fetchLeads();
   }, [fetchLeads]);
 
-  // Volta para página 0 quando filtros mudam
   const applyFilters = useCallback((next: LeadsFilters) => {
     setPage(0);
     setFilters(next);
   }, []);
+
+  // Força re-fetch voltando para página 0 (funciona mesmo que page já seja 0)
+  const refresh = useCallback(() => {
+    setPage(0);
+    setRefreshKey((k) => k + 1);
+  }, []);
+
+  const deleteLeads = useCallback(
+    async (ids: string[], password: string): Promise<{ error?: string }> => {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+      if (userError || !user?.email)
+        return { error: "Sessão expirada. Faça login novamente." };
+
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password,
+      });
+      if (authError) return { error: "Senha incorreta. Tente novamente." };
+
+      const { error: deleteError } = await supabase
+        .from("deep_diagnostics")
+        .delete()
+        .in("id", ids)
+        .eq("tenant_id", tenantId);
+
+      if (deleteError) return { error: "Erro ao excluir os leads. Tente novamente." };
+
+      return {};
+    },
+    [tenantId],
+  );
 
   const exportCsv = useCallback(async () => {
     let query = supabase
@@ -132,6 +166,8 @@ export function useLeads(tenantId: string) {
     filters,
     applyFilters,
     exportCsv,
+    deleteLeads,
+    refresh,
     pageSize: PAGE_SIZE,
   };
 }
