@@ -1,9 +1,18 @@
-import { useEffect, useState } from "react";
-import { Download, ChevronLeft, ChevronRight, Loader2, Users } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Download, ChevronLeft, ChevronRight, Loader2, Users, Trash2, Eye, EyeOff } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -28,15 +37,51 @@ const PAIN_LABELS: Record<string, string> = {
 };
 
 export const LeadsTable = ({ tenantId }: { tenantId: string }) => {
-  const { leads, total, loading, page, setPage, totalPages, filters, applyFilters, exportCsv } =
-    useLeads(tenantId);
+  const {
+    leads,
+    total,
+    loading,
+    page,
+    setPage,
+    totalPages,
+    filters,
+    applyFilters,
+    exportCsv,
+    deleteLeads,
+    refresh,
+  } = useLeads(tenantId);
 
   const [draft, setDraft] = useState<LeadsFilters>(filters);
   const [clearKey, setClearKey] = useState(0);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [deleteDialog, setDeleteDialog] = useState({
+    open: false,
+    password: "",
+    loading: false,
+    error: "",
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const hidePasswordTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    setDraft(filters);
-  }, [filters]);
+  useEffect(() => { setDraft(filters); }, [filters]);
+  useEffect(() => { setSelectedIds(new Set()); }, [page]);
+
+  const allSelected = leads.length > 0 && leads.every((l) => selectedIds.has(l.id));
+
+  const toggleAll = () => {
+    if (allSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(leads.map((l) => l.id)));
+    }
+  };
+
+  const toggleOne = (id: string) => {
+    const next = new Set(selectedIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelectedIds(next);
+  };
 
   const handleApply = () => applyFilters(draft);
   const handleClear = () => {
@@ -44,6 +89,47 @@ export const LeadsTable = ({ tenantId }: { tenantId: string }) => {
     setClearKey((k) => k + 1);
     setDraft(empty);
     applyFilters(empty);
+  };
+
+  const handleExportSelected = () => {
+    const selected = leads.filter((l) => selectedIds.has(l.id));
+    if (selected.length === 0) return;
+
+    const headers = ["ID", "Nome", "E-mail", "Telefone", "Instagram", "Dor detectada", "Status", "Data"];
+    const rows = selected.map((r) => [
+      r.id,
+      r.lead_name ?? "",
+      r.lead_email ?? "",
+      r.lead_phone ?? "",
+      r.instagram_handle ?? "",
+      r.pain_detected ?? "",
+      r.status ?? "",
+      new Date(r.created_at).toLocaleString("pt-BR"),
+    ]);
+
+    const csv = [headers, ...rows]
+      .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+
+    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `leads-selecionados-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDeleteConfirm = async () => {
+    setDeleteDialog((d) => ({ ...d, loading: true, error: "" }));
+    const result = await deleteLeads([...selectedIds], deleteDialog.password);
+    if (result.error) {
+      setDeleteDialog((d) => ({ ...d, loading: false, error: result.error! }));
+    } else {
+      setSelectedIds(new Set());
+      setDeleteDialog({ open: false, password: "", loading: false, error: "" });
+      refresh();
+    }
   };
 
   return (
@@ -54,6 +140,7 @@ export const LeadsTable = ({ tenantId }: { tenantId: string }) => {
           <div className="space-y-1.5">
             <Label className="text-xs">Status</Label>
             <Select
+              key={`status-${clearKey}`}
               value={draft.status || "_all"}
               onValueChange={(v) => setDraft({ ...draft, status: v === "_all" ? "" : v })}
             >
@@ -109,6 +196,41 @@ export const LeadsTable = ({ tenantId }: { tenantId: string }) => {
         </div>
       </Card>
 
+      {/* Barra de ações em massa */}
+      {selectedIds.size > 0 && (
+        <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border/60 bg-muted/30 px-4 py-2.5">
+          <span className="text-sm font-medium">
+            {selectedIds.size} {selectedIds.size === 1 ? "selecionado" : "selecionados"}
+          </span>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-7 gap-1.5 text-xs"
+            onClick={handleExportSelected}
+          >
+            <Download className="h-3.5 w-3.5" />
+            Exportar selecionados
+          </Button>
+          <Button
+            size="sm"
+            variant="destructive"
+            className="h-7 gap-1.5 text-xs"
+            onClick={() => setDeleteDialog((d) => ({ ...d, open: true }))}
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            Deletar selecionados
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="ml-auto h-7 text-xs"
+            onClick={() => setSelectedIds(new Set())}
+          >
+            Cancelar seleção
+          </Button>
+        </div>
+      )}
+
       {/* Tabela */}
       <Card className="overflow-hidden">
         {loading ? (
@@ -129,6 +251,13 @@ export const LeadsTable = ({ tenantId }: { tenantId: string }) => {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border/60 bg-muted/30">
+                    <th className="w-10 px-4 py-3">
+                      <Checkbox
+                        checked={allSelected}
+                        onCheckedChange={toggleAll}
+                        aria-label="Selecionar todos"
+                      />
+                    </th>
                     <th className="px-4 py-3 text-left font-medium text-muted-foreground">Nome</th>
                     <th className="px-4 py-3 text-left font-medium text-muted-foreground">E-mail</th>
                     <th className="px-4 py-3 text-left font-medium text-muted-foreground">Telefone</th>
@@ -143,9 +272,20 @@ export const LeadsTable = ({ tenantId }: { tenantId: string }) => {
                     <tr
                       key={lead.id}
                       className={`border-b border-border/40 transition-colors hover:bg-muted/20 ${
-                        i % 2 === 0 ? "" : "bg-muted/10"
+                        selectedIds.has(lead.id)
+                          ? "bg-primary/5"
+                          : i % 2 === 0
+                          ? ""
+                          : "bg-muted/10"
                       }`}
                     >
+                      <td className="px-4 py-3">
+                        <Checkbox
+                          checked={selectedIds.has(lead.id)}
+                          onCheckedChange={() => toggleOne(lead.id)}
+                          aria-label={`Selecionar ${lead.lead_name ?? "lead"}`}
+                        />
+                      </td>
                       <td className="px-4 py-3 font-medium">{lead.lead_name ?? "—"}</td>
                       <td className="px-4 py-3 text-muted-foreground">{lead.lead_email ?? "—"}</td>
                       <td className="px-4 py-3 text-muted-foreground">{lead.lead_phone ?? "—"}</td>
@@ -186,7 +326,8 @@ export const LeadsTable = ({ tenantId }: { tenantId: string }) => {
             {/* Paginação */}
             <div className="flex items-center justify-between border-t border-border/40 px-4 py-3">
               <p className="text-xs text-muted-foreground">
-                {total} lead{total !== 1 ? "s" : ""} · página {page + 1} de {Math.max(totalPages, 1)}
+                {total} lead{total !== 1 ? "s" : ""} · página {page + 1} de{" "}
+                {Math.max(totalPages, 1)}
               </p>
               <div className="flex items-center gap-1">
                 <Button
@@ -212,6 +353,99 @@ export const LeadsTable = ({ tenantId }: { tenantId: string }) => {
           </>
         )}
       </Card>
+
+      {/* Dialog de confirmação de exclusão */}
+      <Dialog
+        open={deleteDialog.open}
+        onOpenChange={(open) => {
+          if (!deleteDialog.loading) {
+            setDeleteDialog({ open, password: "", loading: false, error: "" });
+            setShowPassword(false);
+            if (hidePasswordTimer.current) clearTimeout(hidePasswordTimer.current);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Confirmar exclusão</DialogTitle>
+            <DialogDescription>
+              Você está prestes a excluir{" "}
+              <strong>
+                {selectedIds.size} lead{selectedIds.size !== 1 ? "s" : ""}
+              </strong>{" "}
+              permanentemente. Esta ação não pode ser desfeita.
+              <br />
+              <br />
+              Digite sua senha para confirmar:
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <div className="relative">
+              <Input
+                type={showPassword ? "text" : "password"}
+                placeholder="Sua senha"
+                value={deleteDialog.password}
+                onChange={(e) => setDeleteDialog((d) => ({ ...d, password: e.target.value }))}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && deleteDialog.password && !deleteDialog.loading) {
+                    handleDeleteConfirm();
+                  }
+                }}
+                className="pr-10"
+                autoFocus
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  if (showPassword) {
+                    if (hidePasswordTimer.current) clearTimeout(hidePasswordTimer.current);
+                    setShowPassword(false);
+                  } else {
+                    setShowPassword(true);
+                    hidePasswordTimer.current = setTimeout(() => setShowPassword(false), 3000);
+                  }
+                }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                tabIndex={-1}
+                aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
+            </div>
+            {deleteDialog.error && (
+              <p className="text-xs text-destructive">{deleteDialog.error}</p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setDeleteDialog({ open: false, password: "", loading: false, error: "" });
+                setShowPassword(false);
+                if (hidePasswordTimer.current) clearTimeout(hidePasswordTimer.current);
+              }}
+              disabled={deleteDialog.loading}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteConfirm}
+              disabled={deleteDialog.loading || !deleteDialog.password}
+            >
+              {deleteDialog.loading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                "Excluir definitivamente"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
