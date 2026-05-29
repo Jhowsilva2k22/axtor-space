@@ -21,7 +21,25 @@ import {
   RefreshCw,
   Download,
 } from "lucide-react";
-import * as XLSX from "xlsx";
+const toCsv = (rows: Record<string, string>[]): string => {
+  if (!rows.length) return "";
+  const headers = Object.keys(rows[0]);
+  const escape = (v: string) => `"${String(v).replace(/"/g, '""')}"`;
+  return [
+    headers.map(escape).join(","),
+    ...rows.map((r) => headers.map((h) => escape(r[h] ?? "")).join(",")),
+  ].join("\r\n");
+};
+
+const downloadCsv = (content: string, filename: string) => {
+  const blob = new Blob(["﻿" + content], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+};
 
 type Range = 1 | 7 | 30 | 90;
 
@@ -109,7 +127,6 @@ const AdminAnalytics = () => {
       });
       if (error) throw error;
       const payload = rpc as any;
-      const wb = XLSX.utils.book_new();
       const leads = (payload?.leads ?? []).map((l: any) => ({
         Data: l.created_at ? new Date(l.created_at).toLocaleString("pt-BR") : "",
         Nome: l.full_name ?? "",
@@ -137,11 +154,10 @@ const AdminAnalytics = () => {
         UTM_Medium: d.utm_medium ?? "",
         UTM_Campaign: d.utm_campaign ?? "",
       }));
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(leads), "Todos os Leads");
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(deep), "Diagnóstico Profundo");
       const ts = new Date().toISOString().slice(0, 10);
-      XLSX.writeFile(wb, `leads-${currentTenant.slug}-${ts}.xlsx`);
-      toast.success?.(`Planilha gerada com ${leads.length} leads e ${deep.length} diagnósticos.`);
+      downloadCsv(toCsv(leads), `leads-${currentTenant.slug}-${ts}.csv`);
+      if (deep.length) downloadCsv(toCsv(deep), `diagnosticos-${currentTenant.slug}-${ts}.csv`);
+      toast.success?.(`Exportado: ${leads.length} leads e ${deep.length} diagnósticos.`);
     } catch (e: any) {
       toast.error?.(e?.message ?? "Não foi possível exportar");
     } finally {
