@@ -46,7 +46,7 @@ const writeSelectedTenantId = (id: string | null) => {
 };
 
 export const CurrentTenantProvider = ({ children }: { children: ReactNode }) => {
-  const { user, isAdmin, loading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [tenants, setTenants] = useState<AdminTenant[]>([]);
   const [currentId, setCurrentIdState] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -62,26 +62,15 @@ export const CurrentTenantProvider = ({ children }: { children: ReactNode }) => 
     setLoading(true);
     let rows: AdminTenant[] = [];
 
-    console.log("[tenant] load() start, isAdmin:", isAdmin);
+    console.log("[tenant] load() start");
     try {
-      if (isAdmin) {
-        // Super admin enxerga todos os tenants ativos
-        const { data, error } = await supabase
-          .from("tenants")
-          .select("id,slug,display_name,plan,status")
-          .order("display_name", { ascending: true });
-        if (error) console.error("[useCurrentTenant] admin tenants query failed:", error);
-        rows = (data as AdminTenant[] | null) ?? [];
-      } else {
-        // Tenant owner enxerga só os tenants dele
-        const { data, error } = await supabase
-          .from("tenants")
-          .select("id,slug,display_name,plan,status")
-          .eq("owner_user_id", user.id)
-          .order("display_name", { ascending: true });
-        if (error) console.error("[useCurrentTenant] owner tenants query failed:", error);
-        rows = (data as AdminTenant[] | null) ?? [];
-      }
+      const { data, error } = await supabase
+        .from("tenants")
+        .select("id,slug,display_name,plan,status")
+        .eq("owner_user_id", user.id)
+        .order("display_name", { ascending: true });
+      if (error) console.error("[useCurrentTenant] tenants query failed:", error);
+      rows = (data as AdminTenant[] | null) ?? [];
 
       setTenants(rows);
       console.log("[tenant] load() got", rows.length, "tenants");
@@ -100,7 +89,7 @@ export const CurrentTenantProvider = ({ children }: { children: ReactNode }) => 
       console.log("[tenant] load() done → loading=false");
       setLoading(false);
     }
-  }, [user, isAdmin]);
+  }, [user]);
 
   // Só recarrega quando user.id muda de verdade (login/logout). Mudanças de
   // referência do objeto user (por exemplo TOKEN_REFRESHED) NÃO devem
@@ -111,7 +100,7 @@ export const CurrentTenantProvider = ({ children }: { children: ReactNode }) => 
     if (authLoading) return;
     void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authLoading, userId, isAdmin]);
+  }, [authLoading, userId]);
 
   const setCurrentId = useCallback((id: string) => {
     setCurrentIdState(id);
