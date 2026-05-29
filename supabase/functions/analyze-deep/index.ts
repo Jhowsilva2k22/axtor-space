@@ -123,9 +123,9 @@ async function notifyLead(
       } else {
         console.log("[notify] email notification sent to", destUrl);
       }
-    } else if (destType === "webhook") {
+    } else if (destType === "crm" || destType === "sheet") {
       if (!destUrl) {
-        console.warn("[notify] webhook destination set but no URL configured");
+        console.warn(`[notify] ${destType} destination set but no URL configured`);
         return;
       }
       const controller = new AbortController();
@@ -139,16 +139,16 @@ async function notifyLead(
         });
         clearTimeout(timeout);
         if (!res.ok) {
-          console.error(`[notify] webhook responded [${res.status}] for`, destUrl);
+          console.error(`[notify] ${destType} responded [${res.status}] for`, destUrl);
         } else {
-          console.log("[notify] webhook notification sent to", destUrl);
+          console.log(`[notify] ${destType} notification sent to`, destUrl);
         }
       } catch (e) {
         clearTimeout(timeout);
-        console.error("[notify] webhook fetch error:", e instanceof Error ? e.message : String(e));
+        console.error(`[notify] ${destType} fetch error:`, e instanceof Error ? e.message : String(e));
       }
     } else if (destType === "whatsapp") {
-      console.log("[notify] WhatsApp destination not yet automated:", destUrl);
+      console.log("[notify] WhatsApp not yet implemented:", destUrl);
     } else {
       console.warn("[notify] unknown lead_destination_type:", destType);
     }
