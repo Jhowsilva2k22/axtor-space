@@ -19,6 +19,7 @@ import { BioThemePickerStandalone } from "@/components/bio/BioThemePickerStandal
 import { BioMusicPickerStandalone } from "@/components/bio/BioMusicPickerStandalone";
 import { MediaGallery } from "@/components/bio/MediaGallery";
 import { MetricsDashboard } from "@/components/bio/MetricsDashboard";
+import { LeadsTable } from "@/components/leads/LeadsTable";
 import { ActivationBanner } from "@/components/ActivationBanner";
 import { OnboardingChecklist } from "@/components/OnboardingChecklist";
 import { MyLinksCard } from "@/components/MyLinksCard";
@@ -52,6 +53,7 @@ export default function Painel() {
   const accessImagens = useCanAccessTab("imagens");
   const accessMetricas = useCanAccessTab("metricas");
   const accessIntegracoes = useCanAccessTab("integracoes");
+  const accessLeads = useCanAccessTab("leads");
 
   // Auto-provisioning para usuários que confirmaram email
   const hasPendingSignup = useMemo(() => readPendingSignup() !== null, []);
@@ -211,12 +213,13 @@ export default function Painel() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-5">
+          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6">
             <TabsTriggerGuarded value="captura" label="Captura" canAccess={accessCaptura.canAccess} />
             <TabsTriggerGuarded value="bio" label="Link na Bio" canAccess={accessBio.canAccess} />
             <TabsTriggerGuarded value="imersivo" label="Diagnóstico Imersivo" canAccess={accessImersivo.canAccess} />
             <TabsTriggerGuarded value="imagens" label="Imagens" canAccess={accessImagens.canAccess} />
             <TabsTriggerGuarded value="metricas" label="Métricas" canAccess={accessMetricas.canAccess} />
+            <TabsTriggerGuarded value="leads" label="Leads" canAccess={accessLeads.canAccess} />
           </TabsList>
 
           {/* Aba 1 — Captura (BUILD AGORA) com sub-bloco Integrações (ESTRUTURA AGORA) pendurado embaixo */}
@@ -271,6 +274,14 @@ export default function Painel() {
               <MetricsDashboard tenantId={current.id} />
             ) : (
               <UpgradeBlock title="Métricas" />
+            )}
+          </TabsContent>
+
+          <TabsContent value="leads" className="mt-6">
+            {accessLeads.canAccess ? (
+              <LeadsTable tenantId={current.id} />
+            ) : (
+              <UpgradeBlock title="Leads" subtitle="Recurso exclusivo do plano Pro." />
             )}
           </TabsContent>
         </Tabs>
