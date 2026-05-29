@@ -32,7 +32,7 @@ export type CreatePaymentInput = {
 const FUNCTIONS_BASE = (() => {
   const supabaseUrl =
     (import.meta.env.VITE_SUPABASE_URL as string | undefined) ??
-    "https://bdxkcfngskagriaapepo.supabase.co";
+    "https://pybgqassjzcynzaakzhz.supabase.co";
   return `${supabaseUrl.replace(/\/$/, "")}/functions/v1`;
 })();
 
