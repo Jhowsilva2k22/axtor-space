@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Download, ChevronLeft, ChevronRight, Loader2, Users, Trash2 } from "lucide-react";
+import { Download, ChevronLeft, ChevronRight, Loader2, Users, Trash2, Eye, EyeOff } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,6 +60,7 @@ export const LeadsTable = ({ tenantId }: { tenantId: string }) => {
     loading: false,
     error: "",
   });
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => { setDraft(filters); }, [filters]);
   useEffect(() => { setSelectedIds(new Set()); }, [page]);
@@ -358,6 +359,7 @@ export const LeadsTable = ({ tenantId }: { tenantId: string }) => {
         onOpenChange={(open) => {
           if (!deleteDialog.loading) {
             setDeleteDialog({ open, password: "", loading: false, error: "" });
+            setShowPassword(false);
           }
         }}
       >
@@ -376,18 +378,34 @@ export const LeadsTable = ({ tenantId }: { tenantId: string }) => {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
-            <Input
-              type="password"
-              placeholder="Sua senha"
-              value={deleteDialog.password}
-              onChange={(e) => setDeleteDialog((d) => ({ ...d, password: e.target.value }))}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && deleteDialog.password && !deleteDialog.loading) {
-                  handleDeleteConfirm();
-                }
-              }}
-              autoFocus
-            />
+            <div className="relative">
+              <Input
+                type={showPassword ? "text" : "password"}
+                placeholder="Sua senha"
+                value={deleteDialog.password}
+                onChange={(e) => setDeleteDialog((d) => ({ ...d, password: e.target.value }))}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && deleteDialog.password && !deleteDialog.loading) {
+                    handleDeleteConfirm();
+                  }
+                }}
+                className="pr-10"
+                autoFocus
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                tabIndex={-1}
+                aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
+            </div>
             {deleteDialog.error && (
               <p className="text-xs text-destructive">{deleteDialog.error}</p>
             )}
@@ -395,9 +413,10 @@ export const LeadsTable = ({ tenantId }: { tenantId: string }) => {
           <DialogFooter>
             <Button
               variant="ghost"
-              onClick={() =>
-                setDeleteDialog({ open: false, password: "", loading: false, error: "" })
-              }
+              onClick={() => {
+                setDeleteDialog({ open: false, password: "", loading: false, error: "" });
+                setShowPassword(false);
+              }}
               disabled={deleteDialog.loading}
             >
               Cancelar
