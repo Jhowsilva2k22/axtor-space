@@ -18,8 +18,8 @@ INSERT INTO public.bio_themes (slug, name, is_default, is_active, tokens) VALUES
     "surfaceLBg": "5%",
     "surfaceLCard": "9%",
     "surfaceLBorder": "16%",
-    "fontDisplay": "Cormorant Garamond, serif",
-    "fontBody": "Lato, sans-serif",
+    "fontDisplay": "Italiana, serif",
+    "fontBody": "Raleway, sans-serif",
     "auroraEnabled": true,
     "auroraOpacity": 0.30,
     "radius": "1.5rem"
@@ -41,8 +41,8 @@ INSERT INTO public.bio_themes (slug, name, is_default, is_active, tokens) VALUES
     "surfaceLBg": "5%",
     "surfaceLCard": "8%",
     "surfaceLBorder": "14%",
-    "fontDisplay": "Playfair Display, serif",
-    "fontBody": "Nunito, sans-serif",
+    "fontDisplay": "Bodoni Moda, serif",
+    "fontBody": "Mulish, sans-serif",
     "auroraEnabled": true,
     "auroraOpacity": 0.28,
     "radius": "2rem"
@@ -64,8 +64,8 @@ INSERT INTO public.bio_themes (slug, name, is_default, is_active, tokens) VALUES
     "surfaceLBg": "5%",
     "surfaceLCard": "8%",
     "surfaceLBorder": "13%",
-    "fontDisplay": "DM Serif Display, serif",
-    "fontBody": "DM Sans, sans-serif",
+    "fontDisplay": "Josefin Sans, sans-serif",
+    "fontBody": "Jost, sans-serif",
     "auroraEnabled": false,
     "auroraOpacity": 0.0,
     "radius": "0.5rem"

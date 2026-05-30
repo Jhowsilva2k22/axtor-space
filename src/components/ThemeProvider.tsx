@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useRef, useState, ReactNode } fro
 import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/hooks/useTenant";
+import { loadGoogleFont } from "@/lib/loadGoogleFont";
 
 export type ThemeTokens = {
   brandH: number | string;
@@ -94,8 +95,8 @@ export const applyThemeTokens = (tokens: ThemeTokens) => {
   if (tokens.surfaceLBg) set("--surface-l-bg", tokens.surfaceLBg);
   if (tokens.surfaceLCard) set("--surface-l-card", tokens.surfaceLCard);
   if (tokens.surfaceLBorder) set("--surface-l-border", tokens.surfaceLBorder);
-  if (tokens.fontDisplay) set("--font-display", tokens.fontDisplay);
-  if (tokens.fontBody) set("--font-body", tokens.fontBody);
+  if (tokens.fontDisplay) { loadGoogleFont(tokens.fontDisplay); set("--font-display", tokens.fontDisplay); }
+  if (tokens.fontBody) { loadGoogleFont(tokens.fontBody); set("--font-body", tokens.fontBody); }
   if (tokens.auroraOpacity !== undefined) set("--aurora-opacity", tokens.auroraOpacity);
   if (tokens.radius) set("--radius", tokens.radius);
   root.dataset.auroraEnabled = tokens.auroraEnabled === false ? "false" : "true";

@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { loadGoogleFont } from "@/lib/loadGoogleFont";
 
 /**
  * Aplica o tema da bio do dono (via tenant_id) no :root.
@@ -35,8 +36,8 @@ export async function applyTenantTheme(tenantId: string | null | undefined) {
     if (tokens.surfaceLBg) set("--surface-l-bg", tokens.surfaceLBg);
     if (tokens.surfaceLCard) set("--surface-l-card", tokens.surfaceLCard);
     if (tokens.surfaceLBorder) set("--surface-l-border", tokens.surfaceLBorder);
-    if (tokens.fontDisplay) set("--font-display", tokens.fontDisplay);
-    if (tokens.fontBody) set("--font-body", tokens.fontBody);
+    if (tokens.fontDisplay) { loadGoogleFont(tokens.fontDisplay); set("--font-display", tokens.fontDisplay); }
+    if (tokens.fontBody) { loadGoogleFont(tokens.fontBody); set("--font-body", tokens.fontBody); }
     if (tokens.auroraOpacity !== undefined) set("--aurora-opacity", tokens.auroraOpacity);
     if (tokens.radius) set("--radius", tokens.radius);
     root.dataset.auroraEnabled = tokens.auroraEnabled === false ? "false" : "true";
