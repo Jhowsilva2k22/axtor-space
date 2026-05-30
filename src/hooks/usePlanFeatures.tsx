@@ -37,7 +37,7 @@ const FALLBACK_PRO: PlanFeatures = {
   max_bio_blocks: 9999,
   show_axtor_badge: false,
   can_buy_addons: true,
-  allowed_tabs: ["captura", "bio", "imersivo", "imagens", "metricas", "integracoes"],
+  allowed_tabs: ["captura", "bio", "imersivo", "imagens", "metricas", "integracoes", "leads"],
   price_monthly: 47,
   price_semestral: null,
   price_annual: null,

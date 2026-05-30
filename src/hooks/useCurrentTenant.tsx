@@ -8,6 +8,7 @@ export type AdminTenant = {
   display_name: string;
   plan: string;
   status: string;
+  whatsapp_number: string | null;
 };
 
 type Ctx = {
@@ -66,7 +67,7 @@ export const CurrentTenantProvider = ({ children }: { children: ReactNode }) => 
     try {
       const { data, error } = await supabase
         .from("tenants")
-        .select("id,slug,display_name,plan,status")
+        .select("id,slug,display_name,plan,status,whatsapp_number")
         .eq("owner_user_id", user.id)
         .order("display_name", { ascending: true });
       if (error) console.error("[useCurrentTenant] tenants query failed:", error);

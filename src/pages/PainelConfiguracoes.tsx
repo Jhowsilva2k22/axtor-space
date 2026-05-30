@@ -1,16 +1,124 @@
-import { useState, FormEvent } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Loader2, Eye, EyeOff, TriangleAlert } from "lucide-react";
+import { ArrowLeft, Loader2, Eye, EyeOff, TriangleAlert, AlertCircle, CreditCard } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useCurrentTenant } from "@/hooks/useCurrentTenant";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
+type Subscription = {
+  plan_slug: string;
+  billing_cycle: string | null;
+  current_period_end: string | null;
+  cancel_at_period_end: boolean;
+  final_price_brl: number | null;
+  status: string;
+};
+
+type Addon = {
+  addon_slug: string;
+  status: string;
+  expires_at: string | null;
+  value_brl: number | null;
+};
+
+const SLUG_RE = /^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$/;
+
+const planLabel = (slug: string) =>
+  ({ free: "Gratuito", pro: "Pro", partner: "Parceiro", tester: "Tester", owner: "Owner" } as Record<string, string>)[slug] ?? slug;
+
+const statusLabel = (s: string) =>
+  ({ active: "Ativa", canceled: "Cancelada", trialing: "Em teste", past_due: "Pendente" } as Record<string, string>)[s] ?? s;
+
+const cycleLabel = (c: string | null) =>
+  c ? (({ monthly: "Mensal", semestral: "Semestral", annual: "Anual" } as Record<string, string>)[c] ?? c) : null;
+
+const fmtDate = (iso: string | null) =>
+  iso ? new Date(iso).toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" }) : null;
+
+const fmtBrl = (v: number | null) =>
+  v != null ? v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : null;
+
 const PainelConfiguracoes = () => {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const nav = useNavigate();
+  const { current: tenant, loading: tenantLoading, refresh: refreshTenant } = useCurrentTenant();
+
+  // Perfil
+  const [displayName, setDisplayName] = useState("");
+  const [slug, setSlug] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
+  const [savingProfile, setSavingProfile] = useState(false);
+
+  useEffect(() => {
+    if (!tenant) return;
+    setDisplayName(tenant.display_name ?? "");
+    setSlug(tenant.slug ?? "");
+    setWhatsapp(tenant.whatsapp_number ?? "");
+  }, [tenant?.id]);
+
+  const slugChanged = !!tenant && slug !== tenant.slug;
+
+  const handleSaveProfile = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!tenant) return;
+    const slugClean = slug.trim();
+    if (!slugClean) { toast.error("O slug não pode estar vazio"); return; }
+    if (!SLUG_RE.test(slugClean)) {
+      toast.error("Slug inválido — use letras minúsculas, números e hífens (min. 2 chars)");
+      return;
+    }
+    setSavingProfile(true);
+    const { error } = await supabase
+      .from("tenants")
+      .update({
+        display_name: displayName.trim() || tenant.display_name,
+        slug: slugClean,
+        whatsapp_number: whatsapp.trim() || null,
+      })
+      .eq("id", tenant.id);
+    setSavingProfile(false);
+    if (error) {
+      toast.error(error.code === "23505" ? "Este slug já está em uso. Escolha outro." : "Erro ao salvar perfil");
+      return;
+    }
+    await refreshTenant();
+    toast.success("Perfil atualizado");
+  };
+
+  // Assinatura
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [addons, setAddons] = useState<Addon[]>([]);
+  const [loadingBilling, setLoadingBilling] = useState(false);
+
+  useEffect(() => {
+    if (!tenant?.id) return;
+    let cancelled = false;
+    setLoadingBilling(true);
+    Promise.all([
+      supabase
+        .from("tenant_subscriptions" as never)
+        .select("plan_slug,billing_cycle,current_period_end,cancel_at_period_end,final_price_brl,status")
+        .eq("tenant_id", tenant.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from("tenant_addons" as never)
+        .select("addon_slug,status,expires_at,value_brl")
+        .eq("tenant_id", tenant.id)
+        .eq("status", "active"),
+    ]).then(([{ data: sub }, { data: ads }]) => {
+      if (cancelled) return;
+      setSubscription((sub as Subscription | null) ?? null);
+      setAddons((ads as Addon[] | null) ?? []);
+      setLoadingBilling(false);
+    });
+    return () => { cancelled = true; };
+  }, [tenant?.id]);
 
   // Trocar senha
   const [newPassword, setNewPassword] = useState("");
@@ -60,7 +168,6 @@ const PainelConfiguracoes = () => {
 
     setDeleting(true);
 
-    // Passo 1 — reautenticar para confirmar a identidade antes de qualquer exclusão
     const { error: authError } = await supabase.auth.signInWithPassword({
       email: user.email,
       password: deletePassword,
@@ -72,7 +179,6 @@ const PainelConfiguracoes = () => {
       return;
     }
 
-    // Passo 2 — obter o JWT atualizado da sessão
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.access_token) {
       setDeleting(false);
@@ -80,7 +186,6 @@ const PainelConfiguracoes = () => {
       return;
     }
 
-    // Passo 3 — chamar a edge function que deleta os dados e a conta
     const { error: fnError } = await supabase.functions.invoke("delete-account", {
       headers: { Authorization: `Bearer ${session.access_token}` },
     });
@@ -92,7 +197,6 @@ const PainelConfiguracoes = () => {
       return;
     }
 
-    // Passo 4 — encerrar sessão local e redirecionar
     await supabase.auth.signOut();
     nav("/", { replace: true });
     toast.success("Conta excluída permanentemente");
@@ -120,6 +224,73 @@ const PainelConfiguracoes = () => {
           Configura<span className="text-gold italic">ções</span>
         </h1>
 
+        {/* Seção: Perfil */}
+        <section className="mb-6 rounded-2xl border border-gold/20 bg-card/60 p-6 backdrop-blur">
+          <h2 className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            Perfil
+          </h2>
+          {tenantLoading ? (
+            <div className="flex justify-center py-4">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <form onSubmit={handleSaveProfile} className="space-y-4">
+              <div>
+                <label className="mb-1.5 block text-xs uppercase tracking-[0.15em] text-muted-foreground">
+                  Nome de exibição
+                </label>
+                <Input
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  placeholder="Seu nome ou marca"
+                  className="h-11 rounded-sm border-gold/30 bg-input font-light"
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs uppercase tracking-[0.15em] text-muted-foreground">
+                  Slug público
+                </label>
+                <Input
+                  value={slug}
+                  onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
+                  placeholder="seu-slug"
+                  className="h-11 rounded-sm border-gold/30 bg-input font-mono font-light"
+                />
+                <p className="mt-1 text-[11px] text-muted-foreground/60">
+                  URL pública:{" "}
+                  <span className="font-mono">/bio/{slug || "…"}</span>
+                </p>
+                {slugChanged && (
+                  <div className="mt-2 flex gap-2 rounded-sm border border-amber-500/30 bg-amber-500/10 p-3">
+                    <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" />
+                    <p className="text-xs text-amber-500">
+                      Alterar o slug muda a URL pública da sua bio. Links existentes deixarão de funcionar.
+                    </p>
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs uppercase tracking-[0.15em] text-muted-foreground">
+                  WhatsApp
+                </label>
+                <Input
+                  value={whatsapp}
+                  onChange={(e) => setWhatsapp(e.target.value)}
+                  placeholder="+55 11 91234-5678"
+                  className="h-11 rounded-sm border-gold/30 bg-input font-light"
+                />
+              </div>
+              <Button
+                type="submit"
+                disabled={savingProfile || !displayName.trim() || !slug.trim()}
+                className="btn-luxe h-11 w-full rounded-sm text-sm font-semibold uppercase tracking-[0.15em]"
+              >
+                {savingProfile ? <Loader2 className="h-4 w-4 animate-spin" /> : "Salvar perfil"}
+              </Button>
+            </form>
+          )}
+        </section>
+
         {/* Seção: Conta */}
         <section className="mb-6 rounded-2xl border border-gold/20 bg-card/60 p-6 backdrop-blur">
           <h2 className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
@@ -135,7 +306,122 @@ const PainelConfiguracoes = () => {
           </div>
         </section>
 
-        {/* Seção: Trocar senha */}
+        {/* Seção: Assinatura */}
+        <section className="mb-6 rounded-2xl border border-gold/20 bg-card/60 p-6 backdrop-blur">
+          <h2 className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            Assinatura
+          </h2>
+          {loadingBilling ? (
+            <div className="flex justify-center py-4">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs uppercase tracking-[0.15em] text-muted-foreground">
+                  Plano atual
+                </span>
+                <span className="text-sm font-semibold text-gold">
+                  {planLabel(tenant?.plan ?? "free")}
+                </span>
+              </div>
+
+              {subscription ? (
+                <>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs uppercase tracking-[0.15em] text-muted-foreground">
+                      Status
+                    </span>
+                    <span
+                      className={`text-xs font-medium ${
+                        subscription.status === "active"
+                          ? "text-emerald-400"
+                          : subscription.status === "past_due"
+                          ? "text-amber-400"
+                          : "text-muted-foreground"
+                      }`}
+                    >
+                      {statusLabel(subscription.status)}
+                    </span>
+                  </div>
+                  {cycleLabel(subscription.billing_cycle) && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs uppercase tracking-[0.15em] text-muted-foreground">
+                        Ciclo
+                      </span>
+                      <span className="text-sm">{cycleLabel(subscription.billing_cycle)}</span>
+                    </div>
+                  )}
+                  {fmtDate(subscription.current_period_end) && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs uppercase tracking-[0.15em] text-muted-foreground">
+                        {subscription.cancel_at_period_end ? "Expira em" : "Renova em"}
+                      </span>
+                      <span className="text-sm">{fmtDate(subscription.current_period_end)}</span>
+                    </div>
+                  )}
+                  {fmtBrl(subscription.final_price_brl) && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs uppercase tracking-[0.15em] text-muted-foreground">
+                        Valor
+                      </span>
+                      <span className="text-sm">{fmtBrl(subscription.final_price_brl)}</span>
+                    </div>
+                  )}
+                  {subscription.cancel_at_period_end && (
+                    <div className="mt-1 flex gap-2 rounded-sm border border-amber-500/30 bg-amber-500/10 p-3">
+                      <TriangleAlert className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" />
+                      <p className="text-xs text-amber-500">
+                        Cancelamento agendado para o fim do período atual.
+                      </p>
+                    </div>
+                  )}
+                </>
+              ) : (
+                tenant?.plan === "free" && (
+                  <div className="mt-2 rounded-sm border border-gold/20 bg-gold/5 p-4">
+                    <div className="flex items-start gap-3">
+                      <CreditCard className="mt-0.5 h-4 w-4 shrink-0 text-gold/60" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">
+                          Você está no plano gratuito. Faça upgrade para desbloquear mais recursos.
+                        </p>
+                        <Link
+                          to="/painel/loja"
+                          className="mt-2 inline-block text-xs font-semibold uppercase tracking-[0.15em] text-gold hover:underline"
+                        >
+                          Ver planos →
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                )
+              )}
+
+              {addons.length > 0 && (
+                <div className="mt-2 border-t border-gold/10 pt-3">
+                  <p className="mb-2 text-xs uppercase tracking-[0.15em] text-muted-foreground">
+                    Complementos
+                  </p>
+                  <div className="space-y-2">
+                    {addons.map((a, i) => (
+                      <div key={i} className="flex items-center justify-between text-sm">
+                        <span className="capitalize">{a.addon_slug.replace(/_/g, " ")}</span>
+                        {fmtDate(a.expires_at) && (
+                          <span className="text-xs text-muted-foreground">
+                            até {fmtDate(a.expires_at)}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </section>
+
+        {/* Seção: Segurança */}
         <section className="mb-6 rounded-2xl border border-gold/20 bg-card/60 p-6 backdrop-blur">
           <h2 className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
             Segurança
@@ -218,7 +504,6 @@ const PainelConfiguracoes = () => {
             </Button>
           ) : (
             <form onSubmit={handleDeleteAccount} className="space-y-4">
-              {/* Aviso explícito obrigatório */}
               <div className="flex gap-3 rounded-sm border border-destructive/40 bg-destructive/10 p-4">
                 <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
                 <p className="text-xs leading-relaxed text-destructive">
