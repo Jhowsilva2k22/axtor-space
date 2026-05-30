@@ -511,30 +511,30 @@ All colors MUST be HSL.
 /* ============== TEMA CLARO — Ivory & Gold (opt-in via .theme-ivory) ============== */
 .theme-ivory {
   /* Surfaces usam var(--surface-h) para refletir o tema ativo no modo claro */
-  --background: var(--surface-h) 40% 87%;
-  --aurora-opacity-a: 0.16;
-  --aurora-opacity-b: 0.10;
+  --background: var(--surface-h) 40% 82%;
+  --aurora-opacity-a: 0.20;
+  --aurora-opacity-b: 0.13;
   --foreground: 30 25% 8%;
-  --card: var(--surface-h) 28% 89%;
+  --card: var(--surface-h) 28% 84%;
   --card-foreground: 30 25% 8%;
-  --popover: var(--surface-h) 28% 89%;
+  --popover: var(--surface-h) 28% 84%;
   --popover-foreground: 30 25% 8%;
   --primary: var(--brand-h) var(--brand-s) 38%;
   --primary-foreground: 0 0% 98%;
   --primary-glow: var(--brand-h) 70% 55%;
-  --secondary: var(--surface-h) 24% 86%;
+  --secondary: var(--surface-h) 24% 81%;
   --secondary-foreground: 30 25% 8%;
-  --muted: var(--surface-h) 20% 84%;
+  --muted: var(--surface-h) 20% 79%;
   --muted-foreground: 30 18% 25%;
   --accent: var(--brand-h) var(--brand-s) 38%;
   --accent-foreground: 0 0% 98%;
-  --border: var(--brand-h) 25% 65%;
-  --input: var(--surface-h) 24% 87%;
+  --border: var(--brand-h) 25% 58%;
+  --input: var(--surface-h) 24% 82%;
   --ring: var(--brand-h) var(--brand-s) 38%;
   --gradient-gold: linear-gradient(135deg, hsl(var(--brand-h) var(--brand-s) 38%), hsl(var(--brand-h) 70% 55%));
-  --gradient-gold-soft: linear-gradient(135deg, hsl(var(--brand-h) var(--brand-s) 38% / 0.35), hsl(var(--brand-h) 70% 55% / 0.18));
+  --gradient-gold-soft: linear-gradient(135deg, hsl(var(--brand-h) var(--brand-s) 38% / 0.42), hsl(var(--brand-h) 70% 55% / 0.22));
   --gradient-gold-edge: linear-gradient(135deg, hsl(var(--brand-h) var(--brand-s) 38% / 0.55), hsl(var(--brand-h) 70% 55% / 0.15) 50%, hsl(var(--brand-h) var(--brand-s) 38% / 0.55));
-  --gradient-noir: radial-gradient(ellipse at top, hsl(var(--surface-h) 36% 91%), hsl(var(--surface-h) 28% 85%));
+  --gradient-noir: radial-gradient(ellipse at top, hsl(var(--surface-h) 36% 86%), hsl(var(--surface-h) 28% 80%));
   --shadow-gold: 0 20px 60px -20px hsl(var(--brand-h) var(--brand-s) 38% / 0.25);
   --shadow-gold-lg: 0 30px 90px -20px hsl(var(--brand-h) var(--brand-s) 38% / 0.4), 0 0 0 1px hsl(var(--brand-h) var(--brand-s) 38% / 0.2);
   --shadow-deep: 0 30px 80px -20px hsl(30 30% 30% / 0.25);
