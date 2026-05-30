@@ -1,6 +1,6 @@
 import { useState, useEffect, FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Loader2, Eye, EyeOff, TriangleAlert, AlertCircle, CreditCard } from "lucide-react";
+import { ArrowLeft, Loader2, Eye, EyeOff, TriangleAlert, AlertCircle, CreditCard, CheckCircle2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -61,6 +61,24 @@ const PainelConfiguracoes = () => {
   }, [tenant?.id]);
 
   const slugChanged = !!tenant && slug !== tenant.slug;
+  const [slugStatus, setSlugStatus] = useState<"idle" | "checking" | "available" | "taken">("idle");
+
+  useEffect(() => {
+    const slugClean = slug.trim();
+    if (!tenant || slugClean === tenant.slug) { setSlugStatus("idle"); return; }
+    if (!SLUG_RE.test(slugClean)) { setSlugStatus("idle"); return; }
+    setSlugStatus("checking");
+    const timer = setTimeout(async () => {
+      const { data } = await supabase
+        .from("tenants")
+        .select("id")
+        .eq("slug", slugClean)
+        .neq("id", tenant.id)
+        .maybeSingle();
+      setSlugStatus(data ? "taken" : "available");
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [slug, tenant?.id, tenant?.slug]);
 
   const handleSaveProfile = async (e: FormEvent) => {
     e.preventDefault();
@@ -256,15 +274,40 @@ const PainelConfiguracoes = () => {
                   placeholder="seu-slug"
                   className="h-11 rounded-sm border-gold/30 bg-input font-mono font-light"
                 />
-                <p className="mt-1 text-[11px] text-muted-foreground/60">
-                  URL pública:{" "}
-                  <span className="font-mono">/bio/{slug || "…"}</span>
-                </p>
-                {slugChanged && (
+                <div className="mt-1 flex items-center justify-between">
+                  <p className="text-[11px] text-muted-foreground/60">
+                    URL pública:{" "}
+                    <span className="font-mono">/bio/{slug || "…"}</span>
+                  </p>
+                  {slugStatus === "checking" && (
+                    <span className="flex items-center gap-1 text-[11px] text-muted-foreground/60">
+                      <Loader2 className="h-3 w-3 animate-spin" /> Verificando…
+                    </span>
+                  )}
+                  {slugStatus === "available" && (
+                    <span className="flex items-center gap-1 text-[11px] text-emerald-500">
+                      <CheckCircle2 className="h-3 w-3" /> Disponível
+                    </span>
+                  )}
+                  {slugStatus === "taken" && (
+                    <span className="flex items-center gap-1 text-[11px] text-destructive">
+                      <XCircle className="h-3 w-3" /> Já está em uso
+                    </span>
+                  )}
+                </div>
+                {slugChanged && slugStatus !== "taken" && (
                   <div className="mt-2 flex gap-2 rounded-sm border border-amber-500/30 bg-amber-500/10 p-3">
                     <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" />
                     <p className="text-xs text-amber-500">
                       Alterar o slug muda a URL pública da sua bio. Links existentes deixarão de funcionar.
+                    </p>
+                  </div>
+                )}
+                {slugStatus === "taken" && (
+                  <div className="mt-2 flex gap-2 rounded-sm border border-destructive/30 bg-destructive/10 p-3">
+                    <XCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-destructive" />
+                    <p className="text-xs text-destructive">
+                      Este slug já está em uso. Escolha outro.
                     </p>
                   </div>
                 )}
@@ -282,7 +325,7 @@ const PainelConfiguracoes = () => {
               </div>
               <Button
                 type="submit"
-                disabled={savingProfile || !displayName.trim() || !slug.trim()}
+                disabled={savingProfile || !displayName.trim() || !slug.trim() || slugStatus === "taken" || slugStatus === "checking"}
                 className="btn-luxe h-11 w-full rounded-sm text-sm font-semibold uppercase tracking-[0.15em]"
               >
                 {savingProfile ? <Loader2 className="h-4 w-4 animate-spin" /> : "Salvar perfil"}
