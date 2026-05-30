@@ -79,7 +79,7 @@ const ThemeCtx = createContext<Ctx>({
   setPreview: () => {},
 });
 
-const applyTokensToRoot = (tokens: ThemeTokens) => {
+export const applyThemeTokens = (tokens: ThemeTokens) => {
   const root = document.documentElement;
   const set = (k: string, v: string | number | undefined) => {
     if (v === undefined || v === null) return;
@@ -150,15 +150,15 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
           const next = { ...(t as any), tokens: (t as any).tokens as ThemeTokens } as Theme;
           setTheme(next);
           lastTokensRef.current = next.tokens;
-          applyTokensToRoot(next.tokens);
+          applyThemeTokens(next.tokens);
         } else if (!cancelled) {
           lastTokensRef.current = GOLD_NOIR_FALLBACK.tokens;
-          applyTokensToRoot(GOLD_NOIR_FALLBACK.tokens);
+          applyThemeTokens(GOLD_NOIR_FALLBACK.tokens);
         }
       } catch {
         if (!cancelled) {
           lastTokensRef.current = GOLD_NOIR_FALLBACK.tokens;
-          applyTokensToRoot(GOLD_NOIR_FALLBACK.tokens);
+          applyThemeTokens(GOLD_NOIR_FALLBACK.tokens);
         }
       }
     })();
@@ -169,7 +169,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const isAdmin = ADMIN_PATHS.some(p => location.pathname.startsWith(p));
-    if (!isAdmin) applyTokensToRoot(lastTokensRef.current);
+    if (!isAdmin) applyThemeTokens(lastTokensRef.current);
   }, [location.pathname]);
 
   return (

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Loader2, Check, ChevronDown, ChevronUp, Palette, Lock } from "lucide-react";
 import { toast } from "sonner";
@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { useBioPreviewQueryKey } from "@/components/bio/BioFullPreview";
+import { applyThemeTokens, type ThemeTokens } from "@/components/ThemeProvider";
 
 /**
  * Onda 3 v2 Fase 3 (refactor PR4) — escolha de tema visual da bio.
@@ -21,6 +22,7 @@ type Theme = {
   slug: string;
   name: string;
   is_default: boolean;
+  tokens: ThemeTokens | null;
 };
 
 export const BioThemePickerStandalone = ({ tenantId }: { tenantId: string }) => {
@@ -31,13 +33,15 @@ export const BioThemePickerStandalone = ({ tenantId }: { tenantId: string }) => 
   const [loading, setLoading] = useState(true);
   const [applyingSlug, setApplyingSlug] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(false);
+  // Tokens do tema atualmente ativo — usados para reverter ao sair do hover
+  const activeTokensRef = useRef<ThemeTokens | null>(null);
 
   const load = async () => {
     setLoading(true);
     const [{ data: t }, { data: cfg }] = await Promise.all([
       supabase
         .from("bio_themes")
-        .select("id, slug, name, is_default")
+        .select("id, slug, name, is_default, tokens")
         .order("is_default", { ascending: false })
         .order("name"),
       supabase
@@ -46,8 +50,13 @@ export const BioThemePickerStandalone = ({ tenantId }: { tenantId: string }) => 
         .eq("tenant_id", tenantId)
         .maybeSingle(),
     ]);
-    setThemes((t as Theme[] | null) ?? []);
-    setActiveSlug(((cfg as any)?.active_theme_slug as string) ?? "gold-noir");
+    const themeList = (t as Theme[] | null) ?? [];
+    const activeSlugValue = ((cfg as any)?.active_theme_slug as string) ?? "gold-noir";
+    setThemes(themeList);
+    setActiveSlug(activeSlugValue);
+    // Cacheia tokens do tema ativo para reverter ao sair do hover
+    const activeTheme = themeList.find((th) => th.slug === activeSlugValue);
+    if (activeTheme?.tokens) activeTokensRef.current = activeTheme.tokens;
     setLoading(false);
   };
 
@@ -68,8 +77,23 @@ export const BioThemePickerStandalone = ({ tenantId }: { tenantId: string }) => 
       return;
     }
     setActiveSlug(slug);
+    // Aplica os tokens imediatamente — sem precisar recarregar a página
+    const theme = themes.find((th) => th.slug === slug);
+    if (theme?.tokens) {
+      applyThemeTokens(theme.tokens);
+      activeTokensRef.current = theme.tokens;
+    }
     queryClient.invalidateQueries({ queryKey: useBioPreviewQueryKey(tenantId) });
     toast.success(`Tema "${slug}" aplicado.`);
+  };
+
+  const handleHover = (theme: Theme) => {
+    if (theme.slug === activeSlug || !theme.tokens) return;
+    applyThemeTokens(theme.tokens);
+  };
+
+  const handleHoverEnd = () => {
+    if (activeTokensRef.current) applyThemeTokens(activeTokensRef.current);
   };
 
   // Free: bloqueia totalmente.
@@ -131,6 +155,8 @@ export const BioThemePickerStandalone = ({ tenantId }: { tenantId: string }) => 
                 return (
                   <div
                     key={t.id}
+                    onMouseEnter={() => handleHover(t)}
+                    onMouseLeave={handleHoverEnd}
                     className={`flex items-center justify-between gap-3 rounded-sm border p-3 transition ${
                       isActive ? "border-gold bg-gradient-gold-soft" : "border-border bg-card/30 hover:border-gold/40"
                     }`}
@@ -165,9 +191,6 @@ export const BioThemePickerStandalone = ({ tenantId }: { tenantId: string }) => 
               })}
             </div>
           )}
-          <p className="mt-3 text-[10px] uppercase tracking-widest text-muted-foreground/70">
-            A mudança aparece só na bio pública. Painel admin sempre fica no tema padrão.
-          </p>
         </div>
       )}
     </Card>
