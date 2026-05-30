@@ -1,11 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { captureException } from "../_shared/sentry.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+import { corsHeadersFor } from "../_shared/cors.ts";
 
 const SYSTEM_PROMPT_QUIZ = `Você é especialista em funis de vendas de alta conversão e diagnóstico de negócios digitais.
 Seu trabalho: a partir de um briefing profundo do dono de um negócio (criador, coach, infoprodutor, agência, mentor, etc),
@@ -134,14 +130,14 @@ const TOOLS_PRODUCTS = [
 ];
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeadersFor(req.headers.get("origin")) });
 
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "unauthorized" }), {
         status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" },
       });
     }
 
@@ -159,7 +155,7 @@ Deno.serve(async (req) => {
     if (userErr || !userData.user) {
       return new Response(JSON.stringify({ error: "unauthorized" }), {
         status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" },
       });
     }
 
@@ -168,7 +164,7 @@ Deno.serve(async (req) => {
     if (!tenant_id || !briefing) {
       return new Response(JSON.stringify({ error: "missing_params" }), {
         status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" },
       });
     }
 
@@ -177,7 +173,7 @@ Deno.serve(async (req) => {
     if (!keep_products && validProducts.length === 0) {
       return new Response(JSON.stringify({ error: "missing_products" }), {
         status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" },
       });
     }
 
@@ -191,7 +187,7 @@ Deno.serve(async (req) => {
     if (!tenant) {
       return new Response(JSON.stringify({ error: "tenant_not_found" }), {
         status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" },
       });
     }
 
@@ -206,7 +202,7 @@ Deno.serve(async (req) => {
     if (!isAdmin && !isOwner) {
       return new Response(JSON.stringify({ error: "forbidden" }), {
         status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" },
       });
     }
 
@@ -217,7 +213,7 @@ Deno.serve(async (req) => {
     if (!addonRpc) {
       return new Response(JSON.stringify({ error: "addon_required" }), {
         status: 402,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" },
       });
     }
 
@@ -279,7 +275,7 @@ Deno.serve(async (req) => {
       const errCode = quizResp.status === 429 ? "rate_limited" : quizResp.status === 402 ? "ai_credits" : "ai_error";
       return new Response(JSON.stringify({ error: errCode }), {
         status: quizResp.status,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" },
       });
     }
     if (productsResp && !productsResp.ok) {
@@ -288,7 +284,7 @@ Deno.serve(async (req) => {
       const errCode = productsResp.status === 429 ? "rate_limited" : productsResp.status === 402 ? "ai_credits" : "ai_error";
       return new Response(JSON.stringify({ error: errCode }), {
         status: productsResp.status,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" },
       });
     }
 
@@ -307,13 +303,13 @@ Deno.serve(async (req) => {
     if (!quizBlock) {
       return new Response(JSON.stringify({ error: "no_tool_call_quiz", raw: quizJson }), {
         status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" },
       });
     }
     if (!keep_products && !productsBlock) {
       return new Response(JSON.stringify({ error: "no_tool_call_products", raw: productsJson }), {
         status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" },
       });
     }
 
@@ -427,14 +423,14 @@ Deno.serve(async (req) => {
 
     return new Response(
       JSON.stringify({ funnel_id: finalFunnelId, slug, questions_count: questionsRows.length }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      { headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" } },
     );
   } catch (e) {
     await captureException(e, { function: 'generate-deep-funnel' });
     console.error("generate-deep-funnel error:", e);
     return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "unknown" }), {
       status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" },
     });
   }
 });
