@@ -151,7 +151,35 @@ async function runApifyScraper(handle: string) {
   return items[0];
 }
 
+function extractRelevantProfileFields(profile: Record<string, unknown>): Record<string, unknown> {
+  return {
+    username: profile.username,
+    fullName: profile.fullName,
+    biography: profile.biography,
+    followersCount: profile.followersCount,
+    followsCount: profile.followsCount,
+    postsCount: profile.postsCount,
+    verified: profile.verified,
+    businessCategoryName: profile.businessCategoryName,
+    externalUrl: profile.externalUrl,
+    highlightReelCount: profile.highlightReelCount,
+    igtvVideoCount: profile.igtvVideoCount,
+    recentPosts: Array.isArray(profile.latestPosts)
+      ? (profile.latestPosts as Record<string, unknown>[]).slice(0, 12).map((p) => ({
+          caption: typeof p.caption === "string" ? p.caption.slice(0, 300) : null,
+          likesCount: p.likesCount,
+          commentsCount: p.commentsCount,
+          type: p.type,
+          timestamp: p.timestamp,
+          locationName: p.locationName,
+        }))
+      : [],
+  };
+}
+
 async function generateAIDiagnosis(profile: Record<string, unknown>) {
+  const filteredProfile = extractRelevantProfileFields(profile);
+
   const prompt = `Você é um ESTRATEGISTA DE MERCADO DIGITAL — não um consultor genérico. Sua leitura tem sagacidade, visão ampla, contexto de mercado e referências reais. Você fala como quem já viu mil perfis do mesmo nicho e sabe exatamente onde a maioria trava.
 
 REGRAS DE TOM:
@@ -162,7 +190,7 @@ REGRAS DE TOM:
 - O VEREDICTO precisa ter 1 frase-bomba memorável, do tipo que gruda na cabeça e o usuário lembra dias depois.
 
 DADOS REAIS DO PERFIL:
-${JSON.stringify(profile, null, 2)}
+${JSON.stringify(filteredProfile, null, 2)}
 
 TAREFA:
 1. Detecte o nicho (interno, não devolva campo).
@@ -197,7 +225,7 @@ TAREFA:
     },
     body: JSON.stringify({
       model: "claude-sonnet-4-5",
-      max_tokens: 4096,
+      max_tokens: 1500,
       system:
         "Você é um estrategista de mercado digital sênior. Responda APENAS com JSON válido, sem markdown, sem comentários extras.",
       messages: [{ role: "user", content: prompt }],
