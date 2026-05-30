@@ -1,9 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { corsHeadersFor } from "../_shared/cors.ts";
 
 const MAX_PER_BLOCK = 5;
 
@@ -17,14 +14,14 @@ const STYLE_PROMPTS: Record<string, string> = {
 };
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeadersFor(req.headers.get("origin")) });
 
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "Não autenticado" }), {
         status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" },
       });
     }
 
@@ -41,7 +38,7 @@ Deno.serve(async (req) => {
     if (userErr || !userData.user) {
       return new Response(JSON.stringify({ error: "Sessão inválida" }), {
         status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" },
       });
     }
 
@@ -58,7 +55,7 @@ Deno.serve(async (req) => {
     if (!roleRow) {
       return new Response(JSON.stringify({ error: "Apenas admins podem gerar ícones" }), {
         status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" },
       });
     }
 
@@ -69,19 +66,19 @@ Deno.serve(async (req) => {
     if (!STYLE_PROMPTS[style]) {
       return new Response(JSON.stringify({ error: "Estilo inválido" }), {
         status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" },
       });
     }
     if (!blockId || !description) {
       return new Response(JSON.stringify({ error: "block_id e description obrigatórios" }), {
         status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" },
       });
     }
     if (description.length > 300) {
       return new Response(JSON.stringify({ error: "Descrição muito longa (máx 300)" }), {
         status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" },
       });
     }
 
@@ -94,14 +91,14 @@ Deno.serve(async (req) => {
     if (blockErr || !block) {
       return new Response(JSON.stringify({ error: "Bloco não encontrado" }), {
         status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" },
       });
     }
     const used = block.icon_generations_count ?? 0;
     if (used >= MAX_PER_BLOCK) {
       return new Response(
         JSON.stringify({ error: `Limite de ${MAX_PER_BLOCK} gerações por bloco atingido`, used, max: MAX_PER_BLOCK }),
-        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        { status: 429, headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" } },
       );
     }
 
@@ -124,20 +121,20 @@ Deno.serve(async (req) => {
       if (aiResp.status === 429) {
         return new Response(JSON.stringify({ error: "Limite de uso da IA atingido. Tente em alguns segundos." }), {
           status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" },
         });
       }
       if (aiResp.status === 402) {
         return new Response(JSON.stringify({ error: "Créditos de IA esgotados. Adicione em Settings > Workspace > Usage." }), {
           status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" },
         });
       }
       const t = await aiResp.text();
       console.error("AI gateway error:", aiResp.status, t);
       return new Response(JSON.stringify({ error: "Falha ao gerar ícone" }), {
         status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" },
       });
     }
 
@@ -147,7 +144,7 @@ Deno.serve(async (req) => {
       console.error("AI sem imagem", JSON.stringify(aiData).slice(0, 500));
       return new Response(JSON.stringify({ error: "IA não retornou imagem" }), {
         status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" },
       });
     }
 
@@ -166,7 +163,7 @@ Deno.serve(async (req) => {
       console.error("Upload err", upErr);
       return new Response(JSON.stringify({ error: "Falha ao salvar imagem" }), {
         status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" },
       });
     }
 
@@ -185,7 +182,7 @@ Deno.serve(async (req) => {
       console.error("Update err", updErr);
       return new Response(JSON.stringify({ error: "Falha ao atualizar bloco" }), {
         status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" },
       });
     }
 
@@ -200,13 +197,13 @@ Deno.serve(async (req) => {
 
     return new Response(
       JSON.stringify({ icon_url: publicUrl, used: used + 1, max: MAX_PER_BLOCK, style }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      { status: 200, headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" } },
     );
   } catch (e) {
     console.error("generate-icon error:", e);
     return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Erro" }), {
       status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" },
     });
   }
 });

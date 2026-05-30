@@ -1,10 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+import { corsHeadersFor } from "../_shared/cors.ts";
 
 const SYSTEM_PROMPT = `Você é consultor sênior de negócios digitais. Sua tarefa: escrever um VEREDICT PERSUASIVO em PT-BR (180-260 palavras) baseado nas respostas REAIS do lead ao quiz, no briefing do dono do negócio e nos produtos disponíveis.
 
@@ -182,7 +178,7 @@ function buildLeadEmailHtml(p: Record<string, unknown>): string {
 // ---------------------------------------------------------------------------
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeadersFor(req.headers.get("origin")) });
 
   try {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -211,7 +207,7 @@ Deno.serve(async (req) => {
     if (!funnel_id || !answers || !pain_scores) {
       return new Response(JSON.stringify({ error: "missing_params" }), {
         status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" },
       });
     }
 
@@ -224,7 +220,7 @@ Deno.serve(async (req) => {
     if (!funnel || !funnel.is_published) {
       return new Response(JSON.stringify({ error: "funnel_not_available" }), {
         status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" },
       });
     }
 
@@ -237,7 +233,7 @@ Deno.serve(async (req) => {
     if (!products || products.length === 0) {
       return new Response(JSON.stringify({ error: "no_products" }), {
         status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" },
       });
     }
 
@@ -420,7 +416,7 @@ Gere o veredict persuasivo agora.`;
           veredict,
           ai_fallback: true,
         }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        { status: 200, headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" } },
       );
     }
 
@@ -504,13 +500,13 @@ Gere o veredict persuasivo agora.`;
         products: [recommended, ...alternatives],
         veredict,
       }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      { headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" } },
     );
   } catch (e) {
     console.error("analyze-deep error:", e);
     return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "unknown" }), {
       status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" },
     });
   }
 });

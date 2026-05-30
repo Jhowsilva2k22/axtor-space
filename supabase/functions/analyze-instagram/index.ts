@@ -1,12 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { captureException } from "../_shared/sentry.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+import { corsHeadersFor } from "../_shared/cors.ts";
 
 const APIFY_TOKEN = Deno.env.get("APIFY_API_TOKEN")!;
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY")!;
@@ -221,7 +216,7 @@ TAREFA:
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: corsHeadersFor(req.headers.get("origin")) });
   }
 
   try {
@@ -235,13 +230,13 @@ Deno.serve(async (req) => {
     if (!handleRaw || handleRaw.length < 1) {
       return new Response(
         JSON.stringify({ error: "Informe seu @ do Instagram." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        { status: 400, headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" } },
       );
     }
     if (!email && !phone) {
       return new Response(
         JSON.stringify({ error: "Informe um email ou telefone para receber o diagnóstico." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        { status: 400, headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" } },
       );
     }
 
@@ -303,7 +298,7 @@ Deno.serve(async (req) => {
             veredicto: recent.ai_summary ?? "",
           },
         }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        { status: 200, headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" } },
       );
     }
 
@@ -328,7 +323,7 @@ Deno.serve(async (req) => {
           message:
             "Esse perfil já recebeu 3 análises essa semana. Compartilhe seu diagnóstico ou volte em breve.",
         }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        { status: 200, headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" } },
       );
     }
 
@@ -360,7 +355,7 @@ Deno.serve(async (req) => {
               reason: "email_daily_limit",
               message: "Limite de 5 análises por dia atingido. Tente novamente amanhã.",
             }),
-            { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+            { status: 200, headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" } },
           );
         }
 
@@ -428,7 +423,7 @@ Deno.serve(async (req) => {
           error: "Não conseguimos analisar esse perfil agora. Verifique se o @ está correto.",
           diagnostic_id: diag?.id,
         }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        { status: 200, headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" } },
       );
     }
 
@@ -464,7 +459,7 @@ Deno.serve(async (req) => {
           },
           diagnostic_id: diag?.id,
         }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        { status: 200, headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" } },
       );
     }
 
@@ -541,7 +536,7 @@ Deno.serve(async (req) => {
         },
         diagnosis: aiResult,
       }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      { status: 200, headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" } },
     );
   } catch (e) {
     await captureException(e, { function: 'analyze-instagram' });
@@ -549,7 +544,7 @@ Deno.serve(async (req) => {
     console.error("Fatal:", msg);
     return new Response(
       JSON.stringify({ error: msg }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      { status: 500, headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" } },
     );
   }
 });

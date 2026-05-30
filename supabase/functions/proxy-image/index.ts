@@ -1,19 +1,15 @@
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "GET, OPTIONS",
-};
+import { corsHeadersFor } from "../_shared/cors.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: corsHeadersFor(req.headers.get("origin"), "GET, OPTIONS") });
   }
 
   try {
     const url = new URL(req.url);
     const target = url.searchParams.get("url");
     if (!target) {
-      return new Response("missing url", { status: 400, headers: corsHeaders });
+      return new Response("missing url", { status: 400, headers: corsHeadersFor(req.headers.get("origin"), "GET, OPTIONS") });
     }
 
     // Whitelist apenas CDNs do Instagram para evitar SSRF
@@ -22,10 +18,10 @@ Deno.serve(async (req) => {
     try {
       parsed = new URL(target);
     } catch {
-      return new Response("invalid url", { status: 400, headers: corsHeaders });
+      return new Response("invalid url", { status: 400, headers: corsHeadersFor(req.headers.get("origin"), "GET, OPTIONS") });
     }
     if (!allowed.test(parsed.hostname)) {
-      return new Response("host not allowed", { status: 403, headers: corsHeaders });
+      return new Response("host not allowed", { status: 403, headers: corsHeadersFor(req.headers.get("origin"), "GET, OPTIONS") });
     }
 
     const upstream = await fetch(parsed.toString(), {
@@ -37,7 +33,7 @@ Deno.serve(async (req) => {
     });
 
     if (!upstream.ok) {
-      return new Response("upstream error", { status: upstream.status, headers: corsHeaders });
+      return new Response("upstream error", { status: upstream.status, headers: corsHeadersFor(req.headers.get("origin"), "GET, OPTIONS") });
     }
 
     const contentType = upstream.headers.get("content-type") ?? "image/jpeg";
@@ -45,12 +41,12 @@ Deno.serve(async (req) => {
 
     return new Response(buf, {
       headers: {
-        ...corsHeaders,
+        ...corsHeadersFor(req.headers.get("origin"), "GET, OPTIONS"),
         "Content-Type": contentType,
         "Cache-Control": "public, max-age=86400",
       },
     });
   } catch (e) {
-    return new Response(e instanceof Error ? e.message : "error", { status: 500, headers: corsHeaders });
+    return new Response(e instanceof Error ? e.message : "error", { status: 500, headers: corsHeadersFor(req.headers.get("origin"), "GET, OPTIONS") });
   }
 });

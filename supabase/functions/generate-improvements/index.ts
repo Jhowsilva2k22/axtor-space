@@ -1,15 +1,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
+import { corsHeadersFor } from "../_shared/cors.ts";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: corsHeadersFor(req.headers.get("origin")) });
   }
 
   try {
@@ -20,7 +16,7 @@ serve(async (req) => {
     if (!LOVABLE_API_KEY) {
       return new Response(
         JSON.stringify({ error: "LOVABLE_API_KEY not configured" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        { status: 500, headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" } },
       );
     }
 
@@ -34,7 +30,7 @@ serve(async (req) => {
     if (userErr || !userData?.user) {
       return new Response(JSON.stringify({ error: "unauthorized" }), {
         status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" },
       });
     }
     const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
@@ -45,7 +41,7 @@ serve(async (req) => {
     if (!isAdmin) {
       return new Response(JSON.stringify({ error: "forbidden" }), {
         status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" },
       });
     }
 
@@ -262,18 +258,18 @@ Agora gere as recomendações usando a função emit_recommendations.`;
       if (aiResponse.status === 429) {
         return new Response(
           JSON.stringify({ error: "Limite de requisições atingido. Tente novamente em alguns minutos." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+          { status: 429, headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" } },
         );
       }
       if (aiResponse.status === 402) {
         return new Response(
           JSON.stringify({ error: "Créditos do AI Gateway esgotados. Adicione créditos em Settings > Workspace > Usage." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+          { status: 402, headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" } },
         );
       }
       return new Response(JSON.stringify({ error: "Erro ao chamar IA" }), {
         status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" },
       });
     }
 
@@ -288,7 +284,7 @@ Agora gere as recomendações usando a função emit_recommendations.`;
         .eq("id", run.id);
       return new Response(JSON.stringify({ error: "IA não retornou recomendações" }), {
         status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" },
       });
     }
 
@@ -347,14 +343,14 @@ Agora gere as recomendações usando a função emit_recommendations.`;
         executive_summary: parsed.executive_summary,
         count: rows.length,
       }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      { headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" } },
     );
   } catch (e) {
     console.error("generate-improvements error:", e);
     const msg = e instanceof Error ? e.message : "Unknown error";
     return new Response(JSON.stringify({ error: msg }), {
       status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" },
     });
   }
 });
