@@ -635,9 +635,9 @@ export default function AdminHub() {
       {/* header */}
       <header className="border-b border-zinc-800 bg-zinc-900/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-4">
-          <Link to="/admin" className="flex items-center gap-1.5 text-zinc-400 hover:text-zinc-200 transition-colors text-sm">
+          <Link to="/painel" className="flex items-center gap-1.5 text-zinc-400 hover:text-zinc-200 transition-colors text-sm">
             <ArrowLeft className="w-4 h-4" />
-            Admin
+            Painel
           </Link>
           <span className="text-zinc-700">/</span>
           <div className="flex items-center gap-2">
