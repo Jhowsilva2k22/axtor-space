@@ -12,6 +12,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
  *
  * Segurança:
  *  - Valida o token Authorization configurado no painel do Asaas (ASAAS_WEBHOOK_TOKEN)
+ *  - Falha fechado (401) se ASAAS_WEBHOOK_TOKEN não estiver configurado
+ *  - Idempotente: tabela webhook_events garante que (paymentId, event) é processado só uma vez
  *  - Edge Function usa service_role pra atualizar tenant_subscriptions / tenant_addons
  *  - service_role NUNCA é exposto pro frontend
  */
@@ -32,15 +34,15 @@ Deno.serve(async (req) => {
     return new Response("Servidor mal configurado", { status: 500 });
   }
 
-  // 1. Valida token do header (Asaas envia o que você configurou no painel deles)
-  if (expectedToken) {
-    const got = req.headers.get("asaas-access-token") ?? req.headers.get("Authorization") ?? "";
-    if (got !== expectedToken) {
-      console.warn("[asaas-webhook] token inválido");
-      return new Response("Token inválido", { status: 401 });
-    }
-  } else {
-    console.warn("[asaas-webhook] ASAAS_WEBHOOK_TOKEN não configurado — pulando validação");
+  // 1. Valida token — fail closed: se não configurado, rejeita
+  if (!expectedToken) {
+    console.error("[asaas-webhook] ASAAS_WEBHOOK_TOKEN não configurado — rejeitando");
+    return new Response("Token inválido", { status: 401 });
+  }
+  const got = req.headers.get("asaas-access-token") ?? req.headers.get("Authorization") ?? "";
+  if (got !== expectedToken) {
+    console.warn("[asaas-webhook] token inválido");
+    return new Response("Token inválido", { status: 401 });
   }
 
   // 2. Lê payload
@@ -65,10 +67,25 @@ Deno.serve(async (req) => {
 
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-  // 3. Roteia por evento — atualiza tenant_subscriptions (planos) e tenant_addons (compras avulsas).
+  // 3. Idempotência — garante que (paymentId, event) seja processado só uma vez
+  const { error: dedupeErr } = await supabase
+    .from("webhook_events")
+    .insert({ payment_id: paymentId, event });
+
+  if (dedupeErr) {
+    if (dedupeErr.code === "23505") {
+      // unique_violation — evento já foi processado antes
+      console.log("[asaas-webhook] evento duplicado ignorado: %s/%s", event, paymentId);
+      return okResponse();
+    }
+    // Outro erro — loga mas continua para não perder o evento
+    console.error("[asaas-webhook] webhook_events insert erro:", dedupeErr);
+  }
+
+  // 4. Roteia por evento — atualiza tenant_subscriptions (planos) e tenant_addons (compras avulsas).
   //    O mesmo paymentId pode estar em ambas se foi compra Pro+Addon junto.
   if (event === "PAYMENT_RECEIVED" || event === "PAYMENT_CONFIRMED") {
-    // 3a. Subscription (plano recorrente)
+    // 4a. Subscription (plano recorrente)
     const { data: subRow } = await supabase
       .from("tenant_subscriptions")
       .select("id, tenant_id, plan_slug")
@@ -94,7 +111,7 @@ Deno.serve(async (req) => {
       console.log("[asaas-webhook] sub %s ativada", subRow.id);
     }
 
-    // 3b. Addons avulsos (a mesma cobrança pode trazer um ou mais)
+    // 4b. Addons avulsos (a mesma cobrança pode trazer um ou mais)
     const { data: addonRows, error: addonErr } = await supabase
       .from("tenant_addons")
       .update({ status: "paid" })
