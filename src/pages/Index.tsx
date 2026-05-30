@@ -882,6 +882,95 @@ const ResultStep = ({ data, onRestart, partnerCtas, tenant, bioCfg, primaryFunne
         </ol>
       </div>
 
+      {/* Bio Preview — Converte diagnóstico em cadastro axtor */}
+      <div className="relative overflow-hidden rounded-[32px] border border-gold/30 bg-card/40 backdrop-blur-xl p-8 sm:p-10">
+        <div className="pointer-events-none absolute inset-0 bg-gradient-gold-soft opacity-20" />
+        <div className="relative z-10 flex flex-col gap-8 md:flex-row md:items-start">
+
+          {/* Mock de bio card */}
+          <div className="mx-auto w-full max-w-[256px] shrink-0 rounded-[28px] border border-gold/30 bg-background/60 p-5 shadow-xl">
+            <div className="flex flex-col items-center gap-3 text-center">
+              {p.profilePicUrl ? (
+                <img
+                  src={proxied(p.profilePicUrl)}
+                  alt={p.username}
+                  className="h-16 w-16 rounded-full border border-gold/30 object-cover"
+                  onError={(e) => ((e.currentTarget.style.display = "none"))}
+                />
+              ) : (
+                <div className="h-16 w-16 rounded-full border border-gold/20 bg-gradient-to-br from-primary/30 to-primary/10" />
+              )}
+              <div>
+                <p className="font-display text-base leading-tight text-foreground">{p.fullName || p.username}</p>
+                <p className="text-[11px] text-muted-foreground">@{p.username}</p>
+              </div>
+              <div className="w-full space-y-2">
+                <div className="flex h-9 w-full items-center justify-center rounded-full border border-gold/50 bg-card/60">
+                  <span className="text-[10px] uppercase tracking-[0.15em] text-primary/80">Meu WhatsApp</span>
+                </div>
+                <div className="flex h-9 w-full items-center justify-center rounded-full border border-white/10 bg-white/5">
+                  <span className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground/50">Portfólio</span>
+                </div>
+                <div className="flex h-9 w-full items-center justify-center rounded-full border border-white/10 bg-white/5">
+                  <span className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground/50">Oferta Principal</span>
+                </div>
+              </div>
+              <p className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground/30">axtor.space/{p.username}</p>
+            </div>
+          </div>
+
+          {/* Copy + CTAs */}
+          <div className="flex flex-1 flex-col justify-center gap-5">
+            <div>
+              <span className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">resolva isso agora</span>
+              <h3 className="mt-2 font-display text-3xl leading-tight">
+                Sua presença digital em <span className="text-gold italic">um link só</span>
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                {(d.scores?.bio_e_cta ?? 100) < 60
+                  ? `Sua bio está perdendo conversões. Centralize links, contatos e ofertas em axtor.space/@${p.username} — e resolva isso hoje.`
+                  : `Amplifique o que já funciona. Bio profissional, links centralizados e design que passa autoridade.`}
+              </p>
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-start gap-3 text-sm text-foreground/80">
+                <Zap className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                <span>Publicada em axtor.space/@{p.username} em segundos</span>
+              </div>
+              <div className="flex items-start gap-3 text-sm text-foreground/80">
+                <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                <span>Design premium que passa autoridade antes da primeira palavra</span>
+              </div>
+              {score < 70 && (
+                <div className="flex items-start gap-3 text-sm text-foreground/80">
+                  <TrendingUp className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                  <span>Analytics de cliques + campanhas com IA (plano Pro)</span>
+                </div>
+              )}
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <Link
+                to="/signup"
+                className="btn-luxe inline-flex h-12 items-center justify-center gap-2 rounded-full px-7 text-xs font-bold uppercase tracking-[0.15em]"
+              >
+                Criar minha bio grátis <ArrowRight className="h-4 w-4" />
+              </Link>
+              {score < 70 && (
+                <Link
+                  to="/loja"
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-gold/40 bg-transparent px-6 text-xs font-semibold uppercase tracking-[0.15em] text-gold transition-colors hover:bg-gold/5"
+                >
+                  <Crown className="h-3.5 w-3.5" /> Pro — R$47/mês
+                </Link>
+              )}
+            </div>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/50">
+              grátis para sempre · sem cartão de crédito
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* CTA final — Transição estratégica para o Funil Profundo */}
       <div className="relative overflow-hidden rounded-[32px] border border-gold/40 bg-card/40 p-8 text-center sm:p-12 shadow-2xl backdrop-blur-xl">
         <div className="pointer-events-none absolute inset-0 bg-gradient-gold-soft opacity-40" />
