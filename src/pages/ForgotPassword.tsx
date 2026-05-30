@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Mail, Loader2, ArrowLeft } from "lucide-react";
-import { ThemeToggle, useAdminLockedTheme } from "@/components/ThemeToggle";
+import { useAdminLockedTheme } from "@/components/ThemeToggle";
 
 const ForgotPassword = () => {
   useAdminLockedTheme();
@@ -34,7 +34,6 @@ const ForgotPassword = () => {
     <div className="relative flex min-h-screen items-center justify-center px-6 grain overflow-x-hidden">
       <div className="aurora-a" />
       <div className="aurora-b" />
-      <ThemeToggle className="absolute right-5 top-5 z-20" />
 
       <div className="relative z-10 w-full max-w-sm rounded-[32px] border border-gold/20 bg-card/40 p-10 shadow-2xl backdrop-blur-xl">
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-gold/30 bg-gradient-gold-soft shadow-gold/20 shadow-lg">

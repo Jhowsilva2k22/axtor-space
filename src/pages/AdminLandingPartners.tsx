@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { ThemeToggle, useAdminLockedTheme } from "@/components/ThemeToggle";
+import { useAdminLockedTheme } from "@/components/ThemeToggle";
 import { toast } from "sonner";
 import { ArrowLeft, ChevronDown, ChevronUp, Copy, Loader2, Plus, Save, Trash2 } from "lucide-react";
 import {
@@ -147,7 +147,6 @@ const AdminLandingPartners = () => {
     <div className="relative min-h-screen grain overflow-x-hidden">
       <div className="aurora-a" />
       <div className="aurora-b" />
-      <ThemeToggle className="absolute right-5 top-5 z-20" />
       <header className="relative z-10 mx-auto flex max-w-5xl items-center justify-between px-6 py-10">
         <Link to="/admin" className="inline-flex h-10 items-center gap-2 rounded-full border border-gold/20 bg-card/40 px-5 text-[10px] uppercase tracking-[0.2em] text-muted-foreground transition-all hover:bg-gold/10 hover:text-primary">
           <ArrowLeft className="h-3.5 w-3.5" /> voltar

@@ -508,35 +508,3 @@ All colors MUST be HSL.
   .stagger > *:nth-child(8) { animation-delay: 0.54s; }
 }
 
-/* ============== TEMA CLARO — Ivory & Gold (opt-in via .theme-ivory) ============== */
-.theme-ivory {
-  /* Surfaces usam var(--surface-h) para refletir o tema ativo no modo claro */
-  --background: var(--surface-h) 40% 96%;
-  --aurora-opacity-a: 0.07;
-  --aurora-opacity-b: 0.05;
-  --foreground: 30 25% 8%;
-  --card: var(--surface-h) 28% 97%;
-  --card-foreground: 30 25% 8%;
-  --popover: var(--surface-h) 28% 97%;
-  --popover-foreground: 30 25% 8%;
-  --primary: var(--brand-h) var(--brand-s) 38%;
-  --primary-foreground: 0 0% 98%;
-  --primary-glow: var(--brand-h) 70% 55%;
-  --secondary: var(--surface-h) 24% 92%;
-  --secondary-foreground: 30 25% 8%;
-  --muted: var(--surface-h) 20% 90%;
-  --muted-foreground: 30 18% 25%;
-  --accent: var(--brand-h) var(--brand-s) 38%;
-  --accent-foreground: 0 0% 98%;
-  --border: var(--brand-h) 25% 72%;
-  --input: var(--surface-h) 24% 94%;
-  --ring: var(--brand-h) var(--brand-s) 38%;
-  --gradient-gold: linear-gradient(135deg, hsl(var(--brand-h) var(--brand-s) 38%), hsl(var(--brand-h) 70% 55%));
-  --gradient-gold-soft: linear-gradient(135deg, hsl(var(--brand-h) var(--brand-s) 38% / 0.14), hsl(var(--brand-h) 70% 55% / 0.05));
-  --gradient-gold-edge: linear-gradient(135deg, hsl(var(--brand-h) var(--brand-s) 38% / 0.55), hsl(var(--brand-h) 70% 55% / 0.15) 50%, hsl(var(--brand-h) var(--brand-s) 38% / 0.55));
-  --gradient-noir: radial-gradient(ellipse at top, hsl(var(--surface-h) 36% 99%), hsl(var(--surface-h) 28% 93%));
-  --shadow-gold: 0 20px 60px -20px hsl(var(--brand-h) var(--brand-s) 38% / 0.25);
-  --shadow-gold-lg: 0 30px 90px -20px hsl(var(--brand-h) var(--brand-s) 38% / 0.4), 0 0 0 1px hsl(var(--brand-h) var(--brand-s) 38% / 0.2);
-  --shadow-deep: 0 30px 80px -20px hsl(30 30% 30% / 0.25);
-  background: var(--gradient-noir);
-}

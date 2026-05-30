@@ -7,7 +7,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCurrentTenant } from "@/hooks/useCurrentTenant";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ThemeToggle } from "@/components/ThemeToggle";
 
 type Subscription = {
   plan_slug: string;
@@ -235,7 +234,6 @@ const PainelConfiguracoes = () => {
             <ArrowLeft className="h-4 w-4" />
             Voltar ao painel
           </Link>
-          <ThemeToggle />
         </div>
 
         <h1 className="mb-8 font-display text-3xl">

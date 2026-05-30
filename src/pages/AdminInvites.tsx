@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
 } from "@/components/ui/dialog";
-import { ThemeToggle, useAdminLockedTheme } from "@/components/ThemeToggle";
+import { useAdminLockedTheme } from "@/components/ThemeToggle";
 import { toast } from "sonner";
 import {
   Loader2, Plus, Copy, Mail, Link2, Trash2, ArrowLeft, Crown, FlaskConical, Send,
@@ -292,7 +292,6 @@ const AdminInvites = () => {
   return (
     <div className="relative min-h-screen px-6 py-10 grain">
       <div className="aurora-a" />
-      <ThemeToggle className="absolute right-5 top-5 z-20" />
       <div className="relative z-10 mx-auto max-w-5xl">
         <div className="mb-8 flex items-center justify-between">
           <div>
