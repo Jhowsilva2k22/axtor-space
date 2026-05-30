@@ -448,9 +448,9 @@ export default function DeepFunnelPublic() {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} className="space-y-8 relative">
             {/* Fundo orgânico pulsante (Fios de Ouro / Fibra ótica dourada) */}
             <div className="pointer-events-none absolute inset-0 overflow-hidden flex items-center justify-center opacity-30">
-              <div className="absolute w-[600px] h-[600px] border-[1px] border-gold/20 rounded-full blur-[2px] animate-[spin_30s_linear_infinite]" />
-              <div className="absolute w-[800px] h-[800px] border-[1px] border-gold/10 rounded-full blur-[4px] animate-[spin_40s_linear_infinite_reverse]" />
-              <div className="absolute w-[1000px] h-[1000px] border-[1px] border-primary/5 rounded-full blur-[8px] animate-[pulse_10s_ease-in-out_infinite]" />
+              <div className="absolute w-[600px] h-[600px] border-[1px] border-gold/20 rounded-full blur-[2px] animate-[spin_30s_linear_infinite] will-change-transform" />
+              <div className="absolute w-[800px] h-[800px] border-[1px] border-gold/10 rounded-full blur-[2px] animate-[spin_40s_linear_infinite_reverse] will-change-transform" />
+              <div className="absolute w-[1000px] h-[1000px] border-[1px] border-primary/5 rounded-full animate-[pulse_10s_ease-in-out_infinite] will-change-transform" />
             </div>
 
             {/* Bloco do veredicto + dor dominante */}
@@ -676,12 +676,11 @@ export default function DeepFunnelPublic() {
             })}
 
             {/* Seção de Autoridade: Quem é o especialista */}
-            {/* D2: y: 20 → 0 removido do initial/whileInView para eliminar reflow de scroll snap */}
+            {/* whileInView substituído por animate para eliminar IntersectionObserver durante scroll */}
             <motion.div
               initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
               className="mt-20 relative overflow-hidden rounded-[32px] bg-card/30 border border-border/40 p-8 md:p-12 text-left"
             >
               <div className="grid md:grid-cols-2 gap-12 items-center">
@@ -739,9 +738,8 @@ export default function DeepFunnelPublic() {
             {/* Seção Estratégica: Você viveu o funil — versão compacta */}
             <motion.div
               initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.4, delay: 0.5 }}
               className="mt-12 border-t border-gold/20 pt-6 text-center"
             >
               <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground/60">
