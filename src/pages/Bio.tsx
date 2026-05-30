@@ -3,7 +3,6 @@ import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import * as LucideIcons from "lucide-react";
 import { Loader2, ArrowUpRight, Search, X } from "lucide-react";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import AmbientPlayer from "@/components/AmbientPlayer";
 import FeedbackWidget from "@/components/FeedbackWidget";
 import { trackPageView, trackBioClick } from "@/lib/analytics";
@@ -208,7 +207,6 @@ const Bio = () => {
       )}
 
       <AmbientPlayer musicStyle={cfg?.ambient_music_style} />
-      <ThemeToggle className="absolute left-5 top-5 z-20" />
       <FeedbackWidget pagePath="/bio" />
 
       <main className="relative z-10 mx-auto max-w-md px-6 pb-16 pt-12">

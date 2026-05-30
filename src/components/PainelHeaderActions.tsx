@@ -12,7 +12,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -56,8 +55,6 @@ export const PainelHeaderActions = ({ slug }: { slug: string }) => {
       </a>
 
       <QRCodeButton bioUrl={bioUrl} slug={slug} />
-
-      <ThemeToggle />
 
       {isAdmin && (
         <Button

@@ -1,14 +1,11 @@
 import { Link } from "react-router-dom";
 import { Sparkles, Check, ArrowRight, Zap, BarChart3, Palette } from "lucide-react";
-import { ThemeToggle } from "@/components/ThemeToggle";
 
 const Landing = () => {
   return (
     <div className="relative min-h-screen overflow-hidden grain">
       <div className="aurora-a" />
       <div className="aurora-b" />
-
-      <ThemeToggle className="absolute right-5 top-5 z-20" />
 
       <header className="relative z-10 mx-auto max-w-6xl px-6 py-6">
         <div className="flex items-center justify-between">

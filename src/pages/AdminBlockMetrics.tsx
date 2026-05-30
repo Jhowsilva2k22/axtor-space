@@ -3,7 +3,7 @@ import { Link, Navigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { ArrowLeft, Loader2 } from "lucide-react";
-import { ThemeToggle, useAdminLockedTheme } from "@/components/ThemeToggle";
+import { useAdminLockedTheme } from "@/components/ThemeToggle";
 import { TenantSelector } from "@/components/TenantSelector";
 import { toast } from "sonner";
 import {
@@ -119,7 +119,6 @@ const AdminBlockMetrics = () => {
               </SelectContent>
             </Select>
             <TenantSelector />
-            <ThemeToggle />
           </div>
         </div>
       </header>

@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { Sun, Moon } from "lucide-react";
+import { useEffect } from "react";
 
 // Tokens do tema padrão "gold-noir" — duplicados aqui pra não criar
 // dependência circular com ThemeProvider. Devem espelhar o fallback de lá.
@@ -19,41 +18,9 @@ const GOLD_NOIR_TOKENS: Record<string, string> = {
   "--radius": "1.5rem",
 };
 
-type Theme = "noir" | "ivory";
-
-const readStoredTheme = (): Theme => {
-  if (typeof window === "undefined") return "noir";
-  try {
-    const stored = localStorage.getItem("app-theme");
-    return stored === "ivory" ? "ivory" : "noir";
-  } catch {
-    return "noir";
-  }
-};
-
-export const useTheme = () => {
-  const [theme, setTheme] = useState<Theme>(readStoredTheme);
-
-  useEffect(() => {
-    const root = document.documentElement;
-    if (theme === "ivory") root.classList.add("theme-ivory");
-    else root.classList.remove("theme-ivory");
-    try {
-      localStorage.setItem("app-theme", theme);
-    } catch {
-      // ignore storage failures
-    }
-  }, [theme]);
-
-  return { theme, setTheme, toggle: () => setTheme(theme === "noir" ? "ivory" : "noir") };
-};
-
 /**
  * Trava o TEMA VISUAL no padrão "gold-noir" enquanto a página admin
- * estiver montada. NÃO interfere no toggle claro/escuro (.theme-ivory),
- * que continua livre — admin pode alternar claro/escuro normalmente,
- * só não vê os temas customizados de tester (rosé, oceano etc).
- * Ao desmontar, o ThemeProvider reaplica o tema ativo da bio.
+ * estiver montada. Ao desmontar, o ThemeProvider reaplica o tema ativo da bio.
  */
 export const useAdminLockedTheme = () => {
   useEffect(() => {
@@ -61,18 +28,4 @@ export const useAdminLockedTheme = () => {
     Object.entries(GOLD_NOIR_TOKENS).forEach(([k, v]) => root.style.setProperty(k, v));
     root.dataset.auroraEnabled = "true";
   }, []);
-};
-
-export const ThemeToggle = ({ className = "" }: { className?: string }) => {
-  const { theme, toggle } = useTheme();
-  return (
-    <button
-      type="button"
-      onClick={toggle}
-      aria-label={theme === "noir" ? "Mudar para tema claro" : "Mudar para tema escuro"}
-      className={`flex h-10 w-10 items-center justify-center rounded-full border border-gold bg-card/60 text-primary backdrop-blur transition-all hover:scale-105 hover:shadow-gold ${className}`}
-    >
-      {theme === "noir" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-    </button>
-  );
 };
