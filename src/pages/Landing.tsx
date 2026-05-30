@@ -88,7 +88,7 @@ const Landing = () => {
             />
             <PlanCard
               name="Pro"
-              price="sob consulta"
+              price="R$47/mês"
               tagline="pra quem quer escalar"
               highlight
               features={[
@@ -100,12 +100,12 @@ const Landing = () => {
                 "Sem selo",
               ]}
               cta={
-                <a
-                  href="mailto:contato@axtor.space?subject=Plano%20Pro%20axtor"
+                <Link
+                  to="/loja"
                   className="inline-flex h-11 w-full items-center justify-center rounded-sm border border-gold bg-card/40 px-4 text-xs uppercase tracking-[0.2em] text-primary hover:bg-gradient-gold-soft"
                 >
-                  falar com vendas
-                </a>
+                  assinar agora
+                </Link>
               }
             />
           </div>
