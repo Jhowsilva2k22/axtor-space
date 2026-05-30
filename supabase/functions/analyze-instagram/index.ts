@@ -268,38 +268,42 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (recent) {
-      const profile = (recent.profile_data ?? {}) as Record<string, unknown>;
       const insights = (recent.insights ?? {}) as Record<string, unknown>;
-      const scores = (recent.scores ?? {}) as Record<string, number>;
-      return new Response(
-        JSON.stringify({
-          status: "completed",
-          cached: true,
-          handle,
-          diagnostic_id: recent.id,
-          profile: {
-            username: profile?.username,
-            fullName: profile?.fullName,
-            biography: profile?.biography,
-            profilePicUrl: profile?.profilePicUrl,
-            followersCount: profile?.followersCount,
-            followsCount: profile?.followsCount,
-            postsCount: profile?.postsCount,
-            verified: profile?.verified,
-            businessCategoryName: profile?.businessCategoryName,
-            externalUrl: profile?.externalUrl,
-          },
-          diagnosis: {
-            score_geral: insights?.score_geral ?? 0,
-            scores,
-            pontos_fortes: insights?.pontos_fortes ?? [],
-            gaps_criticos: insights?.gaps_criticos ?? [],
-            plano_acao: insights?.plano_acao ?? [],
-            veredicto: recent.ai_summary ?? "",
-          },
-        }),
-        { status: 200, headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" } },
-      );
+      const cachedScore = Number(insights?.score_geral ?? 0);
+      if (cachedScore > 0) {
+        const profile = (recent.profile_data ?? {}) as Record<string, unknown>;
+        const scores = (recent.scores ?? {}) as Record<string, number>;
+        return new Response(
+          JSON.stringify({
+            status: "completed",
+            cached: true,
+            handle,
+            diagnostic_id: recent.id,
+            profile: {
+              username: profile?.username,
+              fullName: profile?.fullName,
+              biography: profile?.biography,
+              profilePicUrl: profile?.profilePicUrl,
+              followersCount: profile?.followersCount,
+              followsCount: profile?.followsCount,
+              postsCount: profile?.postsCount,
+              verified: profile?.verified,
+              businessCategoryName: profile?.businessCategoryName,
+              externalUrl: profile?.externalUrl,
+            },
+            diagnosis: {
+              score_geral: cachedScore,
+              scores,
+              pontos_fortes: insights?.pontos_fortes ?? [],
+              gaps_criticos: insights?.gaps_criticos ?? [],
+              plano_acao: insights?.plano_acao ?? [],
+              veredicto: recent.ai_summary ?? "",
+            },
+          }),
+          { status: 200, headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" } },
+        );
+      }
+      console.warn(`[cache] Diagnóstico ${recent.id} com score_geral=0 ignorado — provável falha de IA anterior`);
     }
 
     // 0.2 Bloqueio semanal: 3 análises completed nos últimos 7 dias
@@ -470,14 +474,27 @@ Deno.serve(async (req) => {
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       console.error("AI error:", msg);
-      aiResult = {
-        score_geral: 0,
-        scores: {},
-        pontos_fortes: [],
-        gaps_criticos: [],
-        plano_acao: [],
-        veredicto: "Conseguimos puxar seus dados, mas a análise inteligente falhou. Tente de novo em instantes.",
-      };
+      const { data: failedDiag } = await supabase
+        .from("diagnostics")
+        .insert({
+          lead_id: lead?.id ?? null,
+          instagram_handle: handle,
+          is_private: false,
+          profile_data: profile,
+          status: "failed",
+          error_message: `IA: ${msg}`,
+          ...(resolvedTenantId ? { tenant_id: resolvedTenantId } : {}),
+        })
+        .select()
+        .single();
+      return new Response(
+        JSON.stringify({
+          status: "failed",
+          error: "Conseguimos puxar seus dados, mas a análise inteligente falhou temporariamente. Tente de novo em instantes.",
+          diagnostic_id: failedDiag?.id,
+        }),
+        { status: 200, headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" } },
+      );
     }
 
     const { data: diag } = await supabase
