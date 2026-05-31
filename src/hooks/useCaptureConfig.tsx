@@ -24,6 +24,7 @@ export type CaptureConfig = {
   capture_headline: string | null;
   capture_sub_headline: string | null;
   capture_tagline: string | null;
+  capture_avatar_url: string | null;
 };
 
 const DEFAULT_CONFIG = (tenantId: string): CaptureConfig => ({
@@ -36,6 +37,7 @@ const DEFAULT_CONFIG = (tenantId: string): CaptureConfig => ({
   capture_headline: null,
   capture_sub_headline: null,
   capture_tagline: null,
+  capture_avatar_url: null,
 });
 
 export const useCaptureConfig = (tenantId: string | null) => {
@@ -83,6 +85,7 @@ export const useCaptureConfig = (tenantId: string | null) => {
             capture_headline: config.capture_headline,
             capture_sub_headline: config.capture_sub_headline,
             capture_tagline: config.capture_tagline,
+            capture_avatar_url: config.capture_avatar_url,
           } as never,
           { onConflict: "tenant_id" },
         )

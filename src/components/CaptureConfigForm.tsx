@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -44,6 +45,29 @@ const DESTINATION_HINT: Record<LeadDestinationType, string> = {
 export const CaptureConfigForm = ({ tenantId }: { tenantId: string }) => {
   const { config, loading, error, save, saving } = useCaptureConfig(tenantId);
   const [draft, setDraft] = useState<CaptureConfig | null>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+
+  const handleUploadPhoto = async (file: File) => {
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Imagem maior que 5MB.");
+      return;
+    }
+    setUploadingPhoto(true);
+    try {
+      const path = `capture/avatar-${Date.now()}.jpg`;
+      const { error: upErr } = await supabase.storage
+        .from("avatars")
+        .upload(path, file, { contentType: file.type, upsert: false });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
+      setDraft((d) => (d ? { ...d, capture_avatar_url: pub.publicUrl } : d));
+      toast.success("Foto enviada — clique Salvar pra publicar.");
+    } catch (e) {
+      toast.error(`Falha no upload: ${(e as Error).message}`);
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
 
   // Sincroniza draft sempre que config carrega/muda
   useEffect(() => {
@@ -104,6 +128,55 @@ export const CaptureConfigForm = ({ tenantId }: { tenantId: string }) => {
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             Conteúdo da página
           </p>
+
+          {/* capture_avatar_url */}
+          <div className="space-y-2">
+            <Label>Foto da página de captura</Label>
+            <div className="flex items-center gap-4">
+              {draft.capture_avatar_url ? (
+                <img
+                  src={draft.capture_avatar_url}
+                  alt="foto captura"
+                  className="h-16 w-16 shrink-0 rounded-full border border-gold/40 object-cover"
+                />
+              ) : (
+                <div className="h-16 w-16 shrink-0 rounded-full border border-dashed border-gold/40 bg-muted/20" />
+              )}
+              <div className="flex flex-col gap-2">
+                <label className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-md border border-gold/40 bg-card/40 px-4 text-[10px] uppercase tracking-[0.2em] text-primary transition-all hover:bg-gold/10">
+                  {uploadingPhoto ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Upload className="h-3.5 w-3.5" />
+                  )}
+                  {uploadingPhoto ? "Enviando..." : "Enviar foto"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={uploadingPhoto}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) handleUploadPhoto(f);
+                      e.currentTarget.value = "";
+                    }}
+                  />
+                </label>
+                {draft.capture_avatar_url && (
+                  <button
+                    type="button"
+                    onClick={() => setDraft((d) => (d ? { ...d, capture_avatar_url: null } : d))}
+                    className="text-left text-[10px] text-muted-foreground hover:text-destructive"
+                  >
+                    Remover foto
+                  </button>
+                )}
+              </div>
+            </div>
+            <p className="text-[10px] text-muted-foreground">
+              Foto exibida no card de autoridade da capture page. Se vazio, usa a foto da bio.
+            </p>
+          </div>
 
           {/* capture_headline */}
           <div className="space-y-2">
