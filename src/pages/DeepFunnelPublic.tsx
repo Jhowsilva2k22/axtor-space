@@ -172,10 +172,12 @@ export default function DeepFunnelPublic() {
       if (error) throw error;
       setResult(data);
       setStep("result");
+      try { localStorage.removeItem(LEAD_CACHE_KEY); } catch {}
     } catch (e) {
       console.error(e);
       setStep("result");
       setResult({ error: true });
+      try { localStorage.removeItem(LEAD_CACHE_KEY); } catch {}
     }
   };
 
@@ -270,6 +272,7 @@ export default function DeepFunnelPublic() {
                     value={lead.name}
                     onChange={(e) => setLead({ ...lead, name: e.target.value.replace(/[^a-zA-ZáàâãäéèêëíìîïóòôõöúùûüçÁÀÂÃÄÉÈÊËÍÌÎÏÓÒÔÕÖÚÙÛÜÇ '-]/g, "").slice(0, 80) })}
                     placeholder="Stefany Mello"
+                    autoComplete="name"
                     className="h-11 rounded-full border-gold/20 bg-card/30 px-5 font-light transition-all focus:border-gold/50 focus:shadow-gold/10"
                   />
                 </div>
@@ -282,6 +285,7 @@ export default function DeepFunnelPublic() {
                       value={lead.email}
                       onChange={(e) => setLead({ ...lead, email: e.target.value.toLowerCase() })}
                       placeholder="voce@exemplo.com"
+                      autoComplete="email"
                       className="h-11 rounded-full border-gold/20 bg-card/30 px-5 font-light transition-all focus:border-gold/50 focus:shadow-gold/10"
                     />
                   </div>
@@ -305,6 +309,7 @@ export default function DeepFunnelPublic() {
                         value={lead.phone}
                         onChange={(e) => setLead({ ...lead, phone: maskPhone(e.target.value, country) })}
                         placeholder="(00) 00000-0000"
+                        autoComplete="tel"
                         className="h-11 flex-1 rounded-full border-gold/20 bg-card/30 px-5 font-light transition-all focus:border-gold/50 focus:shadow-gold/10"
                       />
                     </div>
@@ -317,6 +322,7 @@ export default function DeepFunnelPublic() {
                     value={lead.instagram_handle}
                     onChange={(e) => setLead({ ...lead, instagram_handle: e.target.value.replace(/[^a-zA-Z0-9._]/g, "").slice(0, 30) })}
                     placeholder="@seu.perfil"
+                    autoComplete="username"
                     className="h-11 rounded-full border-gold/20 bg-card/30 px-5 font-light transition-all focus:border-gold/50 focus:shadow-gold/10"
                   />
                 </div>
