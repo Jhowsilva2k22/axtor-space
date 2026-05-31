@@ -21,6 +21,9 @@ export type CaptureConfig = {
   lead_destination_type: LeadDestinationType;
   lead_destination_url: string | null;
   cta_redirect_url: string | null;
+  capture_headline: string | null;
+  capture_sub_headline: string | null;
+  capture_tagline: string | null;
 };
 
 const DEFAULT_CONFIG = (tenantId: string): CaptureConfig => ({
@@ -30,6 +33,9 @@ const DEFAULT_CONFIG = (tenantId: string): CaptureConfig => ({
   lead_destination_type: "email",
   lead_destination_url: null,
   cta_redirect_url: null,
+  capture_headline: null,
+  capture_sub_headline: null,
+  capture_tagline: null,
 });
 
 export const useCaptureConfig = (tenantId: string | null) => {
@@ -74,6 +80,9 @@ export const useCaptureConfig = (tenantId: string | null) => {
             lead_destination_type: config.lead_destination_type,
             lead_destination_url: config.lead_destination_url,
             cta_redirect_url: config.cta_redirect_url,
+            capture_headline: config.capture_headline,
+            capture_sub_headline: config.capture_sub_headline,
+            capture_tagline: config.capture_tagline,
           } as never,
           { onConflict: "tenant_id" },
         )

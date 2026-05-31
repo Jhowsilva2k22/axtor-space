@@ -80,6 +80,7 @@ const Index = () => {
   const [partnerCtas, setPartnerCtas] = useState<PartnerCtas | null>(null);
   const [tenant, setTenant] = useState<any>(null);
   const [bioCfg, setBioCfg] = useState<any>(null);
+  const [captureCfg, setCaptureCfg] = useState<any>(null);
   const [primaryFunnelSlug, setPrimaryFunnelSlug] = useState<string | null>(null);
 
   useEffect(() => {
@@ -136,6 +137,14 @@ const Index = () => {
           setBioCfg(bc);
           sessionStorage.setItem(cacheKey, JSON.stringify({ data: bc, timestamp: Date.now() }));
         }
+
+        // Campos de conteúdo exclusivos da página de captura (fallback via bio_config se null)
+        const { data: cc } = await (supabase as any)
+          .from("tenant_capture_config")
+          .select("capture_headline, capture_sub_headline, capture_tagline")
+          .eq("tenant_id", t.id)
+          .maybeSingle();
+        if (cc) setCaptureCfg(cc);
 
         // Resolve qual funil imersivo o lead deve cair ao clicar "Fazer Análise Completa".
         // Pega o mais recente publicado pro tenant carregado — antes era hardcoded pra Stefany.
@@ -301,7 +310,7 @@ const Index = () => {
       </header>
 
       <main className="relative z-10 mx-auto max-w-4xl px-6 pb-24 pt-12 sm:pt-20 py-[40px]">
-        {step === "handle" && <HandleStep handle={handle} setHandle={setHandle} onSubmit={handleSubmitHandle} bioCfg={bioCfg} tenant={tenant} partnerCtas={partnerCtas} />}
+        {step === "handle" && <HandleStep handle={handle} setHandle={setHandle} onSubmit={handleSubmitHandle} bioCfg={bioCfg} captureCfg={captureCfg} tenant={tenant} partnerCtas={partnerCtas} />}
         {step === "lead" && (
           <LeadStep
             handle={handle}
@@ -333,9 +342,14 @@ const Index = () => {
 
 /* ---------- STEPS ---------- */
 
-const HandleStep = ({ handle, setHandle, onSubmit, bioCfg, tenant, partnerCtas }: any) => {
+const HandleStep = ({ handle, setHandle, onSubmit, bioCfg, captureCfg, tenant, partnerCtas }: any) => {
   const bioPhoto = bioCfg?.avatar_url || "";
   const bioName = bioCfg?.display_name || "";
+  const headline = captureCfg?.capture_headline || bioCfg?.headline || "";
+  const subHeadline = captureCfg?.capture_sub_headline || bioCfg?.sub_headline || "";
+  const tagline =
+    captureCfg?.capture_tagline ||
+    "Para quem entendeu que presença digital não é sobre estar online.\nÉ sobre ser escolhido.";
 
   return (
     <div className="animate-fade-up text-center">
@@ -374,12 +388,12 @@ const HandleStep = ({ handle, setHandle, onSubmit, bioCfg, tenant, partnerCtas }
                 </h3>
                 <div className="prose prose-invert prose-sm max-w-none">
                   <div className="space-y-4 text-sm leading-relaxed text-muted-foreground/90">
-                    {bioCfg.headline ? (
+                    {headline ? (
                       <>
                         <p>
-                          <span className="text-foreground font-medium">{bioCfg.display_name}</span> {bioCfg.headline}
+                          <span className="text-foreground font-medium">{bioName}</span> {headline}
                         </p>
-                        {bioCfg.sub_headline?.split(/\n\s*\n/).map((paragraph: string, i: number) => (
+                        {subHeadline.split(/\n\s*\n/).map((paragraph: string, i: number) => (
                           <p key={i}>{paragraph}</p>
                         ))}
                       </>
@@ -399,8 +413,13 @@ const HandleStep = ({ handle, setHandle, onSubmit, bioCfg, tenant, partnerCtas }
             )}
             <div className="pt-2 border-t border-gold/10">
               <p className="text-xs font-medium italic text-foreground/80 leading-relaxed">
-                "Para quem entendeu que presença digital não é sobre estar online.<br />
-                <span className="text-gold">É sobre ser escolhido.</span>"
+                "{tagline.split("\n").map((line: string, i: number, arr: string[]) => (
+                  <span key={i}>
+                    {i === arr.length - 1
+                      ? <span className="text-gold">{line}</span>
+                      : <>{line}<br /></>}
+                  </span>
+                ))}"
               </p>
             </div>
           </div>
