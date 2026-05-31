@@ -10,7 +10,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { toast } from "sonner";
 import { QRCodeDialog } from "@/components/QRCodeDialog";
 import { useDeepDiagnostic } from "@/hooks/useDeepDiagnostic";
-import { useAuth } from "@/hooks/useAuth";
 
 type Props = {
   slug: string;
@@ -115,7 +114,6 @@ const Row = ({
 
 export const MyLinksCard = ({ slug, tenantId }: Props) => {
   const { funnels } = useDeepDiagnostic();
-  const { isAdmin } = useAuth();
   const [partners, setPartners] = useState<PartnerRow[]>([]);
 
   useEffect(() => {
@@ -137,10 +135,6 @@ export const MyLinksCard = ({ slug, tenantId }: Props) => {
   const adminUrl = `${ORIGIN}/admin`;
   const publishedFunnel = funnels.find((f) => f.is_published);
   const funnelUrl = publishedFunnel ? `${ORIGIN}/d/funnel/${publishedFunnel.slug}` : null;
-  const partnerUtm = partners[0]?.utm_source ?? null;
-  const captureUrl = partnerUtm
-    ? `${ORIGIN}/?utm_source=${encodeURIComponent(partnerUtm)}&utm_medium=instagram`
-    : null;
 
   return (
     <Card className="relative overflow-hidden border-gold-gradient bg-gradient-to-br from-background via-background to-primary/5 p-6">
@@ -221,30 +215,14 @@ export const MyLinksCard = ({ slug, tenantId }: Props) => {
           })}
 
           {partners.length === 0 && (
-            <div className="flex items-start gap-3 rounded-sm border border-dashed border-gold/30 bg-card/20 p-4">
-              <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border border-gold/30 bg-card/40 text-muted-foreground">
-                <Megaphone className="h-4 w-4" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
-                  Link de captação (landing parceiro)
-                </div>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Você ainda não tem um link na landing principal axtor.space.{" "}
-                  {isAdmin ? (
-                    <>
-                      Configure sua tela de captura na{" "}
-                      <Link to="/painel" className="text-primary underline-offset-2 hover:underline">
-                        aba Captura do Painel
-                      </Link>{" "}
-                      pra ativar.
-                    </>
-                  ) : (
-                    <>Fale com o admin pra liberar um UTM exclusivo seu.</>
-                  )}
-                </p>
-              </div>
-            </div>
+            <Row
+              icon={<Megaphone className="h-4 w-4" />}
+              title="Link de captação"
+              url={`${ORIGIN}/?utm_source=${encodeURIComponent(slug)}`}
+              hint="Cole no Instagram, no story, no WhatsApp. Leads que entrarem por aqui são atribuídos a você."
+              qrSlug={`capture-${slug}`}
+              showQr
+            />
           )}
 
           <Row
