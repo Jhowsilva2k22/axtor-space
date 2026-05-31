@@ -28,6 +28,7 @@ import { FunnelListView } from "@/components/imersivo/FunnelListView";
 import { WhatsAppNumbersManager } from "@/components/imersivo/WhatsAppNumbersManager";
 import { DeepDiagnosticReviewView } from "@/pages/DeepDiagnosticReviewView";
 import { BriefingWizard } from "@/components/imersivo/BriefingWizard";
+import { WelcomeOnboarding } from "@/components/WelcomeOnboarding";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { readPendingSignup, clearPendingSignup } from "@/lib/pendingSignup";
@@ -175,17 +176,10 @@ export default function Painel() {
     }
 
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background px-6">
-        <Card className="max-w-md p-8 text-center">
-          <h2 className="mb-3 font-display text-2xl">Nenhum tenant encontrado</h2>
-          <p className="mb-6 text-sm text-muted-foreground">
-            Você não tem nenhum tenant configurado nesta conta. Crie um para começar.
-          </p>
-          <Button asChild className="w-full">
-            <a href="/signup">Criar minha bio</a>
-          </Button>
-        </Card>
-      </div>
+      <WelcomeOnboarding
+        userEmail={user?.email}
+        userName={user?.user_metadata?.full_name}
+      />
     );
   }
 
