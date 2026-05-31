@@ -343,7 +343,7 @@ const Index = () => {
 /* ---------- STEPS ---------- */
 
 const HandleStep = ({ handle, setHandle, onSubmit, bioCfg, captureCfg, tenant, partnerCtas }: any) => {
-  const bioPhoto = bioCfg?.avatar_url || "";
+  const bioPhoto = captureCfg?.capture_avatar_url || bioCfg?.avatar_url || "";
   const bioName = bioCfg?.display_name || "";
   const headline = captureCfg?.capture_headline || bioCfg?.headline || "";
   const subHeadline = captureCfg?.capture_sub_headline || bioCfg?.sub_headline || "";
