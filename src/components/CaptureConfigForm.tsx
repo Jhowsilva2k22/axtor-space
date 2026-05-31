@@ -21,6 +21,7 @@ import {
   type LeadDestinationType,
 } from "@/hooks/useCaptureConfig";
 import { CaptureSetupChecklist } from "@/components/CaptureSetupChecklist";
+import ImageCropDialog from "@/components/ImageCropDialog";
 
 const STYLE_LABELS: Record<ButtonStyle, string> = {
   "gold-pulse": "Dourado pulsante (CTA comercial)",
@@ -46,15 +47,17 @@ export const CaptureConfigForm = ({ tenantId }: { tenantId: string }) => {
   const { config, loading, error, save, saving } = useCaptureConfig(tenantId);
   const [draft, setDraft] = useState<CaptureConfig | null>(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [pendingPhotoFile, setPendingPhotoFile] = useState<File | null>(null);
 
-  const handleUploadPhoto = async (file: File) => {
-    if (file.size > 5 * 1024 * 1024) {
+  const uploadCaptureBlob = async (blob: Blob) => {
+    if (blob.size > 5 * 1024 * 1024) {
       toast.error("Imagem maior que 5MB.");
       return;
     }
     setUploadingPhoto(true);
     try {
       const path = `capture/avatar-${Date.now()}.jpg`;
+      const file = new File([blob], `avatar-${Date.now()}.jpg`, { type: blob.type || "image/jpeg" });
       const { error: upErr } = await supabase.storage
         .from("avatars")
         .upload(path, file, { contentType: file.type, upsert: false });
@@ -108,6 +111,7 @@ export const CaptureConfigForm = ({ tenantId }: { tenantId: string }) => {
   const hasTagline = !!(draft.capture_tagline);
 
   return (
+    <>
     <Card className="p-8">
       <div className="mb-6">
         <h2 className="font-display text-xl">Configuração da Captura</h2>
@@ -157,7 +161,7 @@ export const CaptureConfigForm = ({ tenantId }: { tenantId: string }) => {
                     disabled={uploadingPhoto}
                     onChange={(e) => {
                       const f = e.target.files?.[0];
-                      if (f) handleUploadPhoto(f);
+                      if (f) setPendingPhotoFile(f);
                       e.currentTarget.value = "";
                     }}
                   />
@@ -360,6 +364,19 @@ export const CaptureConfigForm = ({ tenantId }: { tenantId: string }) => {
         </div>
       </div>
     </Card>
+
+      <ImageCropDialog
+        file={pendingPhotoFile}
+        aspect={1}
+        cropShape="round"
+        title="Ajustar foto da capture page"
+        onConfirm={async (blob) => {
+          setPendingPhotoFile(null);
+          await uploadCaptureBlob(blob);
+        }}
+        onCancel={() => setPendingPhotoFile(null)}
+      />
+    </>
   );
 };
 
