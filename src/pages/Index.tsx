@@ -141,7 +141,7 @@ const Index = () => {
         // Campos de conteúdo exclusivos da página de captura (fallback via bio_config se null)
         const { data: cc } = await (supabase as any)
           .from("tenant_capture_config")
-          .select("capture_headline, capture_sub_headline, capture_tagline")
+          .select("capture_headline, capture_sub_headline, capture_tagline, capture_avatar_url")
           .eq("tenant_id", t.id)
           .maybeSingle();
         if (cc) setCaptureCfg(cc);
