@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -82,11 +83,70 @@ export const CaptureConfigForm = ({ tenantId }: { tenantId: string }) => {
       <div className="mb-6">
         <h2 className="font-display text-xl">Configuração da Captura</h2>
         <p className="mt-1 text-xs text-muted-foreground">
-          Personalize o botão CTA do diagnóstico de Instagram e pra onde os leads são enviados.
+          Controle total do conteúdo e do botão CTA da sua página de captura, separado do Link na Bio.
         </p>
       </div>
 
       <div className="space-y-6">
+        {/* ── CONTEÚDO DA PÁGINA ── */}
+        <div className="space-y-4 rounded-lg border border-border/40 bg-muted/10 p-4">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            Conteúdo da página
+          </p>
+
+          {/* capture_headline */}
+          <div className="space-y-2">
+            <Label htmlFor="capture_headline">Headline (quem você é)</Label>
+            <Input
+              id="capture_headline"
+              value={draft.capture_headline ?? ""}
+              onChange={(e) => setDraft({ ...draft, capture_headline: e.target.value || null })}
+              placeholder="é especialista em X e ajuda Y a conquistar Z"
+              maxLength={200}
+            />
+            <p className="text-[10px] text-muted-foreground">
+              Exibida na seção de autoridade da captura. Se vazio, usa a headline do Link na Bio como fallback.
+            </p>
+          </div>
+
+          {/* capture_sub_headline */}
+          <div className="space-y-2">
+            <Label htmlFor="capture_sub_headline">Sub-headline (parágrafos de bio)</Label>
+            <Textarea
+              id="capture_sub_headline"
+              value={draft.capture_sub_headline ?? ""}
+              onChange={(e) => setDraft({ ...draft, capture_sub_headline: e.target.value || null })}
+              placeholder={"Linha 1 sobre sua trajetória.\n\nLinha 2 com a transformação que você entrega."}
+              rows={4}
+              className="resize-none"
+            />
+            <p className="text-[10px] text-muted-foreground">
+              Parágrafos separados por linha em branco. Fallback para sub-headline do Link na Bio.
+            </p>
+          </div>
+
+          {/* capture_tagline */}
+          <div className="space-y-2">
+            <Label htmlFor="capture_tagline">Tagline (frase de efeito)</Label>
+            <Input
+              id="capture_tagline"
+              value={draft.capture_tagline ?? ""}
+              onChange={(e) => setDraft({ ...draft, capture_tagline: e.target.value || null })}
+              placeholder="Para quem entendeu que presença digital não é sobre estar online."
+              maxLength={300}
+            />
+            <p className="text-[10px] text-muted-foreground">
+              Frase em itálico exibida no card de autoridade. Deixe vazio para usar o texto padrão.
+            </p>
+          </div>
+        </div>
+
+        {/* ── BOTÃO CTA ── */}
+        <div className="space-y-4 rounded-lg border border-border/40 bg-muted/10 p-4">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            Botão e destino do lead
+          </p>
+
         {/* button_label */}
         <div className="space-y-2">
           <Label htmlFor="button_label">Texto do botão</Label>
@@ -177,6 +237,7 @@ export const CaptureConfigForm = ({ tenantId }: { tenantId: string }) => {
             Opcional. Se vazio, mostra a tela de loading + diagnóstico padrão.
           </p>
         </div>
+        </div>{/* ── fim Botão e destino do lead ── */}
 
         {/* Preview */}
         <div className="space-y-2 border-t border-border/40 pt-6">
