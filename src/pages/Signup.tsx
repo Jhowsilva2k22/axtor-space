@@ -325,7 +325,7 @@ const Signup = () => {
                 onChange={(e) => setAccept(e.target.checked)}
                 className="peer h-5 w-5 appearance-none rounded-md border-2 border-gold/70 bg-card/80 transition-all checked:bg-gold checked:border-gold hover:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
               />
-              <Check className="pointer-events-none absolute left-0.5 top-0.5 h-4 w-4 scale-0 text-background transition-all peer-checked:scale-100" strokeWidth={3} />
+              <Check className="pointer-events-none absolute left-0.5 top-0.5 h-4 w-4 scale-0 text-white transition-all peer-checked:scale-100" strokeWidth={3} />
             </div>
             <span className="text-xs leading-relaxed text-muted-foreground transition-colors group-hover:text-foreground">
               Aceito os <Link to="/terms" className="text-gold hover:underline">termos de uso</Link> e a <Link to="/privacy" className="text-gold hover:underline">política de privacidade</Link>
