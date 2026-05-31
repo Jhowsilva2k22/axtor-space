@@ -84,18 +84,20 @@ export default function DeepFunnelPublic() {
       if (!slug) return;
       const { data: f } = await supabase.from("deep_funnels").select("*").eq("slug", slug).eq("is_published", true).maybeSingle();
       if (!f) { setLoading(false); return; }
-      const [{ data: qs }, { data: t }, { data: bioCfg }, { data: wppNum }] = await Promise.all([
+      const [{ data: qs }, { data: t }, { data: bioCfg }, { data: wppNum }, { data: captureCfg }] = await Promise.all([
         supabase.from("deep_funnel_questions").select("*").eq("funnel_id", f.id).order("position"),
         supabase.from("tenants").select("display_name, whatsapp_number").eq("id", f.tenant_id).maybeSingle(),
         supabase.from("bio_config").select("avatar_url").eq("tenant_id", f.tenant_id).maybeSingle(),
         f.whatsapp_number_id
           ? supabase.from("tenant_whatsapp_numbers").select("phone").eq("id", f.whatsapp_number_id).maybeSingle()
           : supabase.from("tenant_whatsapp_numbers").select("phone").eq("tenant_id", f.tenant_id).eq("is_default", true).maybeSingle(),
+        supabase.from("tenant_capture_config" as never).select("capture_avatar_url").eq("tenant_id", f.tenant_id).maybeSingle(),
       ]);
       const resolvedPhone = wppNum?.phone ?? t?.whatsapp_number ?? null;
+      const captureAvatarUrl = (captureCfg as any)?.capture_avatar_url ?? null;
       setFunnel(f);
       setQuestions(qs ?? []);
-      setTenant({ ...t, global_avatar_url: bioCfg?.avatar_url, whatsapp_number: resolvedPhone });
+      setTenant({ ...t, global_avatar_url: bioCfg?.avatar_url, capture_avatar_url: captureAvatarUrl, whatsapp_number: resolvedPhone });
       setLoading(false);
       // Herda tema da bio do dono — funil fica visualmente coerente com a marca
       void applyTenantTheme(f.tenant_id);
@@ -717,7 +719,7 @@ export default function DeepFunnelPublic() {
                   <div className="relative w-full aspect-[4/5] max-w-[320px] rounded-[32px] overflow-hidden shadow-2xl border border-gold/20">
                     {(() => {
                       const imgSrc = funnel?.briefing?.use_global_bio
-                        ? tenant?.global_avatar_url
+                        ? (tenant?.capture_avatar_url || tenant?.global_avatar_url)
                         : funnel?.briefing?.bio_image_url;
                       return imgSrc ? (
                         // D4: loading="eager" + fetchPriority="high" — foto de autoridade é alta prioridade (first impression)
