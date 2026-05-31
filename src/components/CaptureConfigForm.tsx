@@ -19,6 +19,7 @@ import {
   type ButtonStyle,
   type LeadDestinationType,
 } from "@/hooks/useCaptureConfig";
+import { CaptureSetupChecklist } from "@/components/CaptureSetupChecklist";
 
 const STYLE_LABELS: Record<ButtonStyle, string> = {
   "gold-pulse": "Dourado pulsante (CTA comercial)",
@@ -78,6 +79,10 @@ export const CaptureConfigForm = ({ tenantId }: { tenantId: string }) => {
 
   const isDirty = JSON.stringify(draft) !== JSON.stringify(config);
 
+  const hasHeadline = !!(draft.capture_headline);
+  const hasBio = !!(draft.capture_sub_headline);
+  const hasTagline = !!(draft.capture_tagline);
+
   return (
     <Card className="p-8">
       <div className="mb-6">
@@ -86,6 +91,12 @@ export const CaptureConfigForm = ({ tenantId }: { tenantId: string }) => {
           Controle total do conteúdo e do botão CTA da sua página de captura, separado do Link na Bio.
         </p>
       </div>
+
+      <CaptureSetupChecklist
+        hasHeadline={hasHeadline}
+        hasBio={hasBio}
+        hasTagline={hasTagline}
+      />
 
       <div className="space-y-6">
         {/* ── CONTEÚDO DA PÁGINA ── */}
