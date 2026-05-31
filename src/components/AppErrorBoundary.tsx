@@ -2,24 +2,61 @@ import { Component, type ErrorInfo, type ReactNode } from "react";
 import { AlertTriangle, RotateCcw, RefreshCw } from "lucide-react";
 import { logError } from "@/lib/errorLogger";
 
+const CHUNK_RELOAD_KEY = "axtor:chunk-reload-at";
+const CHUNK_RELOAD_COOLDOWN_MS = 10_000; // 10s — evita loop infinito
+
+function isChunkLoadError(error: Error): boolean {
+  const msg = error?.message ?? "";
+  const name = (error as any)?.name ?? "";
+  return (
+    name === "ChunkLoadError" ||
+    msg.includes("dynamically imported module") ||
+    msg.includes("Loading chunk") ||
+    msg.includes("Failed to fetch") ||
+    msg.includes("Unable to preload CSS")
+  );
+}
+
+function tryAutoReload(error: Error): boolean {
+  if (!isChunkLoadError(error)) return false;
+  try {
+    const last = Number(sessionStorage.getItem(CHUNK_RELOAD_KEY) ?? "0");
+    if (Date.now() - last < CHUNK_RELOAD_COOLDOWN_MS) return false; // já tentou recentemente
+    sessionStorage.setItem(CHUNK_RELOAD_KEY, String(Date.now()));
+  } catch {
+    // sessionStorage indisponível — segue sem loop guard
+  }
+  window.location.reload();
+  return true;
+}
+
 type Props = {
   children: ReactNode;
 };
 
 type State = {
   hasError: boolean;
+  isChunkError: boolean;
   message?: string;
   stack?: string;
 };
 
 export class AppErrorBoundary extends Component<Props, State> {
-  state: State = { hasError: false };
+  state: State = { hasError: false, isChunkError: false };
 
   static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, message: error?.message, stack: error?.stack };
+    return {
+      hasError: true,
+      isChunkError: isChunkLoadError(error),
+      message: error?.message,
+      stack: error?.stack,
+    };
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
+    // Chunk load error após novo deploy → recarrega automaticamente
+    if (tryAutoReload(error)) return;
+
     console.error("[AppErrorBoundary] render crash", error, info);
     try {
       sessionStorage.setItem(
@@ -57,17 +94,22 @@ export class AppErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
+      const { isChunkError } = this.state;
       return (
         <div className="flex min-h-screen items-center justify-center bg-background px-6 text-foreground">
           <div className="w-full max-w-lg rounded-sm border border-border bg-card p-8 text-center shadow-sm">
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-sm border border-border bg-muted">
               <AlertTriangle className="h-5 w-5 text-primary" />
             </div>
-            <h1 className="mt-5 font-display text-2xl">Não foi possível abrir o painel</h1>
+            <h1 className="mt-5 font-display text-2xl">
+              {isChunkError ? "Nova versão disponível" : "Não foi possível abrir o painel"}
+            </h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              Algo travou ao montar a tela. Tente recarregar antes de reiniciar a sessão (reiniciar desloga).
+              {isChunkError
+                ? "O app foi atualizado. Recarregando automaticamente…"
+                : "Algo travou ao montar a tela. Tente recarregar antes de reiniciar a sessão (reiniciar desloga)."}
             </p>
-            {this.state.message && (
+            {this.state.message && !isChunkError && (
               <pre className="mt-4 max-h-40 overflow-auto rounded-sm border border-border bg-muted/40 p-3 text-left text-[11px] leading-snug text-muted-foreground">
                 {this.state.message}
               </pre>
