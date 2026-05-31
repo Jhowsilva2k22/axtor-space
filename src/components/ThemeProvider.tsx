@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useRef, useState, ReactNode } fro
 import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/hooks/useTenant";
+import { useCurrentTenant } from "@/hooks/useCurrentTenant";
 import { loadGoogleFont } from "@/lib/loadGoogleFont";
 
 export type ThemeTokens = {
@@ -53,6 +54,8 @@ const GOLD_NOIR_FALLBACK: Theme = {
 
 const PREVIEW_KEY = "bio-theme-preview";
 const ADMIN_PATHS = ["/admin", "/signup", "/forgot-password", "/reset-password"];
+// Rotas autenticadas onde o tema deve seguir o tenant do usuário logado, não a URL
+const PANEL_PATHS = ["/painel", "/loja", "/bem-vindo"];
 
 const readPreviewSlug = (): string | null => {
   if (typeof window === "undefined") return null;
@@ -103,8 +106,12 @@ export const applyThemeTokens = (tokens: ThemeTokens) => {
 };
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
-  const { tenant } = useTenant();
+  const { tenant: urlTenant } = useTenant();
+  const { current: authTenant } = useCurrentTenant();
   const location = useLocation();
+  const isPanelRoute = PANEL_PATHS.some((p) => location.pathname.startsWith(p));
+  // Em rotas do painel usa o tenant do usuário autenticado; em rotas públicas usa o tenant da URL
+  const tenant = isPanelRoute ? authTenant : urlTenant;
   const [theme, setTheme] = useState<Theme>(GOLD_NOIR_FALLBACK);
   const [activeSlug, setActiveSlug] = useState<string>("gold-noir");
   const [previewSlug, setPreviewSlugState] = useState<string | null>(readPreviewSlug);
