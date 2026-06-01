@@ -221,6 +221,7 @@ const Loja = () => {
               ) : (
                 addons.map((addon) => {
                   const needsUpgradeFirst = addon.requires_plan === "pro" && !isAlreadyPro;
+                  const includedInPlan = addon.requires_plan === "pro" && isAlreadyPro;
                   return (
                     <Card key={addon.slug} className="p-6">
                       <h3 className="font-display text-xl">{addon.name}</h3>
@@ -233,30 +234,36 @@ const Loja = () => {
                           currency: "BRL",
                         })}
                       </p>
-                      <Button
-                        className="mt-4 w-full"
-                        variant="outline"
-                        disabled={checkout.isPending}
-                        onClick={() => {
-                          if (needsUpgradeFirst) {
-                            if (
-                              confirm(
-                                `${addon.name} precisa do plano Pro mensal. Comprar Pro + Addon juntos?`,
-                              )
-                            ) {
-                              buy({ planSlug: "pro", addonSlug: addon.slug });
+                      {includedInPlan ? (
+                        <p className="mt-4 text-center text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                          Incluído no seu plano
+                        </p>
+                      ) : (
+                        <Button
+                          className="mt-4 w-full"
+                          variant="outline"
+                          disabled={checkout.isPending}
+                          onClick={() => {
+                            if (needsUpgradeFirst) {
+                              if (
+                                confirm(
+                                  `${addon.name} precisa do plano Pro mensal. Comprar Pro + Addon juntos?`,
+                                )
+                              ) {
+                                buy({ planSlug: "pro", addonSlug: addon.slug });
+                              }
+                            } else {
+                              buy({ addonSlug: addon.slug });
                             }
-                          } else {
-                            buy({ addonSlug: addon.slug });
-                          }
-                        }}
-                      >
-                        {checkout.isPending
-                          ? "Gerando…"
-                          : needsUpgradeFirst
-                            ? "Comprar com Pro"
-                            : "Comprar com Pix"}
-                      </Button>
+                          }}
+                        >
+                          {checkout.isPending
+                            ? "Gerando…"
+                            : needsUpgradeFirst
+                              ? "Comprar com Pro"
+                              : "Comprar com Pix"}
+                        </Button>
+                      )}
                     </Card>
                   );
                 })

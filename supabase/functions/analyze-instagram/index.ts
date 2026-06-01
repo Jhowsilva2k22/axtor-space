@@ -10,6 +10,9 @@ const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const RESEND_FROM_EMAIL = Deno.env.get("RESEND_FROM_EMAIL") || "noreply@axtor.space";
 
+// Tenant principal (tráfego direto sem UTM identificável recai aqui)
+const PRIMARY_TENANT_ID = "47b30b21-ccda-4b02-8086-bb40fd1baf9f";
+
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
 
 function sanitizeHandle(raw: string): string {
@@ -271,8 +274,8 @@ Deno.serve(async (req) => {
     const handle = sanitizeHandle(handleRaw);
 
     // Resolve tenant a partir do utm_source da landing.
-    // Sem UTM ou UTM desconhecido = NULL → o DEFAULT da coluna (tenant principal) assume.
-    let resolvedTenantId: string | null = null;
+    // Sem UTM ou UTM desconhecido → cai no tenant principal para garantir lead visível e notificação.
+    let resolvedTenantId: string = PRIMARY_TENANT_ID;
     const utmSource = utm?.source ? String(utm.source).trim() : null;
     if (utmSource) {
       const { data: rt } = await supabase.rpc("resolve_landing_tenant", { _utm_source: utmSource });
@@ -422,7 +425,7 @@ Deno.serve(async (req) => {
         utm_source: utm.source ?? null,
         utm_medium: utm.medium ?? null,
         utm_campaign: utm.campaign ?? null,
-        ...(resolvedTenantId ? { tenant_id: resolvedTenantId } : {}),
+        tenant_id: resolvedTenantId,
       })
       .select()
       .single();
@@ -445,7 +448,7 @@ Deno.serve(async (req) => {
           instagram_handle: handle,
           status: "failed",
           error_message: msg,
-          ...(resolvedTenantId ? { tenant_id: resolvedTenantId } : {}),
+          tenant_id: resolvedTenantId,
         })
         .select()
         .single();
@@ -472,7 +475,7 @@ Deno.serve(async (req) => {
           is_private: true,
           profile_data: profile,
           status: "private_profile",
-          ...(resolvedTenantId ? { tenant_id: resolvedTenantId } : {}),
+          tenant_id: resolvedTenantId,
         })
         .select()
         .single();
@@ -511,7 +514,7 @@ Deno.serve(async (req) => {
           profile_data: profile,
           status: "failed",
           error_message: `IA: ${msg}`,
-          ...(resolvedTenantId ? { tenant_id: resolvedTenantId } : {}),
+          tenant_id: resolvedTenantId,
         })
         .select()
         .single();
@@ -541,7 +544,7 @@ Deno.serve(async (req) => {
         },
         ai_summary: aiResult.veredicto ?? "",
         status: "completed",
-        ...(resolvedTenantId ? { tenant_id: resolvedTenantId } : {}),
+        tenant_id: resolvedTenantId,
       })
       .select()
       .single();
