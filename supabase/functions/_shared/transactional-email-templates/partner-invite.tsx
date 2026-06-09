@@ -44,7 +44,7 @@ const PartnerInviteEmail = ({
       <Container style={container}>
         <Section style={header}>
           <Img
-            src="https://bdxkcfngskagriaapepo.supabase.co/storage/v1/object/public/email-assets/axtor-logo-light.png"
+            src="https://axtor.space/email/axtor-logo-light.png"
             alt="Axtor"
             width="140"
             style={{ display: 'block', margin: '0 auto 20px', height: 'auto' }}

@@ -23,7 +23,7 @@ export const ReauthenticationEmail = ({ token }: ReauthenticationEmailProps) => 
     <Preview>Seu código de verificação — Axtor</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Img src="https://bdxkcfngskagriaapepo.supabase.co/storage/v1/object/public/email-assets/axtor-logo.png" alt="Axtor Labs" width="120" height="40" style={{ display: "block", margin: "0 0 24px", height: "auto" }} />
+        <Img src="https://axtor.space/email/axtor-logo.png" alt="Axtor Labs" width="120" height="40" style={{ display: "block", margin: "0 0 24px", height: "auto" }} />
         <Heading style={h1}>
           Confirme sua <span style={hAccent}>identidade</span>
         </Heading>
