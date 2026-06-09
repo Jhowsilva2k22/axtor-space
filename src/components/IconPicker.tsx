@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import * as LucideIcons from "lucide-react";
-import { Check, Search, ChevronDown, Sparkles, Loader2, X, RotateCcw, History, LayoutGrid } from "lucide-react";
+import { Check, Search, ChevronDown, Sparkles, Loader2, X, RotateCcw } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -57,9 +57,9 @@ export const IconPicker = ({
 }: Props) => {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [tab, setTab] = useState<"library" | "ai" | "history" | "gallery">(
-    iconUrl ? "ai" : "library",
-  );
+  // Geração de ícone por IA desativada (removida a dependência do gateway Lovable).
+  // Mantém apenas a Biblioteca (Lucide). Religar = restaurar as abas + provedor de imagem.
+  const [tab, setTab] = useState<"library" | "ai" | "history" | "gallery">("library");
   const [aiPrompt, setAiPrompt] = useState("");
   const [style, setStyle] = useState<Style>("linear_gold");
   const [generating, setGenerating] = useState(false);
@@ -215,30 +215,12 @@ export const IconPicker = ({
       </PopoverTrigger>
       <PopoverContent align="start" className="w-[min(460px,92vw)] rounded-sm border-gold bg-popover p-0">
         <Tabs value={tab} onValueChange={(v) => setTab(v as any)} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 rounded-none border-b border-border bg-transparent p-0">
+          <TabsList className="grid w-full grid-cols-1 rounded-none border-b border-border bg-transparent p-0">
             <TabsTrigger
               value="library"
-              className="rounded-none border-r border-border data-[state=active]:bg-gradient-gold-soft data-[state=active]:text-primary text-[10px] uppercase tracking-[0.15em]"
-            >
-              Biblioteca
-            </TabsTrigger>
-            <TabsTrigger
-              value="ai"
-              className="rounded-none border-r border-border data-[state=active]:bg-gradient-gold-soft data-[state=active]:text-primary text-[10px] uppercase tracking-[0.15em]"
-            >
-              <Sparkles className="mr-1 h-3 w-3" /> IA
-            </TabsTrigger>
-            <TabsTrigger
-              value="history"
-              className="rounded-none border-r border-border data-[state=active]:bg-gradient-gold-soft data-[state=active]:text-primary text-[10px] uppercase tracking-[0.15em]"
-            >
-              <History className="mr-1 h-3 w-3" /> Hist.
-            </TabsTrigger>
-            <TabsTrigger
-              value="gallery"
               className="rounded-none data-[state=active]:bg-gradient-gold-soft data-[state=active]:text-primary text-[10px] uppercase tracking-[0.15em]"
             >
-              <LayoutGrid className="mr-1 h-3 w-3" /> Galeria
+              Biblioteca
             </TabsTrigger>
           </TabsList>
 
