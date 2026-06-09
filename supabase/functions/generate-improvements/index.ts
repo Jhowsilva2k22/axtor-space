@@ -1,7 +1,23 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
-import { corsHeadersFor } from "../_shared/cors.ts";
+// CORS inline (self-contained para deploy confiável). Espelha ../_shared/cors.ts.
+const ALLOWED_ORIGINS = [
+  "https://axtor.space",
+  "https://www.axtor.space",
+  "http://localhost:8080",
+  "http://localhost:8082",
+  "http://localhost:8083",
+];
+const corsHeadersFor = (origin: string | null, methods = "POST, OPTIONS") => {
+  const allowed = ALLOWED_ORIGINS.includes(origin ?? "") ? origin! : ALLOWED_ORIGINS[0];
+  return {
+    "Access-Control-Allow-Origin": allowed,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": methods,
+    "Vary": "Origin",
+  };
+};
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -12,10 +28,10 @@ serve(async (req) => {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
+    const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+    if (!ANTHROPIC_API_KEY) {
       return new Response(
-        JSON.stringify({ error: "LOVABLE_API_KEY not configured" }),
+        JSON.stringify({ error: "ANTHROPIC_API_KEY not configured" }),
         { status: 500, headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" } },
       );
     }
@@ -226,45 +242,43 @@ Agora gere as recomendações usando a função emit_recommendations.`;
       },
     ];
 
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const aiResponse = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "x-api-key": ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-pro",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        tools,
-        tool_choice: { type: "function", function: { name: "emit_recommendations" } },
+        model: "claude-sonnet-4-5",
+        max_tokens: 4000,
+        system: systemPrompt,
+        messages: [{ role: "user", content: userPrompt }],
+        tools: tools.map((t) => ({
+          name: t.function.name,
+          description: t.function.description,
+          input_schema: t.function.parameters,
+        })),
+        tool_choice: { type: "tool", name: "emit_recommendations" },
       }),
     });
 
     if (!aiResponse.ok) {
       const txt = await aiResponse.text();
-      console.error("AI gateway error", aiResponse.status, txt);
+      console.error("Anthropic error", aiResponse.status, txt);
       await admin
         .from("improvement_runs")
         .update({
           status: "failed",
-          error_message: `AI gateway ${aiResponse.status}: ${txt.slice(0, 500)}`,
+          error_message: `Anthropic ${aiResponse.status}: ${txt.slice(0, 500)}`,
           completed_at: new Date().toISOString(),
         })
         .eq("id", run.id);
 
-      if (aiResponse.status === 429) {
+      if (aiResponse.status === 429 || aiResponse.status === 529) {
         return new Response(
-          JSON.stringify({ error: "Limite de requisições atingido. Tente novamente em alguns minutos." }),
+          JSON.stringify({ error: "Limite de requisições/IA sobrecarregada. Tente novamente em alguns minutos." }),
           { status: 429, headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" } },
-        );
-      }
-      if (aiResponse.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "Créditos do AI Gateway esgotados. Adicione créditos em Settings > Workspace > Usage." }),
-          { status: 402, headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" } },
         );
       }
       return new Response(JSON.stringify({ error: "Erro ao chamar IA" }), {
@@ -274,26 +288,20 @@ Agora gere as recomendações usando a função emit_recommendations.`;
     }
 
     const aiData = await aiResponse.json();
-    const toolCall = aiData?.choices?.[0]?.message?.tool_calls?.[0];
-    const argsRaw = toolCall?.function?.arguments;
-    if (!argsRaw) {
-      console.error("No tool call in AI response", JSON.stringify(aiData).slice(0, 1000));
+    const toolUse = Array.isArray(aiData?.content)
+      ? aiData.content.find((c: any) => c.type === "tool_use")
+      : null;
+    const parsed: { executive_summary: string; recommendations: any[] } | undefined = toolUse?.input;
+    if (!parsed || !Array.isArray(parsed.recommendations)) {
+      console.error("No tool_use in AI response", JSON.stringify(aiData).slice(0, 1000));
       await admin
         .from("improvement_runs")
-        .update({ status: "failed", error_message: "IA não retornou tool call", completed_at: new Date().toISOString() })
+        .update({ status: "failed", error_message: "IA não retornou tool_use", completed_at: new Date().toISOString() })
         .eq("id", run.id);
       return new Response(JSON.stringify({ error: "IA não retornou recomendações" }), {
         status: 500,
         headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" },
       });
-    }
-
-    let parsed: { executive_summary: string; recommendations: any[] };
-    try {
-      parsed = JSON.parse(argsRaw);
-    } catch (e) {
-      console.error("JSON parse error", e, argsRaw);
-      throw new Error("Falha ao interpretar resposta da IA");
     }
 
     const impactWeight: Record<string, number> = { low: 1, medium: 2, high: 3 };
