@@ -1,5 +1,7 @@
 # Project Memory
 
+> Estado vivo do projeto: ver `MEMORY.md` na raiz (atualizado 2026-06-09, @ PR #140).
+
 ## Core
 Idioma do produto: SEMPRE PT-BR (UI, emails, mensagens, toasts). Manter nomes próprios em inglês (Lovable, Supabase).
 Auth: NUNCA forçar logout/redirect antes do `getSession()` resolver. Botão "Voltar" jamais desloga. Só `signOut()` explícito desloga.
@@ -19,3 +21,4 @@ Manter `docs/CHECKPOINT-*.md` atualizado a cada milestone significativo.
 - [Ambient player](mem://features/ambient-player) — (existente)
 - [Design rules](mem://design/rules) — (existente)
 - [Manual técnico 2026-04-23](docs/MANUAL-TECNICO-2026-04-23.md) — Planta completa do sistema (14 partes)
+- [Checkpoint 2026-06-09](docs/CHECKPOINT-2026-06-09.md) — Estado do main @ PR #140: changelog #81–#140, migrations, páginas, pendências
