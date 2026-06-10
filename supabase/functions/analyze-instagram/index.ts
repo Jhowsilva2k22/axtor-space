@@ -2,6 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { captureException } from "../_shared/sentry.ts";
 
 import { corsHeadersFor } from "../_shared/cors.ts";
+import { peekCredits, consumeCredits } from "../_shared/credits.ts";
 
 const APIFY_TOKEN = Deno.env.get("APIFY_API_TOKEN")!;
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY")!;
@@ -434,6 +435,40 @@ Deno.serve(async (req) => {
       console.error("Erro ao salvar lead:", leadErr);
     }
 
+    // 1.5 Crédito: a captura (lead) já foi salva acima e NUNCA se perde.
+    // A análise por IA gasta 1 crédito do DONO do tenant. Sem saldo, não
+    // rodamos Apify/IA — mas registramos a tentativa e avisamos o dono.
+    const saldoCreditos = await peekCredits(supabase, resolvedTenantId);
+    if (saldoCreditos < 1) {
+      const { data: blockedDiag } = await supabase
+        .from("diagnostics")
+        .insert({
+          lead_id: lead?.id ?? null,
+          instagram_handle: handle,
+          status: "no_credit",
+          error_message: "Tenant sem créditos no momento",
+          tenant_id: resolvedTenantId,
+        })
+        .select()
+        .single();
+
+      // SEM CRÉDITO: o lead fica RETIDO (não entregamos o contato ao dono).
+      // O painel vai mostrar "X leads bloqueados — recarregue pra desbloquear".
+      // Isso evita dar o lead de graça e vira gatilho de recarga.
+      // (NÃO chamamos notifyLead aqui de propósito.)
+
+      return new Response(
+        JSON.stringify({
+          status: "queued",
+          handle,
+          diagnostic_id: blockedDiag?.id,
+          message:
+            "Recebemos seu contato e colocamos seu diagnóstico na fila — você recebe em breve.",
+        }),
+        { status: 200, headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" } },
+      );
+    }
+
     // 2. Scraping
     let profile: Record<string, unknown>;
     try {
@@ -548,6 +583,10 @@ Deno.serve(async (req) => {
       })
       .select()
       .single();
+
+    // 4.5 Débito do crédito — SÓ após o diagnóstico completar com sucesso.
+    // (Se Apify/IA falham, o fluxo já retornou antes daqui = não cobra.)
+    void consumeCredits(supabase, resolvedTenantId, 1, "diag_instagram", diag?.id ?? null);
 
     // 5. Notifica o dono do tenant — best-effort, não bloqueia response
     void notifyLead(resolvedTenantId, {

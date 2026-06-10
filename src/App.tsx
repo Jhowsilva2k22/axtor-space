@@ -31,6 +31,7 @@ const AdminInvites = lazy(() => import("./pages/AdminInvites.tsx"));
 const AdminLandingPartners = lazy(() => import("./pages/AdminLandingPartners.tsx"));
 const RedirectCampaign = lazy(() => import("./pages/RedirectCampaign.tsx"));
 const Landing = lazy(() => import("./pages/Landing.tsx"));
+const Vendas = lazy(() => import("./pages/Vendas.tsx"));
 const Signup = lazy(() => import("./pages/Signup.tsx"));
 const Unsubscribe = lazy(() => import("./pages/Unsubscribe.tsx"));
 const ResetSession = lazy(() => import("./pages/ResetSession.tsx"));
@@ -90,6 +91,7 @@ const App = () => (
                     <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/planos" element={<Landing />} />
+            <Route path="/vendas" element={<Vendas />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/d/:id" element={<SharePage />} />
             <Route path="/bio" element={<Bio />} />
