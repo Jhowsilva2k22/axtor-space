@@ -37,7 +37,7 @@ const RESERVED = new Set([
 ]);
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
-const ANON = process.env.VITE_SUPABASE_ANON_KEY;
+const ANON = process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 const esc = (s: string) =>
   s
