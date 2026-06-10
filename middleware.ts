@@ -66,20 +66,36 @@ export default async function middleware(request: Request): Promise<Response | u
   let headline = "";
   let avatar = "";
   try {
-    const q =
-      `${SUPABASE_URL}/rest/v1/tenants?slug=eq.${encodeURIComponent(slug)}` +
-      `&select=display_name,bio_config(display_name,headline,avatar_url)`;
-    const r = await fetch(q, {
-      headers: { apikey: ANON, authorization: `Bearer ${ANON}` },
+    // 1) Resolve o tenant pelo slug via RPC pública (anon NÃO lê a tabela direto).
+    const rpc = await fetch(`${SUPABASE_URL}/rest/v1/rpc/resolve_tenant_by_slug`, {
+      method: "POST",
+      headers: {
+        apikey: ANON,
+        authorization: `Bearer ${ANON}`,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ _slug: slug }),
     });
-    if (!r.ok) return;
-    const rows = (await r.json()) as any[];
-    const t = Array.isArray(rows) ? rows[0] : null;
-    if (!t) return; // slug não é um tenant → mantém genérico
-    const cfg = Array.isArray(t.bio_config) ? t.bio_config[0] : t.bio_config;
-    name = String(cfg?.display_name || t.display_name || "");
-    headline = String(cfg?.headline || "");
-    avatar = String(cfg?.avatar_url || "");
+    if (!rpc.ok) return;
+    const trows = (await rpc.json()) as any[];
+    const t = Array.isArray(trows) ? trows[0] : null;
+    if (!t?.id) return; // slug não é um tenant → mantém genérico
+    name = String(t.display_name || "");
+
+    // 2) bio_config do tenant (anon lê direto) → nome, headline, avatar.
+    const cfgRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/bio_config?tenant_id=eq.${t.id}&select=display_name,headline,avatar_url`,
+      { headers: { apikey: ANON, authorization: `Bearer ${ANON}` } },
+    );
+    if (cfgRes.ok) {
+      const crows = (await cfgRes.json()) as any[];
+      const cfg = Array.isArray(crows) ? crows[0] : null;
+      if (cfg) {
+        if (cfg.display_name) name = String(cfg.display_name);
+        headline = String(cfg.headline || "");
+        avatar = String(cfg.avatar_url || "");
+      }
+    }
   } catch {
     return; // qualquer falha → deixa o preview genérico
   }
