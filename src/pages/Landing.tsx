@@ -32,12 +32,12 @@ const plans: PricingPlan[] = [
       "Tudo do Free",
       "75 créditos de IA / mês",
       "Diagnóstico imersivo (1 funil)",
-      "Exportar leads · Pix/Asaas",
+      "Exportar leads (CSV)",
       'Marca "Axtor" removida',
     ],
     description: "Pra quem já capta e quer qualificar.",
     buttonText: "Assinar agora",
-    href: "/loja",
+    href: "/loja?plan=pro",
     isPopular: true,
   },
   {
@@ -54,7 +54,7 @@ const plans: PricingPlan[] = [
     ],
     description: "Pra quem trabalha com volume.",
     buttonText: "Assinar agora",
-    href: "/loja",
+    href: "/loja?plan=premium",
     isPopular: false,
   },
 ];
@@ -121,7 +121,7 @@ const faq: Array<{ q: string; a: string }> = [
   },
   {
     q: "E se eu não gostar?",
-    a: "No Free não tem risco — grátis e sem cartão. Nos pagos, reembolso em até 7 dias.",
+    a: "No Free não tem risco: grátis e sem cartão. Nos pagos, reembolso em até 7 dias.",
   },
   {
     q: "Posso receber pagamento na página?",
@@ -166,15 +166,15 @@ const Landing = () => {
 
       <main className="relative z-10">
         <HeroPaths
-          title="Sua bio que captura, qualifica e "
-          accent="converte."
-          subtitle="Reúna seus links, capture leads e qualifique cada visitante com diagnóstico por IA — numa página só, no seu domínio."
+          title="Tenha seu próprio diagnóstico de captura "
+          accent="para qualquer nicho."
+          subtitle="Um diagnóstico inteligente que captura e qualifica cada visitante, com o seu link na bio como hub. Escolha seu plano e comece hoje."
         />
 
         {/* DOR */}
         <section className="mx-auto max-w-3xl px-6 py-12">
           <p className="text-center text-lg text-muted-foreground">
-            Você posta, manda o povo pro link… e no fim do mês não tem um lead
+            Você posta, manda o lead pro link… e no fim do mês não tem um lead
             na mão.
           </p>
           <ul className="mx-auto mt-6 max-w-xl space-y-2">
@@ -191,14 +191,14 @@ const Landing = () => {
         <section className="mx-auto max-w-6xl px-6 py-16">
           <div className="mx-auto mb-12 max-w-2xl text-center">
             <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
-              Tudo numa página.{" "}
+              Da visita{" "}
               <span className="bg-gradient-to-r from-primary-glow to-primary bg-clip-text text-transparent">
-                A IA faz o resto.
+                ao lead qualificado.
               </span>
             </h2>
             <p className="mt-3 text-muted-foreground">
-              Você só usa crédito quando aciona a IA. O link-in-bio você monta
-              à vontade.
+              Seu link na bio é a entrada, o diagnóstico qualifica e o lead cai
+              na sua mão. Você só usa crédito quando aciona a IA.
             </p>
           </div>
           <BentoGrid />

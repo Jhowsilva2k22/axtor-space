@@ -18,40 +18,45 @@ interface BentoItem {
   colSpan?: number;
 }
 
+// Mesma grade/design — reordenada como uma jornada de 4 passos, com headline
+// no RESULTADO do cliente (não no nome do recurso). Sem "ilimitado".
 const items: BentoItem[] = [
   {
-    title: "Diagnóstico de Instagram",
-    meta: "tempo real",
+    title: "Todos entram num lugar só",
+    meta: "link na bio",
     description:
-      "O visitante digita o @ e recebe uma análise do perfil na hora — você captura um lead já qualificado.",
-    icon: FileSearch,
-    status: "por IA",
-    tags: ["1 crédito", "captura", "qualificação"],
+      "Sua bio com blocos, botões e páginas, no seu domínio. Você monta à vontade e só gasta crédito quando aciona a IA.",
+    icon: Link2,
+    status: "1 · entrada",
+    tags: ["bio", "seu domínio"],
     colSpan: 2,
   },
   {
-    title: "Link-in-bio",
-    description: "Blocos, botões, páginas e links sem limite. Custo zero.",
-    icon: Link2,
-    status: "ilimitado",
-    tags: ["bio", "páginas"],
-  },
-  {
-    title: "Diagnóstico imersivo",
+    title: "Saiba quem é o lead antes de falar",
+    meta: "diagnóstico de Instagram",
     description:
-      "Um funil que conduz o lead até um veredito personalizado por IA.",
-    icon: CheckCircle2,
-    status: "por lead",
-    tags: ["1 crédito/conclusão"],
+      "Ele digita o @ e recebe uma análise na hora. Você captura um lead já qualificado.",
+    icon: FileSearch,
+    status: "2 · diagnóstico",
+    tags: ["tempo real", "1 crédito"],
   },
   {
-    title: "Leads + Analytics",
-    meta: "exportável",
+    title: "Receba o lead com o veredito pronto",
+    meta: "diagnóstico imersivo",
+    description:
+      "Um funil de perguntas conduz cada pessoa até um resultado personalizado, com o contexto junto.",
+    icon: CheckCircle2,
+    status: "3 · qualifica",
+    tags: ["por conclusão", "1 crédito"],
+  },
+  {
+    title: "O lead cai na sua mão",
+    meta: "leads + analytics",
     description:
       "Veja quem chegou, de onde veio e o que converteu. Exporte em CSV e leve pro seu CRM.",
     icon: BarChart3,
-    status: "Pro+",
-    tags: ["captura", "métricas", "Pix/Asaas"],
+    status: "4 · resultado",
+    tags: ["captura", "métricas", "CSV/CRM"],
     colSpan: 2,
   },
 ];

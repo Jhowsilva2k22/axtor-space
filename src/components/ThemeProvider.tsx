@@ -29,25 +29,26 @@ export type Theme = {
   tokens: ThemeTokens;
 };
 
-// Fallback hardcoded = Gold Noir. Garante que se o banco falhar, o site continua igual.
-const GOLD_NOIR_FALLBACK: Theme = {
-  slug: "gold-noir",
-  name: "Gold Noir",
+// Fallback hardcoded = azul-copa (Brasil), o tema PADRÃO de entrada do sistema.
+// Garante que, se o banco falhar, o padrão continua sendo o azul.
+const AZUL_COPA_FALLBACK: Theme = {
+  slug: "azul-copa",
+  name: "Brasil 2026",
   is_default: true,
   tokens: {
-    brandH: 43,
-    brandS: "55%",
-    brandL: "54%",
+    brandH: 52,
+    brandS: "98%",
+    brandL: "52%",
     brandLGlow: "68%",
-    surfaceH: 30,
-    surfaceS: "12%",
-    surfaceLBg: "5%",
-    surfaceLCard: "8%",
-    surfaceLBorder: "14%",
-    fontDisplay: "Cormorant Garamond, serif",
-    fontBody: "Manrope, sans-serif",
+    surfaceH: 223,
+    surfaceS: "68%",
+    surfaceLBg: "6%",
+    surfaceLCard: "10%",
+    surfaceLBorder: "18%",
+    fontDisplay: "Plus Jakarta Sans, sans-serif",
+    fontBody: "Inter, sans-serif",
     auroraEnabled: true,
-    auroraOpacity: 0.45,
+    auroraOpacity: 0.55,
     radius: "1.5rem",
   },
 };
@@ -77,7 +78,7 @@ type Ctx = {
 };
 
 const ThemeCtx = createContext<Ctx>({
-  theme: GOLD_NOIR_FALLBACK,
+  theme: AZUL_COPA_FALLBACK,
   activeSlug: "gold-noir",
   previewSlug: null,
   setPreview: () => {},
@@ -112,10 +113,10 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const isPanelRoute = PANEL_PATHS.some((p) => location.pathname.startsWith(p));
   // Em rotas do painel usa o tenant do usuário autenticado; em rotas públicas usa o tenant da URL
   const tenant = isPanelRoute ? authTenant : urlTenant;
-  const [theme, setTheme] = useState<Theme>(GOLD_NOIR_FALLBACK);
+  const [theme, setTheme] = useState<Theme>(AZUL_COPA_FALLBACK);
   const [activeSlug, setActiveSlug] = useState<string>("gold-noir");
   const [previewSlug, setPreviewSlugState] = useState<string | null>(readPreviewSlug);
-  const lastTokensRef = useRef<ThemeTokens>(GOLD_NOIR_FALLBACK.tokens);
+  const lastTokensRef = useRef<ThemeTokens>(AZUL_COPA_FALLBACK.tokens);
 
   const setPreview = (slug: string | null) => {
     // Não persiste se vier da URL — preview de iframe é volátil
@@ -144,7 +145,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
           .select("active_theme_slug")
           .eq("tenant_id", tenant.id)
           .maybeSingle();
-        const liveSlug = (cfg as any)?.active_theme_slug ?? "gold-noir";
+        const liveSlug = (cfg as any)?.active_theme_slug ?? "azul-copa";
         if (!cancelled) setActiveSlug(liveSlug);
 
         const slugToLoad = previewSlug ?? liveSlug;
@@ -160,13 +161,13 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
           lastTokensRef.current = next.tokens;
           applyThemeTokens(next.tokens);
         } else if (!cancelled) {
-          lastTokensRef.current = GOLD_NOIR_FALLBACK.tokens;
-          applyThemeTokens(GOLD_NOIR_FALLBACK.tokens);
+          lastTokensRef.current = AZUL_COPA_FALLBACK.tokens;
+          applyThemeTokens(AZUL_COPA_FALLBACK.tokens);
         }
       } catch {
         if (!cancelled) {
-          lastTokensRef.current = GOLD_NOIR_FALLBACK.tokens;
-          applyThemeTokens(GOLD_NOIR_FALLBACK.tokens);
+          lastTokensRef.current = AZUL_COPA_FALLBACK.tokens;
+          applyThemeTokens(AZUL_COPA_FALLBACK.tokens);
         }
       }
     })();

@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCurrentTenant } from "@/hooks/useCurrentTenant";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { BGPattern } from "@/components/BGPattern";
 
 type Subscription = {
   plan_slug: string;
@@ -220,7 +221,8 @@ const PainelConfiguracoes = () => {
   };
 
   return (
-    <div className="relative min-h-screen bg-background grain">
+    <div className="relative isolate min-h-screen bg-background grain">
+      <BGPattern />
       <div className="aurora-a" />
       <div className="aurora-b" />
 

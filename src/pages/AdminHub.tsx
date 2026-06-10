@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Navigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { BGPattern } from "@/components/BGPattern";
 import {
   LayoutDashboard,
   Users,
@@ -631,7 +632,8 @@ export default function AdminHub() {
   void ActiveModule; // satisfaz TS
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white flex flex-col">
+    <div className="relative isolate min-h-screen bg-zinc-950 text-white flex flex-col">
+      <BGPattern />
       {/* header */}
       <header className="border-b border-zinc-800 bg-zinc-900/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-4">

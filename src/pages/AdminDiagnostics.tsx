@@ -3,6 +3,7 @@ import { Link, Navigate } from "react-router-dom";
 import { Loader2, Trash2, Download, RefreshCw, ArrowLeft, ShieldAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { BGPattern } from "@/components/BGPattern";
 import { Button } from "@/components/ui/button";
 import { useAdminLockedTheme } from "@/components/ThemeToggle";
 import { readLocalErrors, clearLocalErrors, type LoggedError } from "@/lib/errorLogger";
@@ -106,7 +107,8 @@ const AdminDiagnostics = () => {
   };
 
   return (
-    <div className="min-h-screen px-6 py-8">
+    <div className="relative isolate min-h-screen px-6 py-8">
+      <BGPattern />
       <div className="mx-auto max-w-5xl space-y-8">
         <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
           <div>

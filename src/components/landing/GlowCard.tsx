@@ -7,9 +7,15 @@ import { cn } from "@/lib/utils";
  * global (não um por card) — as vars ficam no <html> e os cards herdam.
  */
 
+// Só ativa em dispositivos com mouse (pointer: fine). No touch/mobile o efeito
+// não faz sentido (sem hover) e evita paint/bateria à toa.
+const supportsGlow = () =>
+  typeof window !== "undefined" &&
+  (!window.matchMedia || window.matchMedia("(pointer: fine)").matches);
+
 let pointerBound = false;
 function bindPointerOnce() {
-  if (pointerBound || typeof window === "undefined") return;
+  if (pointerBound || !supportsGlow()) return;
   pointerBound = true;
   const root = document.documentElement;
   window.addEventListener(
@@ -73,12 +79,24 @@ const GLOW_CSS = `
 `;
 let styleInjected = false;
 function injectStyleOnce() {
-  if (styleInjected || typeof document === "undefined") return;
+  if (styleInjected || typeof document === "undefined" || !supportsGlow()) return;
   styleInjected = true;
   const s = document.createElement("style");
   s.setAttribute("data-glow-style", "");
   s.textContent = GLOW_CSS;
   document.head.appendChild(s);
+}
+
+/**
+ * Hook pra ativar o efeito de brilho (borda que segue o mouse) em qualquer
+ * elemento marcado com `data-glow`, mesmo fora de um GlowCard. Injeta o CSS e
+ * registra o listener global uma única vez.
+ */
+export function useGlowEffect() {
+  useEffect(() => {
+    injectStyleOnce();
+    bindPointerOnce();
+  }, []);
 }
 
 export function GlowCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {

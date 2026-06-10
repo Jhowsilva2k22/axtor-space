@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TenantSelector } from "@/components/TenantSelector";
+import { BGPattern } from "@/components/BGPattern";
 import { useAuth } from "@/hooks/useAuth";
 import { useCurrentTenant } from "@/hooks/useCurrentTenant";
 import { useCanAccessTab } from "@/hooks/useCanAccessTab";
@@ -186,8 +187,9 @@ export default function Painel() {
   const planLabel = isAdmin ? "Dono" : PLAN_LABELS[current.plan] ?? current.plan;
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="mx-auto max-w-6xl px-6 py-8">
+    <div className="relative isolate min-h-screen bg-background">
+      <BGPattern />
+      <div className="relative mx-auto max-w-6xl px-6 py-8">
         <header className="mb-8 flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
@@ -596,9 +598,4 @@ const DeepDiagnosticTabPanel = () => {
     <FunnelListView
       funnels={funnels}
       onNew={() => setView("briefing")}
-      onEdit={(funnelId) => { setActiveFunnelId(funnelId); setView("review"); }}
-      onEditBriefing={handleEditBriefing}
-      onDelete={handleDelete}
-    />
-  );
-};
+      onEdit={(funnelId) => { setActiveFunnelId(funnelId); setView("review

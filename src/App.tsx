@@ -11,6 +11,7 @@ import { CurrentTenantProvider } from "@/hooks/useCurrentTenant";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AppErrorBoundary } from "@/components/AppErrorBoundary";
 import { ScrollLockGuard } from "@/components/ScrollLockGuard";
+import { useGlowEffect } from "./components/landing/GlowCard";
 
 // Eager: rotas mais visitadas (entry points públicos)
 import Index from "./pages/Index.tsx";
@@ -74,6 +75,13 @@ const PathNormalizer = () => {
   return null;
 };
 
+// Liga o efeito de brilho (borda seguindo o mouse) pra qualquer elemento com
+// `data-glow` no app inteiro — uma vez só, e só em quem tem mouse.
+const GlowInit = () => {
+  useGlowEffect();
+  return null;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -81,6 +89,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <PathNormalizer />
+        <GlowInit />
         <AuthProvider>
           <TenantProvider>
             <CurrentTenantProvider>

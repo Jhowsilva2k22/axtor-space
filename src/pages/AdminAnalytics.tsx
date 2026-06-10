@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { BGPattern } from "@/components/BGPattern";
 import { useCurrentTenant } from "@/hooks/useCurrentTenant";
 import { Button } from "@/components/ui/button";
 import { useAdminLockedTheme } from "@/components/ThemeToggle";
@@ -199,7 +200,8 @@ const AdminAnalytics = () => {
   if (!user) return <Navigate to="/admin/login" replace />;
 
   return (
-    <div className="relative min-h-screen overflow-hidden grain">
+    <div className="relative isolate min-h-screen overflow-hidden grain">
+      <BGPattern />
       <div className="pointer-events-none absolute -top-40 left-1/2 h-[600px] w-[800px] -translate-x-1/2 rounded-full bg-primary/10 blur-[120px]" />
 
       <header className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-6 py-6">

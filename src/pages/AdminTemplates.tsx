@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { BGPattern } from "@/components/BGPattern";
 import { type ThemeTokens } from "@/components/ThemeProvider";
 import { useAdminLockedTheme } from "@/components/ThemeToggle";
 import { TenantSelector } from "@/components/TenantSelector";
@@ -99,7 +100,8 @@ const AdminTemplates = () => {
   const previewUrl = selectedSlug ? `/bio?preview=${encodeURIComponent(selectedSlug)}` : "/bio";
 
   return (
-    <div className="relative min-h-screen overflow-hidden grain">
+    <div className="relative isolate min-h-screen overflow-hidden grain">
+      <BGPattern />
       <div className="aurora-a" />
       <div className="aurora-b" />
       <div className="relative z-10 mx-auto max-w-7xl px-6 py-12">

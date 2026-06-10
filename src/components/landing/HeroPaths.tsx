@@ -14,27 +14,36 @@ interface HeroPathsProps {
  * Adaptado do componente BackgroundPaths para a marca Axtor (gold-noir).
  */
 export function HeroPaths({ title, accent, subtitle }: HeroPathsProps) {
-  const renderLetters = (text: string, isAccent: boolean, offset: number) =>
-    Array.from(text).map((char, i) => (
-      <motion.span
-        key={`${isAccent ? "a" : "n"}-${i}`}
-        initial={{ y: "0.5em", opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{
-          delay: 0.4 + (offset + i) * 0.028,
-          type: "spring",
-          stiffness: 150,
-          damping: 25,
-        }}
-        className={
-          isAccent
-            ? "inline-block bg-gradient-to-r from-primary-glow to-primary bg-clip-text text-transparent"
-            : "inline-block bg-gradient-to-b from-white to-white/80 bg-clip-text text-transparent"
-        }
-      >
-        {char === " " ? " " : char}
-      </motion.span>
-    ));
+  // Anima letra por letra, mas agrupa por PALAVRA (whitespace-nowrap) pra
+  // nenhuma palavra quebrar no meio. Mantém o índice global pra cadência.
+  const renderLetters = (text: string, isAccent: boolean, offset: number) => {
+    let idx = offset;
+    const charClass = isAccent
+      ? "inline-block pb-[0.16em] bg-gradient-to-r from-primary-glow to-primary bg-clip-text text-transparent"
+      : "inline-block pb-[0.16em] bg-gradient-to-b from-white to-white/80 bg-clip-text text-transparent";
+    return text.split(/(\s+)/).map((token, ti) => {
+      if (token === "" ) return null;
+      if (/^\s+$/.test(token)) return <span key={`${isAccent ? "a" : "n"}-sp-${ti}`}> </span>;
+      return (
+        <span key={`${isAccent ? "a" : "n"}-w-${ti}`} className="inline-block whitespace-nowrap">
+          {Array.from(token).map((char) => {
+            const i = idx++;
+            return (
+              <motion.span
+                key={i}
+                initial={{ y: "0.5em", opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.4 + i * 0.028, type: "spring", stiffness: 150, damping: 25 }}
+                className={charClass}
+              >
+                {char}
+              </motion.span>
+            );
+          })}
+        </span>
+      );
+    });
+  };
 
   return (
     <section className="relative z-10 mx-auto max-w-3xl px-6 pb-16 pt-24 text-center">
@@ -48,7 +57,7 @@ export function HeroPaths({ title, accent, subtitle }: HeroPathsProps) {
         Link na bio com diagnóstico por IA
       </motion.div>
 
-      <h1 className="mx-auto mb-6 max-w-[18ch] text-5xl font-extrabold leading-[1.02] tracking-tight sm:text-6xl md:text-7xl">
+      <h1 className="mx-auto mb-6 max-w-[18ch] pb-[0.1em] text-5xl font-extrabold leading-[1.12] tracking-tight sm:text-6xl md:text-7xl">
         {renderLetters(title, false, 0)}
         {renderLetters(accent, true, title.length)}
       </h1>
