@@ -2,6 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { captureException } from "../_shared/sentry.ts";
 
 import { corsHeadersFor } from "../_shared/cors.ts";
+import { peekCredits, consumeCredits } from "../_shared/credits.ts";
 
 const SYSTEM_PROMPT_QUIZ = `Você é especialista em funis de vendas de alta conversão e diagnóstico de negócios digitais.
 Seu trabalho: a partir de um briefing profundo do dono de um negócio (criador, coach, infoprodutor, agência, mentor, etc),
@@ -217,6 +218,15 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Crédito: gerar funil custa 6 do dono. (Contas internas têm cota gigante.)
+    const saldoGeracao = await peekCredits(admin, tenant_id);
+    if (saldoGeracao < 6) {
+      return new Response(JSON.stringify({ error: "no_credits", needed: 6, balance: saldoGeracao }), {
+        status: 402,
+        headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" },
+      });
+    }
+
     // Chama Claude em paralelo: quiz e produtos simultaneamente (~55s vs ~100s serial)
     const briefingMsg = `Briefing do dono:\n\n${JSON.stringify(briefing, null, 2)}`;
     const anthropicHeaders = {
@@ -312,6 +322,9 @@ Deno.serve(async (req) => {
         headers: { ...corsHeadersFor(req.headers.get("origin")), "Content-Type": "application/json" },
       });
     }
+
+    // IA gerou o funil com sucesso → debita 6 créditos do dono.
+    void consumeCredits(admin, tenant_id, 6, "funnel_generation", funnel_id ?? null);
 
     const quizArgs = quizBlock.input;
     const rawProducts: any[] = Array.isArray(productsBlock?.input?.products)

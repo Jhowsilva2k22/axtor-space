@@ -13,16 +13,17 @@ All colors MUST be HSL.
        Templates futuros sobrescrevem APENAS estas variáveis.
        Os tokens semânticos abaixo derivam destas.
        ============================================ */
-    --brand-h: 43;
-    --brand-s: 55%;
-    --brand-l: 54%;
-    --brand-l-glow: 70%;
+    /* Padrão de entrada = azul-copa (Brasil). Primeiro paint já azul (sem flash). */
+    --brand-h: 52;
+    --brand-s: 98%;
+    --brand-l: 52%;
+    --brand-l-glow: 68%;
     --brand-l-deep: 18%;
 
-    --surface-h: 0;
-    --surface-s: 0%;
-    --surface-l-bg: 5%;
-    --surface-l-card: 8%;
+    --surface-h: 223;
+    --surface-s: 68%;
+    --surface-l-bg: 6%;
+    --surface-l-card: 10%;
     --surface-l-popover: 6%;
     --surface-l-secondary: 12%;
     --surface-l-muted: 14%;
@@ -334,6 +335,19 @@ All colors MUST be HSL.
   }
   .animate-pulse-soft {
     animation: pulse-soft 3s ease-in-out infinite;
+  }
+
+  /* Pulsar forte — destaca card de posicionamento/seleção (borda + glow dourado) */
+  @keyframes pulse-glow-strong {
+    0%, 100% {
+      box-shadow: 0 0 0 1px hsl(var(--primary) / 0.30), 0 0 22px -6px hsl(var(--primary) / 0.35);
+    }
+    50% {
+      box-shadow: 0 0 0 1px hsl(var(--primary) / 0.70), 0 0 52px -4px hsl(var(--primary) / 0.65);
+    }
+  }
+  .animate-pulse-glow-strong {
+    animation: pulse-glow-strong 2.2s ease-in-out infinite;
   }
 
   /* Premium button: gold gradient + shimmer sweep + lift */

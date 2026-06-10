@@ -11,6 +11,7 @@ import { CurrentTenantProvider } from "@/hooks/useCurrentTenant";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AppErrorBoundary } from "@/components/AppErrorBoundary";
 import { ScrollLockGuard } from "@/components/ScrollLockGuard";
+import { useGlowEffect } from "./components/landing/GlowCard";
 
 // Eager: rotas mais visitadas (entry points públicos)
 import Index from "./pages/Index.tsx";
@@ -31,6 +32,7 @@ const AdminInvites = lazy(() => import("./pages/AdminInvites.tsx"));
 const AdminLandingPartners = lazy(() => import("./pages/AdminLandingPartners.tsx"));
 const RedirectCampaign = lazy(() => import("./pages/RedirectCampaign.tsx"));
 const Landing = lazy(() => import("./pages/Landing.tsx"));
+const Vendas = lazy(() => import("./pages/Vendas.tsx"));
 const Signup = lazy(() => import("./pages/Signup.tsx"));
 const Unsubscribe = lazy(() => import("./pages/Unsubscribe.tsx"));
 const ResetSession = lazy(() => import("./pages/ResetSession.tsx"));
@@ -73,6 +75,13 @@ const PathNormalizer = () => {
   return null;
 };
 
+// Liga o efeito de brilho (borda seguindo o mouse) pra qualquer elemento com
+// `data-glow` no app inteiro — uma vez só, e só em quem tem mouse.
+const GlowInit = () => {
+  useGlowEffect();
+  return null;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -80,6 +89,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <PathNormalizer />
+        <GlowInit />
         <AuthProvider>
           <TenantProvider>
             <CurrentTenantProvider>
@@ -90,6 +100,7 @@ const App = () => (
                     <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/planos" element={<Landing />} />
+            <Route path="/vendas" element={<Vendas />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/d/:id" element={<SharePage />} />
             <Route path="/bio" element={<Bio />} />

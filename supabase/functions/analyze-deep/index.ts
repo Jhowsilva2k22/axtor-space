@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 import { corsHeadersFor } from "../_shared/cors.ts";
+import { peekCredits, consumeCredits } from "../_shared/credits.ts";
 
 const SYSTEM_PROMPT = `Você é consultor sênior de negócios digitais. Sua tarefa: escrever um VEREDICT PERSUASIVO em PT-BR (180-260 palavras) baseado nas respostas REAIS do lead ao quiz, no briefing do dono do negócio e nos produtos disponíveis.
 
@@ -342,7 +343,11 @@ Lead: ${lead_name || "anônimo"} @${instagram_handle || "—"}
 
 Gere o veredict persuasivo agora.`;
 
-    const aiResp = await fetch("https://api.anthropic.com/v1/messages", {
+    // Crédito: conclusão do imersivo gasta 1 do dono. Sem saldo, pula a IA
+    // e cai no veredict-template (fallback) — o lead NÃO fica sem resposta e
+    // o dono é notificado, mas não gastamos IA.
+    const temCreditoConclusao = (await peekCredits(admin, funnel.tenant_id ?? "")) >= 1;
+    const aiResp = temCreditoConclusao ? await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
         "x-api-key": ANTHROPIC_API_KEY,
@@ -357,9 +362,9 @@ Gere o veredict persuasivo agora.`;
         tools: TOOLS_ANTHROPIC,
         tool_choice: { type: "tool", name: "deliver_veredict" },
       }),
-    });
+    }) : null;
 
-    if (!aiResp.ok) {
+    if (!aiResp || !aiResp.ok) {
       const txt = await aiResp.text();
       console.error("AI error:", aiResp.status, txt);
       const fallback = pickBestProduct(products, pain_scores);
@@ -384,7 +389,7 @@ Gere o veredict persuasivo agora.`;
           pain_detected: dominantPain,
           recommended_product_id: fallback.id,
           ai_veredict: veredict,
-          status: "completed",
+          status: temCreditoConclusao ? "completed" : "no_credit",
           utm_source,
           utm_medium,
           utm_campaign,
@@ -392,20 +397,23 @@ Gere o veredict persuasivo agora.`;
         .select("id")
         .single();
 
-      // Notifica o dono do tenant — best-effort
-      void notifyLead(funnel.tenant_id ?? null, {
-        source: "imersivo",
-        tenant_id: funnel.tenant_id ?? null,
-        lead_name: lead_name ?? null,
-        lead_email: lead_email ?? null,
-        lead_phone: lead_phone ?? null,
-        instagram_handle: instagram_handle ?? null,
-        diagnostic_id: saved?.id ?? null,
-        pain_detected: dominantPain,
-        recommended_product: fallback.name,
-        veredict: veredict.split(".")[0]?.trim() ?? null,
-        created_at: new Date().toISOString(),
-      }, SUPABASE_URL, SERVICE_KEY);
+      // Só entrega o lead ao dono se ele TINHA crédito (IA falhou de verdade).
+      // Sem crédito = lead retido (não notifica) → vira gatilho de recarga.
+      if (temCreditoConclusao) {
+        void notifyLead(funnel.tenant_id ?? null, {
+          source: "imersivo",
+          tenant_id: funnel.tenant_id ?? null,
+          lead_name: lead_name ?? null,
+          lead_email: lead_email ?? null,
+          lead_phone: lead_phone ?? null,
+          instagram_handle: instagram_handle ?? null,
+          diagnostic_id: saved?.id ?? null,
+          pain_detected: dominantPain,
+          recommended_product: fallback.name,
+          veredict: veredict.split(".")[0]?.trim() ?? null,
+          created_at: new Date().toISOString(),
+        }, SUPABASE_URL, SERVICE_KEY);
+      }
 
       return new Response(
         JSON.stringify({
@@ -476,6 +484,9 @@ Gere o veredict persuasivo agora.`;
       })
       .select("id")
       .single();
+
+    // Débito de 1 crédito — só aqui (IA concluiu com sucesso).
+    void consumeCredits(admin, funnel.tenant_id ?? "", 1, "funnel_conclusion", saved?.id ?? null);
 
     // Notifica o dono do tenant — best-effort, não bloqueia response
     void notifyLead(funnel.tenant_id ?? null, {

@@ -1,22 +1,36 @@
 import { useState, FormEvent } from "react";
-import { Navigate, useNavigate, Link } from "react-router-dom";
+import { Navigate, useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Lock, Loader2, RotateCcw, Eye, EyeOff } from "lucide-react";
-import { useAdminLockedTheme } from "@/components/ThemeToggle";
+import { useBrasilLockedTheme } from "@/components/ThemeToggle";
+import { DottedSurface } from "@/components/landing/DottedSurface";
 
 const AdminLogin = () => {
   const { user, isAdmin, loading, signIn } = useAuth();
-  useAdminLockedTheme();
+  useBrasilLockedTheme();
   const nav = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [resetting, setResetting] = useState(false);
+
+  // Preserva a intenção (ex: voltar pro /loja?plan=premium). Só aceita caminho
+  // interno (começa com "/" e não "//") pra evitar open-redirect.
+  const [searchParams] = useSearchParams();
+  const rawRedirect = searchParams.get("redirect");
+  const redirectTo =
+    rawRedirect && rawRedirect.startsWith("/") && !rawRedirect.startsWith("//")
+      ? rawRedirect
+      : "/painel";
+  const signupHref =
+    redirectTo !== "/painel"
+      ? `/signup?redirect=${encodeURIComponent(redirectTo)}`
+      : "/signup";
 
   const resetSession = async () => {
     setResetting(true);
@@ -51,7 +65,7 @@ const AdminLogin = () => {
     );
   }
   // Qualquer usuário logado (admin ou tenant owner) vai pro painel.
-  if (user) return <Navigate to="/painel" replace />;
+  if (user) return <Navigate to={redirectTo} replace />;
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -63,14 +77,23 @@ const AdminLogin = () => {
       return;
     }
     toast.success("Bem-vindo");
-    nav("/painel", { replace: true });
+    nav(redirectTo, { replace: true });
   };
 
   return (
     <div className="relative flex min-h-screen items-center justify-center px-6 grain overflow-x-hidden">
-      <div className="aurora-a" />
-      <div className="aurora-b" />
-      <form onSubmit={onSubmit} className="relative z-10 w-full max-w-sm rounded-[32px] border border-gold/20 bg-card/40 p-10 shadow-2xl backdrop-blur-xl">
+      {/* Fundo azul-marinho (tema) atrás da malha, pra não puxar o marrom do tema admin */}
+      <div
+        className="pointer-events-none fixed inset-0 -z-20"
+        style={{ background: "radial-gradient(ellipse at top, hsl(223 68% 12%), hsl(223 68% 4%))" }}
+      />
+      <DottedSurface />
+      <form
+        onSubmit={onSubmit}
+        data-glow
+        style={{ ["--glow-radius" as string]: "32" } as React.CSSProperties}
+        className="relative z-10 w-full max-w-sm rounded-[32px] border border-gold/20 bg-card/40 p-10 shadow-2xl backdrop-blur-xl"
+      >
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-gold/30 bg-gradient-gold-soft shadow-gold/20 shadow-lg">
           <Lock className="h-6 w-6 text-primary" />
         </div>
@@ -109,7 +132,7 @@ const AdminLogin = () => {
         </div>
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          Ainda não tem conta? <Link to="/signup" className="font-bold text-gold hover:underline">Criar grátis</Link>
+          Ainda não tem conta? <Link to={signupHref} className="font-bold text-gold hover:underline">Criar grátis</Link>
         </p>
 
         <div className="mt-8 border-t border-gold/10 pt-6">

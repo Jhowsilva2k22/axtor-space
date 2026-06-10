@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Loader2, Sparkles, Check, X, ExternalLink, Copy, Gift, Eye, EyeOff } from "lucide-react";
-import { useAdminLockedTheme } from "@/components/ThemeToggle";
+import { useBrasilLockedTheme } from "@/components/ThemeToggle";
 import { PublicFooter } from "@/components/PublicFooter";
 import { savePendingSignup, clearPendingSignup } from "@/lib/pendingSignup";
 
@@ -42,13 +42,19 @@ const INVITE_REASONS: Record<string, string> = {
 type Created = { tenant_id: string; slug: string; url: string };
 
 const Signup = () => {
-  useAdminLockedTheme();
+  useBrasilLockedTheme();
   const { user, loading: authLoading } = useAuth();
   const { refresh } = useCurrentTenant();
   const nav = useNavigate();
   const [searchParams] = useSearchParams();
   const initialInvite = (searchParams.get("invite") || "").toUpperCase();
   const initialEmail = searchParams.get("email") || "";
+  // Destino pós-cadastro/confirmação (ex: /loja?plan=premium). Só caminho interno.
+  const rawRedirect = searchParams.get("redirect");
+  const redirectTo =
+    rawRedirect && rawRedirect.startsWith("/") && !rawRedirect.startsWith("//")
+      ? rawRedirect
+      : "/painel";
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState(initialEmail);
@@ -115,7 +121,7 @@ const Signup = () => {
       </div>
     );
   }
-  if (user && !created) return <Navigate to="/painel" replace />;
+  if (user && !created) return <Navigate to={redirectTo} replace />;
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -142,7 +148,7 @@ const Signup = () => {
       email: email.trim().toLowerCase(),
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/painel`,
+        emailRedirectTo: `${window.location.origin}${redirectTo}`,
         data: { full_name: name.trim() },
       },
     });
@@ -247,7 +253,7 @@ const Signup = () => {
           </button>
           <div className="mt-10 grid grid-cols-2 gap-3">
             <Button asChild className="btn-luxe h-12 rounded-full text-xs font-bold uppercase tracking-[0.2em]">
-              <button onClick={() => nav("/painel")}>Ir pro painel</button>
+              <button onClick={() => nav(redirectTo)}>Ir pro painel</button>
             </Button>
             <Button asChild variant="outline" className="h-12 rounded-full border-gold/30 bg-card/40 text-xs font-bold uppercase tracking-[0.2em] transition-all hover:shadow-gold/20 hover:shadow-lg">
               <a href={created.url} target="_blank" rel="noopener noreferrer">
@@ -378,7 +384,7 @@ const Signup = () => {
         </Button>
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          Já tem conta? <Link to="/admin/login" className="font-bold text-gold hover:underline">Entrar</Link>
+          Já tem conta? <Link to={redirectTo !== "/painel" ? `/admin/login?redirect=${encodeURIComponent(redirectTo)}` : "/admin/login"} className="font-bold text-gold hover:underline">Entrar</Link>
         </p>
       </form>
       <PublicFooter />

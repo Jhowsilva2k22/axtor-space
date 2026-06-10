@@ -2,6 +2,7 @@ import { useEffect, useState, FormEvent } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { BGPattern } from "@/components/BGPattern";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -144,7 +145,8 @@ const AdminLandingPartners = () => {
   };
 
   return (
-    <div className="relative min-h-screen grain overflow-x-hidden">
+    <div className="relative isolate min-h-screen grain overflow-x-hidden">
+      <BGPattern />
       <div className="aurora-a" />
       <div className="aurora-b" />
       <header className="relative z-10 mx-auto flex max-w-5xl items-center justify-between px-6 py-10">

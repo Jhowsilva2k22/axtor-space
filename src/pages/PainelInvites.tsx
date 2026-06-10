@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { BGPattern } from "@/components/BGPattern";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
@@ -253,7 +254,8 @@ const PainelInvites = () => {
   const filtered = items.filter(i => filter === "all" ? true : i.type === filter);
 
   return (
-    <div className="relative min-h-screen bg-background grain">
+    <div className="relative isolate min-h-screen bg-background grain">
+      <BGPattern />
       <div className="aurora-a" />
       <div className="relative z-10 mx-auto max-w-5xl px-6 py-10">
         <div className="mb-8 flex items-center justify-between">
