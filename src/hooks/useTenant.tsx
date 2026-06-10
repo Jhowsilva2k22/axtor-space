@@ -19,7 +19,7 @@ type TenantCtx = {
 const Ctx = createContext<TenantCtx>({ tenant: null, loading: true, error: null });
 
 // Tenant default (joanderson) — usado quando não há subdomínio nem ?tenant=
-const DEFAULT_TENANT_SLUG = "joanderson";
+const DEFAULT_TENANT_SLUG = "axtor-labs";
 
 const ROOT_DOMAINS = ["axtor.space", "www.axtor.space", "lovable.app", "lovable.dev"];
 const PREVIEW_HOST_PATTERNS = [/^id-preview--/, /\.lovable\.app$/, /\.lovableproject\.com$/];
@@ -49,6 +49,7 @@ const RESERVED_PATHS = new Set([
   "bem-vindo",
   "planos",
   "vendas",
+  "diagnostico",
   "signup",
   "obrigado",
   "privacidade",

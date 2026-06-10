@@ -98,9 +98,10 @@ const App = () => (
                   <ScrollLockGuard />
                   <Suspense fallback={<RouteFallback />}>
                     <Routes>
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<Vendas />} />
             <Route path="/planos" element={<Landing />} />
             <Route path="/vendas" element={<Vendas />} />
+            <Route path="/diagnostico" element={<Index />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/d/:id" element={<SharePage />} />
             <Route path="/bio" element={<Bio />} />
