@@ -48,6 +48,8 @@ const RESERVED_PATHS = new Set([
   "loja",
   "bem-vindo",
   "planos",
+  "vendas",
+  "signup",
   "obrigado",
   "privacidade",
   "privacy",

@@ -241,7 +241,8 @@ export const BioHeaderEditorStandalone = ({
       <ImageCropDialog
         file={pendingAvatarFile}
         aspect={1}
-        cropShape="round"
+        cropShape="rect"
+        cropRadius="16%"
         title="Ajustar foto de perfil"
         onConfirm={async (blob) => {
           setPendingAvatarFile(null);
