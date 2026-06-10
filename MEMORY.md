@@ -108,6 +108,24 @@ RLS sempre ativa. Sem emoji em UI, sem visual de chatbot.
   · A3 texto migrado p/ Anthropic (#145) · A3 imagem desativada (#146)
   · deps: npm audit fix, 0 vulnerabilidades (#147) · build Vite 8 verde.
 
+## Prioridade do próximo chat (ERROS/RISCOS primeiro, depois features)
+
+PRIORIDADE 1 — erros e riscos (resolver antes de tudo):
+1. SEGURANÇA: repo é PÚBLICO. Checar se `.env` real já esteve no histórico do git;
+   se esteve, ROTACIONAR chaves (service_role Supabase, Anthropic, Asaas). Mergear
+   o PR #150 (untrack `.env` + `.env.example`). Fechar #160 (duplicado). Apagar
+   branch `fix/og-rpc`.
+2. INTEGRIDADE LOCAL: rodar `git status` no Windows e confirmar working tree limpa
+   — checar se nada de real se perdeu no `git reset --hard` de ontem (havia ~16
+   arquivos "modified", provavelmente só ruído de CRLF, mas CONFIRMAR).
+3. OG real: testar o preview num WhatsApp de verdade; usar o depurador do Facebook
+   ("Scrape Again") nos links já compartilhados (cache do WhatsApp).
+4. Mobile: conferir telas novas (vendas, planos, loja, bio) — possíveis quebras.
+
+PRIORIDADE 2 — features e pendências antigas:
+- Fase 4 (frontend de créditos), Etapa B (guest checkout), confirmar tema do
+  `axtor-labs`, M2 (leaked password protection), A4 (logos de email).
+
 ## Pendências conhecidas
 
 - Fase 4 (frontend de créditos): card de saldo, modal de bloqueio quando zera,
