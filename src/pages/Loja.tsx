@@ -277,4 +277,87 @@ const Loja = () => {
               {addons.length === 0 ? (
                 <Card className="mt-5 p-6 text-center text-sm text-muted-foreground">
                   Nenhum pacote disponível no momento.
-                </Ca
+                </Card>
+              ) : (
+                <div className="mt-5 grid gap-4 md:grid-cols-3">
+                  {addons.map((addon) => {
+                    const needsUpgradeFirst = addon.requires_plan === "pro" && !isAlreadyPro;
+                    const includedInPlan = addon.requires_plan === "pro" && isAlreadyPro;
+                    return (
+                      <Card
+                        key={addon.slug}
+                        data-glow
+                        style={{ ["--glow-radius" as string]: "24" } as React.CSSProperties}
+                        className="relative p-6"
+                      >
+                        <h3 className="font-display text-xl">{addon.name}</h3>
+                        <p className="mt-1 text-xs text-muted-foreground">{addon.description}</p>
+                        <p className="mt-3 font-display text-2xl text-primary">
+                          {addon.price_brl.toLocaleString("pt-BR", {
+                            style: "currency",
+                            currency: "BRL",
+                          })}
+                        </p>
+                        {includedInPlan ? (
+                          <p className="mt-4 text-center text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                            Incluído no seu plano
+                          </p>
+                        ) : (
+                          <Button
+                            className="mt-4 w-full"
+                            variant="outline"
+                            disabled={checkout.isPending}
+                            onClick={() => {
+                              if (needsUpgradeFirst) {
+                                if (
+                                  confirm(
+                                    `${addon.name} precisa do plano Pro mensal. Comprar Pro + pacote juntos?`,
+                                  )
+                                ) {
+                                  buy({ planSlug: "pro", addonSlug: addon.slug });
+                                }
+                              } else {
+                                buy({ addonSlug: addon.slug });
+                              }
+                            }}
+                          >
+                            {checkout.isPending
+                              ? "Gerando…"
+                              : needsUpgradeFirst
+                                ? "Comprar com Pro"
+                                : "Comprar com Pix"}
+                          </Button>
+                        )}
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+          </div>
+        )}
+      </div>
+
+      <PaymentDataModal
+        open={dataModalOpen}
+        onOpenChange={(v) => {
+          setDataModalOpen(v);
+          if (!v) setPendingPurchase(null);
+        }}
+        defaultName={current.display_name ?? ""}
+        defaultEmail={user.email ?? ""}
+        loading={checkout.isPending}
+        onSubmit={handlePaymentSubmit}
+      />
+
+      <PixCheckoutModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        data={paymentData}
+        loading={checkout.isPending && !paymentData}
+      />
+    </div>
+  );
+};
+
+export default Loja;

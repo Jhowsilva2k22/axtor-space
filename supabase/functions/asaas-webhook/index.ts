@@ -139,4 +139,34 @@ Deno.serve(async (req) => {
           const { error: topupErr } = await supabase.rpc("add_topup_credits", {
             p_tenant: a.tenant_id,
             p_amount: grants,
-  
+            p_ref: paymentId,
+          });
+          if (topupErr) console.error("[asaas-webhook] add_topup_credits falhou", topupErr);
+        }
+      }
+    } else if (!subRow) {
+      // Nem sub nem addon — pagamento órfão
+      console.warn("[asaas-webhook] payment %s sem subscription nem addon", paymentId);
+    }
+  } else if (event === "PAYMENT_OVERDUE") {
+    await supabase
+      .from("tenant_subscriptions")
+      .update({ status: "past_due" })
+      .eq("gateway_subscription_id", paymentId);
+    await supabase
+      .from("tenant_addons")
+      .update({ status: "pending" })
+      .eq("gateway_payment_id", paymentId);
+  } else if (event === "PAYMENT_REFUNDED" || event === "PAYMENT_DELETED") {
+    await supabase
+      .from("tenant_subscriptions")
+      .update({ status: "canceled" })
+      .eq("gateway_subscription_id", paymentId);
+    await supabase
+      .from("tenant_addons")
+      .update({ status: "refunded" })
+      .eq("gateway_payment_id", paymentId);
+  }
+
+  return okResponse();
+});

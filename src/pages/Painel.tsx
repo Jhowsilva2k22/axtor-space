@@ -598,4 +598,9 @@ const DeepDiagnosticTabPanel = () => {
     <FunnelListView
       funnels={funnels}
       onNew={() => setView("briefing")}
-      onEdit={(funnelId) => { setActiveFunnelId(funnelId); setView("review
+      onEdit={(funnelId) => { setActiveFunnelId(funnelId); setView("review"); }}
+      onEditBriefing={handleEditBriefing}
+      onDelete={handleDelete}
+    />
+  );
+};
