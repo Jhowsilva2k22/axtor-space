@@ -107,6 +107,11 @@ Deno.serve(async (req) => {
           .from("tenants")
           .update({ plan: subRow.plan_slug })
           .eq("id", subRow.tenant_id);
+        // concede a cota de créditos do novo plano na hora (não espera o cron)
+        const { error: grantErr } = await supabase.rpc("grant_plan_credits", {
+          p_tenant: subRow.tenant_id,
+        });
+        if (grantErr) console.error("[asaas-webhook] grant_plan_credits falhou", grantErr);
       }
       console.log("[asaas-webhook] sub %s ativada", subRow.id);
     }
@@ -122,6 +127,23 @@ Deno.serve(async (req) => {
       console.error("[asaas-webhook] update addons falhou", addonErr);
     } else if (addonRows && addonRows.length > 0) {
       console.log("[asaas-webhook] %d addon(s) marcado(s) como pagos", addonRows.length);
+      // créditos avulsos: se o pacote concede créditos, credita o saldo topup
+      for (const a of addonRows) {
+        const { data: cat } = await supabase
+          .from("addons_catalog")
+          .select("grants_credits")
+          .eq("slug", a.addon_slug)
+          .maybeSingle();
+        const grants = (cat as { grants_credits?: number } | null)?.grants_credits ?? 0;
+        if (grants > 0 && a.tenant_id) {
+          const { error: topupErr } = await supabase.rpc("add_topup_credits", {
+            p_tenant: a.tenant_id,
+            p_amount: grants,
+            p_ref: paymentId,
+          });
+          if (topupErr) console.error("[asaas-webhook] add_topup_credits falhou", topupErr);
+        }
+      }
     } else if (!subRow) {
       // Nem sub nem addon — pagamento órfão
       console.warn("[asaas-webhook] payment %s sem subscription nem addon", paymentId);
