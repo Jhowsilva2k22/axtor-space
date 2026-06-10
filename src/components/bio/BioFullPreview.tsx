@@ -178,10 +178,10 @@ export const BioFullPreview = ({
               <img
                 src={avatarUrl}
                 alt={displayName}
-                className="mx-auto h-24 w-24 rounded-full border border-gold object-cover object-top"
+                className="mx-auto h-28 w-28 rounded-3xl border border-gold object-cover object-top"
               />
             ) : (
-              <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full border border-dashed border-muted-foreground/40 font-display text-3xl text-muted-foreground">
+              <div className="mx-auto flex h-28 w-28 items-center justify-center rounded-3xl border border-dashed border-muted-foreground/40 font-display text-3xl text-muted-foreground">
                 {displayName?.[0] ?? "?"}
               </div>
             )}

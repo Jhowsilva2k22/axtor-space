@@ -12,6 +12,8 @@ type Props = {
   aspect?: number;
   /** Forma da máscara — só visual. */
   cropShape?: "rect" | "round";
+  /** Raio dos cantos do recorte retangular (ex: "16%") — quadrado arredondado. */
+  cropRadius?: number | string;
   title?: string;
   /** Chamado quando o usuário confirma o crop. Recebe um Blob JPEG. */
   onConfirm: (blob: Blob) => Promise<void> | void;
@@ -68,6 +70,7 @@ export default function ImageCropDialog({
   file,
   aspect = 1,
   cropShape = "rect",
+  cropRadius,
   title = "Ajustar imagem",
   onConfirm,
   onCancel,
@@ -123,6 +126,7 @@ export default function ImageCropDialog({
               rotation={rotation}
               aspect={aspect}
               cropShape={cropShape}
+              style={cropRadius != null ? { cropAreaStyle: { borderRadius: cropRadius } } : undefined}
               showGrid
               onCropChange={setCrop}
               onZoomChange={setZoom}

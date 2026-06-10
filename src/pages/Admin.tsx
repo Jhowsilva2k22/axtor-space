@@ -983,7 +983,8 @@ const Admin = () => {
       <ImageCropDialog
         file={pendingAvatarFile}
         aspect={1}
-        cropShape="round"
+        cropShape="rect"
+        cropRadius="16%"
         title="Ajustar foto de perfil"
         onCancel={() => setPendingAvatarFile(null)}
         onConfirm={async (blob) => {

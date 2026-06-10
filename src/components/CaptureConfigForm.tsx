@@ -368,7 +368,8 @@ export const CaptureConfigForm = ({ tenantId }: { tenantId: string }) => {
       <ImageCropDialog
         file={pendingPhotoFile}
         aspect={1}
-        cropShape="round"
+        cropShape="rect"
+        cropRadius="16%"
         title="Ajustar foto da capture page"
         onConfirm={async (blob) => {
           setPendingPhotoFile(null);

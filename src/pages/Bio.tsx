@@ -211,12 +211,12 @@ const Bio = () => {
 
       <main className="relative z-10 mx-auto max-w-md px-6 pb-16 pt-12">
         <div className="text-center">
-          <div className="relative mx-auto h-28 w-28 animate-fade-up">
+          <div className="relative mx-auto h-32 w-32 animate-fade-up">
             <div className="avatar-halo" />
             {cfg?.avatar_url ? (
-              <img src={cfg.avatar_url} alt={cfg.display_name} className="relative z-10 h-28 w-28 rounded-full border border-gold object-cover shadow-gold" />
+              <img src={cfg.avatar_url} alt={cfg.display_name} className="relative z-10 h-32 w-32 rounded-3xl border border-gold object-cover shadow-gold" />
             ) : (
-              <div className="relative z-10 flex h-28 w-28 items-center justify-center rounded-full border border-gold bg-gradient-gold-soft font-display text-4xl text-gold">
+              <div className="relative z-10 flex h-32 w-32 items-center justify-center rounded-3xl border border-gold bg-gradient-gold-soft font-display text-4xl text-gold">
                 {cfg?.display_name?.[0] ?? "J"}
               </div>
             )}
