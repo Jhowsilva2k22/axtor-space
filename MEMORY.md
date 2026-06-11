@@ -2,7 +2,7 @@
 
 > Leia este arquivo no início de cada conversa para entender o estado atual.
 > Memória aditiva: nunca substituir, sempre acrescentar.
-> Última atualização: 2026-06-10 (landing/vendas + motor de créditos + tema azul-copa global + home=vendas + OG por tenant no ar).
+> Última atualização: 2026-06-11 (telas externas no design do login + CTA Vendas→/signup + copy de decisão na /planos + barra fixa de CTA + Fase 4 frontend de créditos — tudo no ar).
 
 ## O que é
 
@@ -15,7 +15,7 @@ separada de Habithus e de Pai Presente. Copy e naming neutros, voz SaaS.
 - Vercel: projeto `axtor-space` (team `joanderson-silvas-projects`, id
   `team_Mf3vr6oYlp373wrEsowhFQT8`). Deploy automático a partir do `main`. ESTE é
   o CI/CD. Lovable NÃO é mais usado.
-- O que está no ar = último commit no `main`. Hoje: `#166` (3ed779e).
+- O que está no ar = último commit no `main`. Hoje: `#170` (Fase 4 créditos).
 
 ## Ambientes Supabase
 
@@ -88,6 +88,37 @@ RLS sempre ativa. Sem emoji em UI, sem visual de chatbot.
 6. Sem moralismo, sem clichê de coach, sem emoji em UI.
 7. Antes de implementar feature: grep no projeto pra não duplicar.
 8. Ao fechar algo importante: ATUALIZAR os docs do sistema no mesmo fluxo.
+
+## Resolvido em 2026-06-11
+
+- #168 (mergeado/deploy): CTAs da página de Vendas (`/`) apontam pra `/signup`
+  em vez de `/planos` — mata o loop entre as duas telas quase idênticas. E
+  padronização de TODAS as telas externas no design do login (`/admin/login`):
+  `/signup`, `/forgot-password`, `/reset-password` e 404 usam fundo navy +
+  `DottedSurface` + `useBrasilLockedTheme` + `data-glow` + card arredondado.
+  Antes forgot/reset eram gold-noir (`useAdminLockedTheme`) com auroras.
+  Spec de copy: `docs/COPY-CTA-vendas-planos.md`.
+- #169 (mergeado/deploy): hero da `/planos` virou modo DECISÃO ("Escolha seu
+  plano e comece hoje") — não é mais clone da Vendas. Escassez real ("+30% ao
+  chegar a 1.000 assinantes"). Link "Ver planos" no hero da Vendas. Componente
+  novo `StickyCTA` (barra fixa de CTA mobile, `md:hidden`) em `/` e `/planos`.
+  Card do signup no tamanho do login, mais compacto.
+- #170 (mergeado/deploy): FASE 4 frontend de créditos. Hook `useCredits` (lê
+  `tenant_credits` via RLS owner-select). `CreditsCard` no header do painel
+  (saldo + renovação; âmbar + "Recarregar" quando ≤6; "Ilimitado" pra dono).
+  Badge "Premium" no `PLAN_LABELS`. `CreditsBlockModal` ao gerar funil sem os 6
+  créditos (proativo + backstop no 402). Loja blindada: separa packs de crédito
+  (`grants_credits`) dos addons de função (seção "Recursos avulsos" só aparece
+  se houver addon de função ativo).
+- Lógica de funil firmada: Vendas (`/`) = desejo → ativação (`/signup`).
+  Planos (`/planos`) = decisão → checkout (`/loja?plan=`). Telas internas
+  (Painel/Admin) = gold-noir; telas externas = design do login.
+- SEGURANÇA (refino): a investigação a fundo do histórico mostrou que o `.env`
+  que vazou continha SÓ chaves `VITE_` públicas (anon/publishable + URL +
+  project_id). service_role/Anthropic/Asaas nunca tiveram valor real no git (só
+  placeholder no `.env.example`). Anon é pública por design (vai no bundle JS,
+  protegida por RLS). Logo a rotação vira higiene opcional de baixo risco, não
+  emergência — a "prioridade 1" anterior estava superestimada.
 
 ## Resolvido em 2026-06-10
 
