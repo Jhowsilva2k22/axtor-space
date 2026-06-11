@@ -4,6 +4,7 @@ import { HeroPaths } from "@/components/landing/HeroPaths";
 import { BentoGrid } from "@/components/landing/BentoGrid";
 import { Pricing, type PricingPlan } from "@/components/landing/Pricing";
 import { GlowCard } from "@/components/landing/GlowCard";
+import { StickyCTA } from "@/components/StickyCTA";
 
 const plans: PricingPlan[] = [
   {
@@ -166,9 +167,9 @@ const Landing = () => {
 
       <main className="relative z-10">
         <HeroPaths
-          title="Tenha seu próprio diagnóstico de captura "
-          accent="para qualquer nicho."
-          subtitle="Um diagnóstico inteligente que captura e qualifica cada visitante, com o seu link na bio como hub. Escolha seu plano e comece hoje."
+          title="Escolha seu plano "
+          accent="e comece hoje."
+          subtitle="Sem fidelidade, cancele quando quiser e preço de lançamento enquanto durar. Comece grátis e escale quando fizer sentido."
         />
 
         {/* DOR */}
@@ -212,7 +213,7 @@ const Landing = () => {
             400 por R$ 249 (valem 12 meses).
           </p>
           <p className="mt-3 text-center text-xs text-muted-foreground/70">
-            Garantia de 7 dias nos planos pagos · preços de lançamento
+            Garantia de 7 dias nos planos pagos · preço de lançamento sobe +30% ao chegarmos a 1.000 assinantes
           </p>
         </section>
 
@@ -355,6 +356,8 @@ const Landing = () => {
             </Link>
           </p>
         </footer>
+
+        <StickyCTA label="Ver planos" to="#planos" />
       </main>
     </div>
   );
