@@ -15,7 +15,9 @@ import { Sparkles, Plus, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useDeepDiagnostic } from "@/hooks/useDeepDiagnostic";
+import { useCredits, FUNNEL_COST } from "@/hooks/useCredits";
 import { toast } from "@/hooks/use-toast";
+import { CreditsBlockModal } from "@/components/CreditsBlockModal";
 
 export type BriefingProduct = {
   name: string;
@@ -96,6 +98,8 @@ type BriefingWizardProps = {
 export const BriefingWizard = ({ tenantId, onGenerated, onCancel, initialBriefing, initialProducts, initialFunnelId }: BriefingWizardProps) => {
   const isEditMode = !!(initialBriefing && Object.keys(initialBriefing).length > 0);
   const { refresh } = useDeepDiagnostic();
+  const { credits } = useCredits();
+  const [showCreditsBlock, setShowCreditsBlock] = useState(false);
   const [briefing, setBriefing] = useState<Record<string, string>>(initialBriefing ?? {});
   const [briefingProducts, setBriefingProducts] = useState<BriefingProduct[]>(
     initialProducts && initialProducts.length > 0 ? initialProducts : [{ ...EMPTY_PRODUCT }]
@@ -116,6 +120,12 @@ export const BriefingWizard = ({ tenantId, onGenerated, onCancel, initialBriefin
         description: missing.join(", "),
         variant: "destructive",
       });
+      return;
+    }
+    // Sem os créditos pra gerar (a função cobra FUNNEL_COST)? Abre o modal e
+    // nem chama a IA. O backend ainda é a trava autoritativa (retorna 402).
+    if (credits && credits.total < FUNNEL_COST) {
+      setShowCreditsBlock(true);
       return;
     }
     setGenerating(true);
@@ -149,6 +159,12 @@ export const BriefingWizard = ({ tenantId, onGenerated, onCancel, initialBriefin
       await refresh();
       onGenerated((data as any).funnel_id);
     } catch (e: any) {
+      // 402 = a função recusou por falta de crédito (backstop do proativo).
+      if (e?.context?.status === 402) {
+        setShowCreditsBlock(true);
+        setGenerating(false);
+        return;
+      }
       console.error(e);
       toast({
         title: "Erro ao gerar funil",
@@ -517,6 +533,11 @@ export const BriefingWizard = ({ tenantId, onGenerated, onCancel, initialBriefin
           </div>
         </DialogContent>
       </Dialog>
+
+      <CreditsBlockModal
+        open={showCreditsBlock}
+        onClose={() => setShowCreditsBlock(false)}
+      />
     </motion.div>
   );
 };
