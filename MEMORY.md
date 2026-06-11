@@ -154,20 +154,27 @@ PRIORIDADE 1 — erros e riscos (resolver antes de tudo):
 4. Mobile: conferir telas novas (vendas, planos, loja, bio) — possíveis quebras.
 
 PRIORIDADE 2 — features e pendências antigas:
-- Fase 4 (frontend de créditos), Etapa B (guest checkout), confirmar tema do
-  `axtor-labs`, M2 (leaked password protection), A4 (logos de email).
+- Etapa B (guest checkout) e M2 (leaked password protection) seguem abertos.
+  Fase 4, A4 e tema do `axtor-labs` foram RESOLVIDOS/CONFIRMADOS em 2026-06-11.
 
 ## Pendências conhecidas
 
-- Fase 4 (frontend de créditos): card de saldo, modal de bloqueio quando zera,
-  checkout premium/pacotes ligado no front. Parcialmente na Loja; falta o resto.
+- ✓ RESOLVIDO 2026-06-11 (#170): Fase 4 frontend de créditos — card de saldo no
+  painel, modal de bloqueio ao gerar funil sem saldo, loja blindada (packs vs addons).
 - Fase 6: QA ponta a ponta + 1 pagamento Pix REAL de teste antes de cliente pagar.
+  (O caminho pagamento → ativação → /bem-vindo JÁ está construído no front.)
 - Etapa B do funil (guest checkout "Caminho Y": paga primeiro, cria conta depois) —
-  desenhada, não construída.
+  desenhada, não construída. EM ABERTO.
 - M2: ativar "leaked password protection" no painel Supabase (Auth). Ação do dono.
-- A4: emails ainda puxam logo do projeto antigo (bdxkcfngskagriaapepo). Migrar
-  assets pro bucket de produção antes de repontar os 10 templates.
-- Tema do tenant `axtor-labs`: confirmar se está em azul-copa (não foi verificado).
+  CONFIRMADO AINDA DESLIGADO via advisors 2026-06-11. (Auditoria de segurança no
+  mesmo dia: 0 ERROR; os WARNs são INSERT públicos por design — cliques/diagnósticos/
+  leads — e RPCs security-definer com search_path fixo. Nada crítico.)
+- ✓ RESOLVIDO 2026-06-11: A4 logos de email — templates apontam pra
+  `axtor.space/email/axtor-logo(.png|-light.png)`, assets em `public/email/`, não
+  mais o bucket antigo. Resíduo inofensivo: `inviterAvatarUrl` de EXEMPLO em 2 convites.
+- ✓ CONFIRMADO 2026-06-11: tenant `axtor-labs` está em `azul-copa` (active_theme_slug).
+- OG por tenant: CÓDIGO pronto/validado (#163/#166). Falta só teste manual num
+  WhatsApp real + "Scrape Again" no depurador do FB pra limpar cache de links antigos.
 - B2/B3/B4/B5: higiene de baixa prioridade, sem risco de produção (ver auditoria).
 - Cópia local pode estar atrasada vs `main`: SEMPRE `git pull` antes de codar.
 
