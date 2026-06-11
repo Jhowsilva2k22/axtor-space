@@ -2,7 +2,7 @@
 
 > Leia este arquivo no início de cada conversa para entender o estado atual.
 > Memória aditiva: nunca substituir, sempre acrescentar.
-> Última atualização: 2026-06-10 (landing/vendas + motor de créditos + tema azul-copa global + home=vendas + OG por tenant no ar).
+> Última atualização: 2026-06-11 (telas externas padronizadas no design do login + CTA da Vendas pra /signup + copy de decisão na /planos + barra fixa de CTA mobile).
 
 ## O que é
 
@@ -88,6 +88,25 @@ RLS sempre ativa. Sem emoji em UI, sem visual de chatbot.
 6. Sem moralismo, sem clichê de coach, sem emoji em UI.
 7. Antes de implementar feature: grep no projeto pra não duplicar.
 8. Ao fechar algo importante: ATUALIZAR os docs do sistema no mesmo fluxo.
+
+## Resolvido em 2026-06-11
+
+- #168 (MERGEADO no main): CTAs da página de Vendas (`/`) apontam pra `/signup`
+  em vez de `/planos` — mata o loop entre as duas telas quase idênticas. E
+  padronização de TODAS as telas externas no design do login (`/admin/login`):
+  `/signup`, `/forgot-password`, `/reset-password` e 404 agora usam fundo navy +
+  `DottedSurface` + `useBrasilLockedTheme` + `data-glow` + card arredondado. Antes
+  forgot/reset usavam `useAdminLockedTheme` (gold-noir) e auroras. Spec de copy:
+  `docs/COPY-CTA-vendas-planos.md`.
+- #169 (ABERTO, aguardando review/merge): passo 2 de copy/conversão. Hero da
+  `/planos` virou modo DECISÃO ("Escolha seu plano e comece hoje") — não é mais
+  clone da Vendas. Escassez real na `/planos` ("+30% ao chegar a 1.000 assinantes").
+  Link "Ver planos" no hero da Vendas. Componente novo `StickyCTA` (barra fixa de
+  CTA mobile, `md:hidden`, aparece após o hero) em `/` e `/planos`. Card do signup
+  no tamanho do login (`max-w-sm`) e altura mais compacta.
+- Lógica de funil firmada: Vendas (`/`) = desejo → ativação (`/signup`).
+  Planos (`/planos`) = decisão → checkout (`/loja?plan=`). Telas internas
+  (Painel/Admin) seguem gold-noir; telas externas seguem o design do login.
 
 ## Resolvido em 2026-06-10
 
