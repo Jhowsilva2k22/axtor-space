@@ -5,10 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { KeyRound, Loader2, Eye, EyeOff } from "lucide-react";
-import { useAdminLockedTheme } from "@/components/ThemeToggle";
+import { useBrasilLockedTheme } from "@/components/ThemeToggle";
+import { DottedSurface } from "@/components/landing/DottedSurface";
 
 const ResetPassword = () => {
-  useAdminLockedTheme();
+  useBrasilLockedTheme();
   const nav = useNavigate();
   const [ready, setReady] = useState(false);
   const [validSession, setValidSession] = useState(false);
@@ -74,18 +75,21 @@ const ResetPassword = () => {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center px-6 grain">
-      <div className="aurora-a" />
-      <div className="aurora-b" />
+    <div className="relative flex min-h-screen items-center justify-center px-6 grain overflow-x-hidden">
+      <div
+        className="pointer-events-none fixed inset-0 -z-20"
+        style={{ background: "radial-gradient(ellipse at top, hsl(223 68% 12%), hsl(223 68% 4%))" }}
+      />
+      <DottedSurface />
 
-      <div className="relative z-10 w-full max-w-sm rounded-sm border-gold-gradient bg-card/60 p-8 shadow-deep backdrop-blur">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-sm border border-gold bg-gradient-gold-soft">
-          <KeyRound className="h-5 w-5 text-primary" />
+      <div data-glow style={{ ["--glow-radius" as string]: "32" } as React.CSSProperties} className="relative z-10 w-full max-w-sm rounded-[32px] border border-gold/20 bg-card/40 p-10 shadow-2xl backdrop-blur-xl">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-gold/30 bg-gradient-gold-soft shadow-gold/20 shadow-lg">
+          <KeyRound className="h-6 w-6 text-primary" />
         </div>
-        <h1 className="mt-6 text-center font-display text-3xl">
+        <h1 className="mt-8 text-center font-display text-4xl">
           Nova <span className="text-gold italic">senha</span>
         </h1>
-        <p className="mt-2 text-center text-xs uppercase tracking-[0.25em] text-muted-foreground">
+        <p className="mt-3 text-center text-[10px] uppercase tracking-[0.3em] text-muted-foreground/60">
           escolha algo seguro
         </p>
 
@@ -97,7 +101,7 @@ const ResetPassword = () => {
             <Button
               type="button"
               onClick={() => nav("/forgot-password", { replace: true })}
-              className="btn-luxe h-12 w-full rounded-sm text-sm font-semibold uppercase tracking-[0.15em]"
+              className="btn-luxe h-14 w-full rounded-full text-xs font-bold uppercase tracking-[0.2em] shadow-lg shadow-gold/10"
             >
               Pedir novo link
             </Button>
@@ -105,7 +109,7 @@ const ResetPassword = () => {
         ) : (
           <form onSubmit={onSubmit} className="mt-8 space-y-4">
             <div>
-              <label className="mb-2 block text-xs uppercase tracking-[0.2em] text-muted-foreground">
+              <label className="mb-2 block text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/80">
                 Nova senha
               </label>
               <div className="relative">
@@ -116,7 +120,7 @@ const ResetPassword = () => {
                   autoComplete="new-password"
                   minLength={8}
                   required
-                  className="h-11 rounded-sm border-gold bg-input pr-11 font-light"
+                  className="h-12 rounded-full border-gold/20 bg-card/30 px-5 pr-12 font-light transition-all focus:border-gold/50 focus:shadow-gold/10"
                 />
                 <button
                   type="button"
@@ -129,7 +133,7 @@ const ResetPassword = () => {
               </div>
             </div>
             <div>
-              <label className="mb-2 block text-xs uppercase tracking-[0.2em] text-muted-foreground">
+              <label className="mb-2 block text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/80">
                 Confirmar senha
               </label>
               <div className="relative">
@@ -140,7 +144,7 @@ const ResetPassword = () => {
                   autoComplete="new-password"
                   minLength={8}
                   required
-                  className="h-11 rounded-sm border-gold bg-input pr-11 font-light"
+                  className="h-12 rounded-full border-gold/20 bg-card/30 px-5 pr-12 font-light transition-all focus:border-gold/50 focus:shadow-gold/10"
                 />
                 <button
                   type="button"
@@ -155,7 +159,7 @@ const ResetPassword = () => {
             <Button
               type="submit"
               disabled={submitting}
-              className="btn-luxe h-12 w-full rounded-sm text-sm font-semibold uppercase tracking-[0.15em]"
+              className="btn-luxe h-14 w-full rounded-full text-xs font-bold uppercase tracking-[0.2em] shadow-lg shadow-gold/10"
             >
               {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Atualizar senha"}
             </Button>
