@@ -211,7 +211,7 @@ const Signup = () => {
           style={{ background: "radial-gradient(ellipse at top, hsl(223 68% 12%), hsl(223 68% 4%))" }}
         />
         <DottedSurface />
-        <div data-glow style={{ ["--glow-radius" as string]: "32" } as React.CSSProperties} className="relative z-10 w-full max-w-md rounded-[32px] border border-gold/20 bg-card/40 p-10 shadow-2xl backdrop-blur-xl text-center">
+        <div data-glow style={{ ["--glow-radius" as string]: "32" } as React.CSSProperties} className="relative z-10 w-full max-w-sm rounded-[32px] border border-gold/20 bg-card/40 p-10 shadow-2xl backdrop-blur-xl text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-gold/30 bg-gradient-gold-soft shadow-gold/20 shadow-lg">
             <Sparkles className="h-6 w-6 text-primary" />
           </div>
@@ -246,7 +246,7 @@ const Signup = () => {
           style={{ background: "radial-gradient(ellipse at top, hsl(223 68% 12%), hsl(223 68% 4%))" }}
         />
         <DottedSurface />
-        <div data-glow style={{ ["--glow-radius" as string]: "32" } as React.CSSProperties} className="relative z-10 w-full max-w-md rounded-[32px] border border-gold/20 bg-card/40 p-10 shadow-2xl backdrop-blur-xl text-center">
+        <div data-glow style={{ ["--glow-radius" as string]: "32" } as React.CSSProperties} className="relative z-10 w-full max-w-sm rounded-[32px] border border-gold/20 bg-card/40 p-10 shadow-2xl backdrop-blur-xl text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-gold/30 bg-gradient-gold-soft shadow-gold/20 shadow-lg">
             <Sparkles className="h-6 w-6 text-primary" />
           </div>
@@ -286,15 +286,15 @@ const Signup = () => {
         onSubmit={onSubmit}
         data-glow
         style={{ ["--glow-radius" as string]: "32" } as React.CSSProperties}
-        className="relative z-10 w-full max-w-md rounded-[32px] border border-gold/20 bg-card/40 p-10 shadow-2xl backdrop-blur-xl"
+        className="relative z-10 w-full max-w-sm rounded-[32px] border border-gold/20 bg-card/40 p-8 shadow-2xl backdrop-blur-xl"
       >
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-gold/30 bg-gradient-gold-soft shadow-gold/20 shadow-lg">
           <Sparkles className="h-6 w-6 text-primary" />
         </div>
-        <h1 className="mt-8 text-center font-display text-4xl">Crie sua <span className="text-gold italic">bio</span></h1>
-        <p className="mt-3 text-center text-[10px] uppercase tracking-[0.3em] text-muted-foreground/60">grátis pra começar · sem cartão · sem código</p>
+        <h1 className="mt-6 text-center font-display text-4xl">Crie sua <span className="text-gold italic">bio</span></h1>
+        <p className="mt-2 text-center text-[10px] uppercase tracking-[0.3em] text-muted-foreground/60">grátis pra começar · sem cartão · sem código</p>
 
-        <div className="mt-10 space-y-5">
+        <div className="mt-6 space-y-4">
           <div className="space-y-2">
             <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/80">Nome completo</label>
             <Input value={name} onChange={(e) => setName(e.target.value)} required minLength={2} maxLength={80} className="h-12 rounded-full border-gold/20 bg-card/30 px-5 font-light transition-all focus:border-gold/50 focus:shadow-gold/10" placeholder="Ex: Stefany Mello" />
@@ -395,7 +395,7 @@ const Signup = () => {
         <Button
           type="submit"
           disabled={submitting || !slugStatus?.ok || !accept}
-          className="btn-luxe mt-10 h-14 w-full rounded-full text-xs font-bold uppercase tracking-[0.2em] shadow-lg shadow-gold/10 disabled:opacity-70"
+          className="btn-luxe mt-8 h-14 w-full rounded-full text-xs font-bold uppercase tracking-[0.2em] shadow-lg shadow-gold/10 disabled:opacity-70"
         >
           {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Criar minha bio grátis"}
         </Button>

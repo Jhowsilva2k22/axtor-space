@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { DottedSurface } from "@/components/landing/DottedSurface";
 import { PhoneMockup3 } from "@/components/landing/PhoneMockup3";
 import { GlowCard } from "@/components/landing/GlowCard";
+import { StickyCTA } from "@/components/StickyCTA";
 
 // As 3 peças do produto — deixa explícito o diagnóstico IG ativável/desativável
 // e o link na bio como hub de entrada.
@@ -217,6 +218,9 @@ const Vendas = () => {
               </div>
               <Link to="/joanderson" className="inline-flex h-[58px] items-center rounded-2xl border border-border px-7 text-sm font-semibold text-foreground transition-colors hover:border-primary hover:text-primary">
                 Ver exemplo funcionando
+              </Link>
+              <Link to="/planos" className="inline-flex h-[58px] items-center px-3 text-sm font-semibold text-muted-foreground transition-colors hover:text-primary">
+                Ver planos
               </Link>
             </motion.div>
 
@@ -455,6 +459,8 @@ const Vendas = () => {
             <Link to="/privacidade" className="hover:text-primary">Privacidade</Link>
           </p>
         </footer>
+
+        <StickyCTA label="Criar minha página grátis" to="/signup" />
       </main>
     </div>
   );
