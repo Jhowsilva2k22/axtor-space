@@ -210,8 +210,8 @@ const Vendas = () => {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, delay: 1 }}
               className="mt-8 flex flex-wrap items-center justify-center gap-3 md:justify-start">
               <div className="group inline-block rounded-2xl bg-gradient-to-b from-primary/50 to-primary/10 p-px backdrop-blur-lg transition-all duration-300 hover:shadow-[0_18px_50px_-14px_hsl(var(--primary)/0.6)]">
-                <Link to="/planos" className="inline-flex items-center gap-3 rounded-[15px] border border-primary/20 bg-background/90 px-8 py-4 text-base font-bold transition-all duration-300 group-hover:bg-background">
-                  Criar meu diagnóstico
+                <Link to="/signup" className="inline-flex items-center gap-3 rounded-[15px] border border-primary/20 bg-background/90 px-8 py-4 text-base font-bold transition-all duration-300 group-hover:bg-background">
+                  Criar minha página grátis
                   <span className="opacity-70 transition-all duration-300 group-hover:translate-x-1.5 group-hover:opacity-100">→</span>
                 </Link>
               </div>
@@ -409,7 +409,7 @@ const Vendas = () => {
           </p>
           <div className="mt-10">
             <div className="group inline-block rounded-2xl bg-gradient-to-b from-primary/50 to-primary/10 p-px transition-all duration-300 hover:shadow-[0_18px_50px_-14px_hsl(var(--primary)/0.6)]">
-              <Link to="/planos" className="inline-flex items-center gap-3 rounded-[15px] border border-primary/20 bg-background/90 px-8 py-4 text-base font-bold transition-all group-hover:bg-background">
+              <Link to="/signup" className="inline-flex items-center gap-3 rounded-[15px] border border-primary/20 bg-background/90 px-8 py-4 text-base font-bold transition-all group-hover:bg-background">
                 Quero meu diagnóstico de captura
                 <span className="opacity-70 transition-all duration-300 group-hover:translate-x-1.5 group-hover:opacity-100">→</span>
               </Link>
@@ -441,8 +441,8 @@ const Vendas = () => {
             </h2>
             <p className="mt-3 text-lg text-foreground/80">Captura, qualifica e direciona no seu nicho, do seu jeito.</p>
             <div className="mt-7 flex justify-center">
-              <Link to="/planos" className="inline-flex h-12 items-center rounded-xl bg-gradient-to-br from-primary to-primary-glow px-7 text-sm font-bold text-primary-foreground">
-                Criar meu diagnóstico
+              <Link to="/signup" className="inline-flex h-12 items-center rounded-xl bg-gradient-to-br from-primary to-primary-glow px-7 text-sm font-bold text-primary-foreground">
+                Criar minha página grátis
               </Link>
             </div>
           </div>
