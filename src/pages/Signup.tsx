@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Loader2, Sparkles, Check, X, ExternalLink, Copy, Gift, Eye, EyeOff } from "lucide-react";
 import { useBrasilLockedTheme } from "@/components/ThemeToggle";
 import { PublicFooter } from "@/components/PublicFooter";
+import { DottedSurface } from "@/components/landing/DottedSurface";
 import { savePendingSignup, clearPendingSignup } from "@/lib/pendingSignup";
 
 const slugify = (s: string) =>
@@ -204,10 +205,13 @@ const Signup = () => {
 
   if (emailSent) {
     return (
-      <div className="relative flex min-h-screen items-center justify-center px-6 grain">
-        <div className="aurora-a" />
-        <div className="aurora-b" />
-        <div className="relative z-10 w-full max-w-md rounded-[32px] border border-gold/20 bg-card/40 p-10 shadow-2xl backdrop-blur-xl text-center">
+      <div className="relative flex min-h-screen items-center justify-center px-6 grain overflow-x-hidden">
+        <div
+          className="pointer-events-none fixed inset-0 -z-20"
+          style={{ background: "radial-gradient(ellipse at top, hsl(223 68% 12%), hsl(223 68% 4%))" }}
+        />
+        <DottedSurface />
+        <div data-glow style={{ ["--glow-radius" as string]: "32" } as React.CSSProperties} className="relative z-10 w-full max-w-md rounded-[32px] border border-gold/20 bg-card/40 p-10 shadow-2xl backdrop-blur-xl text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-gold/30 bg-gradient-gold-soft shadow-gold/20 shadow-lg">
             <Sparkles className="h-6 w-6 text-primary" />
           </div>
@@ -236,10 +240,13 @@ const Signup = () => {
 
   if (created) {
     return (
-      <div className="relative flex min-h-screen items-center justify-center px-6 grain">
-        <div className="aurora-a" />
-        <div className="aurora-b" />
-        <div className="relative z-10 w-full max-w-md rounded-[32px] border border-gold/20 bg-card/40 p-10 shadow-2xl backdrop-blur-xl text-center">
+      <div className="relative flex min-h-screen items-center justify-center px-6 grain overflow-x-hidden">
+        <div
+          className="pointer-events-none fixed inset-0 -z-20"
+          style={{ background: "radial-gradient(ellipse at top, hsl(223 68% 12%), hsl(223 68% 4%))" }}
+        />
+        <DottedSurface />
+        <div data-glow style={{ ["--glow-radius" as string]: "32" } as React.CSSProperties} className="relative z-10 w-full max-w-md rounded-[32px] border border-gold/20 bg-card/40 p-10 shadow-2xl backdrop-blur-xl text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-gold/30 bg-gradient-gold-soft shadow-gold/20 shadow-lg">
             <Sparkles className="h-6 w-6 text-primary" />
           </div>
@@ -267,10 +274,20 @@ const Signup = () => {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center px-6 py-10 grain overflow-x-hidden">
-      <div className="aurora-a" />
-      <div className="aurora-b" />
-      <form onSubmit={onSubmit} className="relative z-10 w-full max-w-md rounded-[32px] border border-gold/20 bg-card/40 p-10 shadow-2xl backdrop-blur-xl">
+    <div className="relative flex min-h-screen flex-col grain overflow-x-hidden">
+      {/* Fundo azul-marinho (tema) atrás da malha — padrão externo, igual ao login */}
+      <div
+        className="pointer-events-none fixed inset-0 -z-20"
+        style={{ background: "radial-gradient(ellipse at top, hsl(223 68% 12%), hsl(223 68% 4%))" }}
+      />
+      <DottedSurface />
+      <div className="relative z-10 flex flex-1 items-center justify-center px-6 py-10">
+      <form
+        onSubmit={onSubmit}
+        data-glow
+        style={{ ["--glow-radius" as string]: "32" } as React.CSSProperties}
+        className="relative z-10 w-full max-w-md rounded-[32px] border border-gold/20 bg-card/40 p-10 shadow-2xl backdrop-blur-xl"
+      >
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-gold/30 bg-gradient-gold-soft shadow-gold/20 shadow-lg">
           <Sparkles className="h-6 w-6 text-primary" />
         </div>
@@ -378,7 +395,7 @@ const Signup = () => {
         <Button
           type="submit"
           disabled={submitting || !slugStatus?.ok || !accept}
-          className="btn-luxe mt-10 h-14 w-full rounded-full text-xs font-bold uppercase tracking-[0.2em] shadow-lg shadow-gold/10"
+          className="btn-luxe mt-10 h-14 w-full rounded-full text-xs font-bold uppercase tracking-[0.2em] shadow-lg shadow-gold/10 disabled:opacity-70"
         >
           {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Criar minha bio grátis"}
         </Button>
@@ -387,6 +404,7 @@ const Signup = () => {
           Já tem conta? <Link to={redirectTo !== "/painel" ? `/admin/login?redirect=${encodeURIComponent(redirectTo)}` : "/admin/login"} className="font-bold text-gold hover:underline">Entrar</Link>
         </p>
       </form>
+      </div>
       <PublicFooter />
     </div>
   );

@@ -5,10 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Mail, Loader2, ArrowLeft } from "lucide-react";
-import { useAdminLockedTheme } from "@/components/ThemeToggle";
+import { useBrasilLockedTheme } from "@/components/ThemeToggle";
+import { DottedSurface } from "@/components/landing/DottedSurface";
 
 const ForgotPassword = () => {
-  useAdminLockedTheme();
+  useBrasilLockedTheme();
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
@@ -32,10 +33,13 @@ const ForgotPassword = () => {
 
   return (
     <div className="relative flex min-h-screen items-center justify-center px-6 grain overflow-x-hidden">
-      <div className="aurora-a" />
-      <div className="aurora-b" />
+      <div
+        className="pointer-events-none fixed inset-0 -z-20"
+        style={{ background: "radial-gradient(ellipse at top, hsl(223 68% 12%), hsl(223 68% 4%))" }}
+      />
+      <DottedSurface />
 
-      <div className="relative z-10 w-full max-w-sm rounded-[32px] border border-gold/20 bg-card/40 p-10 shadow-2xl backdrop-blur-xl">
+      <div data-glow style={{ ["--glow-radius" as string]: "32" } as React.CSSProperties} className="relative z-10 w-full max-w-sm rounded-[32px] border border-gold/20 bg-card/40 p-10 shadow-2xl backdrop-blur-xl">
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-gold/30 bg-gradient-gold-soft shadow-gold/20 shadow-lg">
           <Mail className="h-6 w-6 text-primary" />
         </div>
