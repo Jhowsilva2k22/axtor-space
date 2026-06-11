@@ -12,6 +12,7 @@ import { useCanAccessTab } from "@/hooks/useCanAccessTab";
 import { useDeepDiagnostic } from "@/hooks/useDeepDiagnostic";
 import { CaptureConfigForm } from "@/components/CaptureConfigForm";
 import { PainelHeaderActions } from "@/components/PainelHeaderActions";
+import { CreditsCard } from "@/components/CreditsCard";
 import { BioHeaderEditorStandalone } from "@/components/bio/BioHeaderEditorStandalone";
 import { BioBlocksManagerStandalone } from "@/components/bio/BioBlocksManagerStandalone";
 import { CategoriesManager } from "@/components/CategoriesManager";
@@ -37,6 +38,7 @@ import { readPendingSignup, clearPendingSignup } from "@/lib/pendingSignup";
 const PLAN_LABELS: Record<string, string> = {
   free: "Free",
   pro: "Pro",
+  premium: "Premium",
   partner: "Sócio",
   tester: "Tester",
   owner: "Dono",
@@ -205,6 +207,7 @@ export default function Painel() {
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-3">
+            <CreditsCard />
             <PainelHeaderActions slug={current.slug} />
             <TenantSelector />
             {isAdmin && (

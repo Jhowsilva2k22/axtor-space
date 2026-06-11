@@ -35,6 +35,7 @@ type Addon = {
   description: string | null;
   price_brl: number;
   requires_plan: string | null;
+  grants_credits: number | null;
 };
 
 type PlanFeature = {
@@ -95,7 +96,7 @@ const Loja = () => {
       const [{ data: addonsData }, { data: planData }] = await Promise.all([
         supabase
           .from("addons_catalog")
-          .select("slug, name, description, price_brl, requires_plan")
+          .select("slug, name, description, price_brl, requires_plan, grants_credits")
           .eq("is_active", true)
           .order("price_brl"),
         supabase
@@ -155,6 +156,63 @@ const Loja = () => {
   const buy = (input: { planSlug?: string; addonSlug?: string }) => {
     setPendingPurchase(input);
     setDataModalOpen(true);
+  };
+
+  // Separa packs de crédito (têm grants_credits) dos addons de função, pra não
+  // misturar "recarga de créditos" com recursos pagos de outra natureza.
+  const creditPacks = addons.filter((a) => a.grants_credits != null);
+  const featureAddons = addons.filter((a) => a.grants_credits == null);
+
+  const renderAddonCard = (addon: Addon) => {
+    const needsUpgradeFirst = addon.requires_plan === "pro" && !isAlreadyPro;
+    const includedInPlan = addon.requires_plan === "pro" && isAlreadyPro;
+    return (
+      <Card
+        key={addon.slug}
+        data-glow
+        style={{ ["--glow-radius" as string]: "24" } as React.CSSProperties}
+        className="relative p-6"
+      >
+        <h3 className="font-display text-xl">{addon.name}</h3>
+        <p className="mt-1 text-xs text-muted-foreground">{addon.description}</p>
+        <p className="mt-3 font-display text-2xl text-primary">
+          {addon.price_brl.toLocaleString("pt-BR", {
+            style: "currency",
+            currency: "BRL",
+          })}
+        </p>
+        {includedInPlan ? (
+          <p className="mt-4 text-center text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            Incluído no seu plano
+          </p>
+        ) : (
+          <Button
+            className="mt-4 w-full"
+            variant="outline"
+            disabled={checkout.isPending}
+            onClick={() => {
+              if (needsUpgradeFirst) {
+                if (
+                  confirm(
+                    `${addon.name} precisa do plano Pro mensal. Comprar Pro + pacote juntos?`,
+                  )
+                ) {
+                  buy({ planSlug: "pro", addonSlug: addon.slug });
+                }
+              } else {
+                buy({ addonSlug: addon.slug });
+              }
+            }}
+          >
+            {checkout.isPending
+              ? "Gerando…"
+              : needsUpgradeFirst
+                ? "Comprar com Pro"
+                : "Comprar com Pix"}
+          </Button>
+        )}
+      </Card>
+    );
   };
 
   // Submissão do PaymentDataModal: aqui sim chama a Edge Function de checkout.
@@ -269,71 +327,30 @@ const Loja = () => {
             </section>
 
             {/* Pacotes avulsos — recarga de créditos */}
-            <section>
-              <h2 className="font-display text-2xl">Pacotes avulsos</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Recarga de créditos pra quando a cota do mês acabar. Valem 12 meses.
-              </p>
-              {addons.length === 0 ? (
-                <Card className="mt-5 p-6 text-center text-sm text-muted-foreground">
-                  Nenhum pacote disponível no momento.
-                </Card>
-              ) : (
+            {creditPacks.length > 0 && (
+              <section>
+                <h2 className="font-display text-2xl">Pacotes avulsos</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Recarga de créditos pra quando a cota do mês acabar. Valem 12 meses.
+                </p>
                 <div className="mt-5 grid gap-4 md:grid-cols-3">
-                  {addons.map((addon) => {
-                    const needsUpgradeFirst = addon.requires_plan === "pro" && !isAlreadyPro;
-                    const includedInPlan = addon.requires_plan === "pro" && isAlreadyPro;
-                    return (
-                      <Card
-                        key={addon.slug}
-                        data-glow
-                        style={{ ["--glow-radius" as string]: "24" } as React.CSSProperties}
-                        className="relative p-6"
-                      >
-                        <h3 className="font-display text-xl">{addon.name}</h3>
-                        <p className="mt-1 text-xs text-muted-foreground">{addon.description}</p>
-                        <p className="mt-3 font-display text-2xl text-primary">
-                          {addon.price_brl.toLocaleString("pt-BR", {
-                            style: "currency",
-                            currency: "BRL",
-                          })}
-                        </p>
-                        {includedInPlan ? (
-                          <p className="mt-4 text-center text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                            Incluído no seu plano
-                          </p>
-                        ) : (
-                          <Button
-                            className="mt-4 w-full"
-                            variant="outline"
-                            disabled={checkout.isPending}
-                            onClick={() => {
-                              if (needsUpgradeFirst) {
-                                if (
-                                  confirm(
-                                    `${addon.name} precisa do plano Pro mensal. Comprar Pro + pacote juntos?`,
-                                  )
-                                ) {
-                                  buy({ planSlug: "pro", addonSlug: addon.slug });
-                                }
-                              } else {
-                                buy({ addonSlug: addon.slug });
-                              }
-                            }}
-                          >
-                            {checkout.isPending
-                              ? "Gerando…"
-                              : needsUpgradeFirst
-                                ? "Comprar com Pro"
-                                : "Comprar com Pix"}
-                          </Button>
-                        )}
-                      </Card>
-                    );
-                  })}
+                  {creditPacks.map(renderAddonCard)}
                 </div>
-              )}
-            </section>
+              </section>
+            )}
+
+            {/* Recursos avulsos — addons de função (não dão crédito) */}
+            {featureAddons.length > 0 && (
+              <section>
+                <h2 className="font-display text-2xl">Recursos avulsos</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Add-ons de função pro seu plano.
+                </p>
+                <div className="mt-5 grid gap-4 md:grid-cols-3">
+                  {featureAddons.map(renderAddonCard)}
+                </div>
+              </section>
+            )}
           </div>
         )}
       </div>
