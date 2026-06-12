@@ -1,5 +1,5 @@
 import * as Sentry from "@sentry/react";
-import { createRoot } from "react-dom/client";
+import { createRoot, hydrateRoot } from "react-dom/client";
 import { HelmetProvider } from "react-helmet-async";
 import App from "./App.tsx";
 import "./index.css";
@@ -16,8 +16,17 @@ if (sentryDsn) {
 
 installGlobalErrorHandlers();
 
-createRoot(document.getElementById("root")!).render(
+const rootEl = document.getElementById("root")!;
+const app = (
   <HelmetProvider>
     <App />
   </HelmetProvider>
 );
+
+// Rotas pre-renderizadas (/vendas, /planos) chegam com HTML pronto: hidrata.
+// As demais rotas chegam com o shell vazio: cria do zero como antes.
+if (rootEl.hasChildNodes()) {
+  hydrateRoot(rootEl, app);
+} else {
+  createRoot(rootEl).render(app);
+}
