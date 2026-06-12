@@ -2,7 +2,7 @@
 
 > Leia este arquivo no início de cada conversa para entender o estado atual.
 > Memória aditiva: nunca substituir, sempre acrescentar.
-> Última atualização: 2026-06-11 (telas externas no design do login + CTA Vendas→/signup + copy de decisão na /planos + barra fixa de CTA + Fase 4 frontend de créditos — tudo no ar).
+> Última atualização: 2026-06-12 (#173 guest checkout Pix + domínio + GlowPanel + mobile-first do painel; #174 fix do link do diagnóstico /→/diagnostico + lazy do fundo 3D + jargão — tudo no ar). EM ABERTO: desempenho mobile de /vendas e /planos (~60) — só prerender resolve. Ver docs/CHECKPOINT-2026-06-12.md.
 
 ## O que é
 
@@ -163,8 +163,11 @@ PRIORIDADE 2 — features e pendências antigas:
   painel, modal de bloqueio ao gerar funil sem saldo, loja blindada (packs vs addons).
 - Fase 6: QA ponta a ponta + 1 pagamento Pix REAL de teste antes de cliente pagar.
   (O caminho pagamento → ativação → /bem-vindo JÁ está construído no front.)
-- Etapa B do funil (guest checkout "Caminho Y": paga primeiro, cria conta depois) —
-  desenhada, não construída. EM ABERTO.
+- ✓ RESOLVIDO 2026-06-12 (#173): Etapa B / guest checkout "Caminho Y" (paga primeiro,
+  cria conta depois) — NO AR. Validado com Pix real de R$6 (conta provisionada, Premium ativo).
+- ⚠️ EM ABERTO 2026-06-12: desempenho MOBILE de `/vendas` e `/planos` (~60; desktop 93-96).
+  Lazy do fundo 3D NÃO resolveu. Gargalo = SPA client-side (HTML vazio até o JS rodar).
+  Lever real = PRÉ-RENDERIZAR essas páginas (SSG/prerender no build). Não destrutivo. Ver checkpoint 2026-06-12.
 - M2: ativar "leaked password protection" no painel Supabase (Auth). Ação do dono.
   CONFIRMADO AINDA DESLIGADO via advisors 2026-06-11. (Auditoria de segurança no
   mesmo dia: 0 ERROR; os WARNs são INSERT públicos por design — cliques/diagnósticos/
@@ -194,7 +197,8 @@ PRIORIDADE 2 — features e pendências antigas:
 
 ## Ponteiros
 
-- Checkpoint de hoje: [docs/CHECKPOINT-2026-06-10.md](docs/CHECKPOINT-2026-06-10.md)
+- Checkpoint de hoje: [docs/CHECKPOINT-2026-06-12.md](docs/CHECKPOINT-2026-06-12.md)
+- Checkpoint anterior: [docs/CHECKPOINT-2026-06-10.md](docs/CHECKPOINT-2026-06-10.md)
 - Fixes da auditoria: [docs/CHECKPOINT-2026-06-09-auditoria-fixes.md](docs/CHECKPOINT-2026-06-09-auditoria-fixes.md)
 - Auditoria completa: [docs/AUDITORIA-2026-06-09.md](docs/AUDITORIA-2026-06-09.md)
 - Estado até #140: [docs/CHECKPOINT-2026-06-09.md](docs/CHECKPOINT-2026-06-09.md)
