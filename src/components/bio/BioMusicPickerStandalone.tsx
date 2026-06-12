@@ -99,14 +99,14 @@ export const BioMusicPickerStandalone = ({ tenantId }: { tenantId: string }) => 
         className="flex w-full items-center justify-between gap-3 text-left"
         aria-expanded={expanded}
       >
-        <div className="flex items-center gap-2">
-          <Music2 className="h-4 w-4 text-primary" />
+        <div className="flex min-w-0 items-center gap-2">
+          <Music2 className="h-4 w-4 shrink-0 text-primary" />
           <h3 className="font-display text-lg">Ritmo da bio</h3>
-          <span className="rounded-sm border border-gold/40 bg-card/40 px-2 py-0.5 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+          <span className="min-w-0 truncate rounded-xl border border-gold/40 bg-card/40 px-2 py-0.5 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
             {activeLabel}
           </span>
         </div>
-        <span className="inline-flex h-7 w-7 items-center justify-center rounded-sm border border-border text-muted-foreground">
+        <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-xl border border-border text-muted-foreground">
           {expanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
         </span>
       </button>
@@ -126,7 +126,7 @@ export const BioMusicPickerStandalone = ({ tenantId }: { tenantId: string }) => 
                 return (
                   <div
                     key="surpresa"
-                    className={`flex items-center justify-between gap-3 rounded-sm border p-3 transition ${
+                    className={`flex items-center justify-between gap-3 rounded-2xl border p-3 transition ${
                       isActive
                         ? "border-gold bg-gradient-gold-soft"
                         : "border-border bg-card/30 hover:border-gold/40"
@@ -149,6 +149,7 @@ export const BioMusicPickerStandalone = ({ tenantId }: { tenantId: string }) => 
                         variant="outline"
                         disabled={!!applyingSlug}
                         onClick={() => apply(null)}
+                        className="rounded-xl"
                       >
                         {isApplying ? <Loader2 className="h-3 w-3 animate-spin" /> : "Aplicar"}
                       </Button>
@@ -164,7 +165,7 @@ export const BioMusicPickerStandalone = ({ tenantId }: { tenantId: string }) => 
                 return (
                   <div
                     key={style.slug}
-                    className={`flex items-center justify-between gap-3 rounded-sm border p-3 transition ${
+                    className={`flex items-center justify-between gap-3 rounded-2xl border p-3 transition ${
                       isActive
                         ? "border-gold bg-gradient-gold-soft"
                         : "border-border bg-card/30 hover:border-gold/40"
@@ -187,6 +188,7 @@ export const BioMusicPickerStandalone = ({ tenantId }: { tenantId: string }) => 
                         variant="outline"
                         disabled={!!applyingSlug}
                         onClick={() => apply(style.slug)}
+                        className="rounded-xl"
                       >
                         {isApplying ? <Loader2 className="h-3 w-3 animate-spin" /> : "Aplicar"}
                       </Button>

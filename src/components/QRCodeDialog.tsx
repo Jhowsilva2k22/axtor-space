@@ -169,7 +169,8 @@ export const QRCodeDialog = ({ url, slug, trigger }: Props) => {
         </DialogHeader>
 
         <div className="flex flex-col items-center gap-5 py-2">
-          <div className="flex h-[340px] w-[340px] items-center justify-center rounded-sm border border-gold/40 bg-white p-3">
+          {/* aspect-square + max-w: não estoura a largura em telas pequenas */}
+          <div className="flex aspect-square w-full max-w-[340px] items-center justify-center rounded-sm border border-gold/40 bg-white p-3">
             {loading || !previewSrc ? (
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             ) : (
@@ -179,7 +180,8 @@ export const QRCodeDialog = ({ url, slug, trigger }: Props) => {
 
           <div className="text-center">
             <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">aponta pra</p>
-            <p className="mt-1 break-all font-mono text-xs text-primary/90">{url}</p>
+            {/* .selectable: URL pode ser copiada com seleção nativa no touch */}
+            <p className="selectable mt-1 break-all font-mono text-xs text-primary/90">{url}</p>
           </div>
 
           <p className="text-center text-[11px] text-muted-foreground">

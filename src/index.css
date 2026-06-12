@@ -257,6 +257,45 @@ All colors MUST be HSL.
     }
   }
 
+  /* Passada mobile — seleção nativa de texto.
+     Em touch (iOS/Android), segurar o dedo abria o menu "Copiar/Buscar Seleção"
+     em qualquer botão/label/navegação. Desliga callout + seleção na interface
+     inteira e reabilita só onde copiar faz sentido: inputs, textarea e a classe
+     utilitária .selectable (URLs da bio, códigos, etc). */
+  @media (pointer: coarse) {
+    body {
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    input,
+    textarea,
+    [contenteditable="true"],
+    .selectable {
+      -webkit-touch-callout: default;
+      -webkit-user-select: text;
+      user-select: text;
+    }
+  }
+
+  /* Passada mobile — zoom e overflow.
+     - Inputs com fonte < 16px disparam o auto-zoom do iOS ao focar; força
+       mínimo de 16px em campos no mobile (max() respeita fontes maiores).
+     - overflow-x escondido mata o "arrastar pro lado" quando algum elemento
+       fica mais largo que a tela. */
+  @media (max-width: 768px) {
+    html,
+    body {
+      overflow-x: hidden;
+    }
+
+    input:not([type="checkbox"]):not([type="radio"]),
+    select,
+    textarea {
+      font-size: max(16px, 1em) !important;
+    }
+  }
+
   h1, h2, h3, .font-display {
     font-family: var(--font-display);
     font-weight: 400;

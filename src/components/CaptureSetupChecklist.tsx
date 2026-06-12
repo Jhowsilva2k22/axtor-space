@@ -30,21 +30,21 @@ export const CaptureSetupChecklist = ({ hasHeadline, hasBio, hasTagline }: Props
     {
       id: "headline",
       label: "Headline",
-      hint: 'Quem você é e qual transformação você entrega. Ex: "é especialista em marketing digital e ajuda empreendedores a dobrar seus leads em 90 dias".',
+      hint: "Quem você é e a transformação que você entrega.",
       done: hasHeadline,
       fieldId: "capture_headline",
     },
     {
       id: "bio",
       label: "Bio / Sub-headline",
-      hint: "Parágrafos que constroem sua autoridade e geram conexão com o visitante antes do botão de ação.",
+      hint: "Os parágrafos que constroem sua autoridade.",
       done: hasBio,
       fieldId: "capture_sub_headline",
     },
     {
       id: "tagline",
       label: "Tagline",
-      hint: 'Frase de efeito em itálico no card de autoridade. Ex: "Para quem entendeu que presença digital não é sobre estar online."',
+      hint: "A frase de efeito do card de autoridade.",
       done: hasTagline,
       fieldId: "capture_tagline",
     },
@@ -93,8 +93,8 @@ export const CaptureSetupChecklist = ({ hasHeadline, hasBio, hasTagline }: Props
               </span>
 
               <div className="min-w-0 flex-1">
-                <p className="mb-1 text-xs font-semibold leading-none">{step.label}</p>
-                <p className="text-[11px] leading-relaxed text-muted-foreground">{step.hint}</p>
+                <p className="mb-1 text-sm font-semibold leading-none">{step.label}</p>
+                <p className="text-xs leading-relaxed text-muted-foreground">{step.hint}</p>
               </div>
 
               {!step.done && (
@@ -103,7 +103,7 @@ export const CaptureSetupChecklist = ({ hasHeadline, hasBio, hasTagline }: Props
                   variant="ghost"
                   size="sm"
                   onClick={() => focusField(step.fieldId)}
-                  className="h-7 shrink-0 border border-gold/20 text-[11px] text-gold hover:border-gold/40 hover:bg-gold/10 hover:text-gold"
+                  className="h-7 shrink-0 rounded-xl border border-gold/20 text-[11px] text-gold hover:border-gold/40 hover:bg-gold/10 hover:text-gold"
                 >
                   Preencher
                 </Button>

@@ -31,8 +31,8 @@ export const ReviewProductsCard = ({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95 }}
-          className={`space-y-3 rounded-md border p-4 transition-opacity ${
-            p.is_active === false ? "border-border/40 bg-muted/30 opacity-70" : "border-border/60"
+          className={`space-y-3 rounded-2xl border p-4 transition-opacity ${
+            p.is_active === false ? "border-gold/10 bg-muted/30 opacity-70" : "border-gold/20"
           }`}
         >
           <ProductCardHeader

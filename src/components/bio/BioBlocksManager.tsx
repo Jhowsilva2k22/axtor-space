@@ -67,9 +67,10 @@ export const BioBlocksManager = ({
 }: BioBlocksManagerProps) => {
   return (
     <section id="admin-blocks-section">
-      <div className="mb-6 flex items-center justify-between">
+      {/* Mobile: título em cima, ações empilhadas embaixo (full-width). Desktop: lado a lado. */}
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="font-display text-2xl">Blocos da bio</h2>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           {blocks.length === 0 && canAddBlock && (
             <BioTemplatePicker
               tenantId={tenantId}
@@ -80,7 +81,7 @@ export const BioBlocksManager = ({
           {canAddBlock ? (
             <Button
               onClick={onAddBlock}
-              className="btn-luxe animate-pulse-soft h-11 rounded-sm px-5 text-xs uppercase tracking-[0.2em]"
+              className="btn-luxe animate-pulse-soft h-11 rounded-2xl px-5 text-xs uppercase tracking-[0.2em] max-sm:w-full"
             >
               <Plus className="h-4 w-4" /> Novo bloco
             </Button>
@@ -88,7 +89,7 @@ export const BioBlocksManager = ({
             <UpgradeModal feature="blocks">
               <Button
                 type="button"
-                className="h-11 rounded-sm border border-gold/40 bg-card/40 px-5 text-xs uppercase tracking-[0.2em] text-muted-foreground hover:bg-gradient-gold-soft hover:text-primary"
+                className="h-11 rounded-2xl border border-gold/40 bg-card/40 px-5 text-xs uppercase tracking-[0.2em] text-muted-foreground hover:bg-gradient-gold-soft hover:text-primary max-sm:w-full"
               >
                 <Lock className="h-3.5 w-3.5" /> Limite Free atingido ({maxBlocks})
               </Button>
@@ -130,19 +131,20 @@ export const BioBlocksManager = ({
           </SortableContext>
         </DndContext>
         {blocks.length === 0 && (
-          <div className="rounded-sm border-gold-gradient bg-card/30 p-10 text-center">
+          <div className="rounded-2xl border-gold-gradient bg-card/30 p-10 text-center">
             <p className="font-display text-xl">
               Comece com um <span className="text-gold italic">template</span>
             </p>
             <p className="mx-auto mt-2 max-w-md text-sm font-light text-muted-foreground">
               Escolha um nicho e ganhe categorias + 5 blocos prontos. Você ajusta as URLs e ativa um por um.
             </p>
-            <div className="mt-5 flex justify-center gap-2">
+            {/* Mobile: CTAs empilhados full-width; desktop: lado a lado centrados. */}
+            <div className="mt-5 flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-center">
               <BioTemplatePicker tenantId={tenantId} onApplied={onTemplateApplied} />
               <Button
                 onClick={onAddBlock}
                 type="button"
-                className="h-11 rounded-sm border border-gold/40 bg-card/40 px-5 text-xs uppercase tracking-[0.2em] text-muted-foreground hover:border-gold hover:text-primary"
+                className="h-11 rounded-2xl border border-gold/40 bg-card/40 px-5 text-xs uppercase tracking-[0.2em] text-muted-foreground hover:border-gold hover:text-primary"
               >
                 ou criar do zero
               </Button>

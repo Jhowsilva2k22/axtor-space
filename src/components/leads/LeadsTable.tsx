@@ -1,5 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { Download, ChevronLeft, ChevronRight, Loader2, Users, Trash2, Eye, EyeOff } from "lucide-react";
+import { Download, ChevronLeft, ChevronRight, Loader2, Users, Trash2, Eye, EyeOff, Calendar as CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,6 +38,45 @@ const PAIN_LABELS: Record<string, string> = {
   vendas: "Vendas",
   financeiro: "Financeiro",
   operacoes: "Operações",
+};
+
+// Campo de data próprio (Popover + Calendar). Substitui o <input type="date">
+// nativo, que no iOS ignora a largura e estoura a tela. value/onChange usam
+// string "yyyy-MM-dd" (mesmo formato que o filtro já espera).
+const DateField = ({
+  value,
+  onChange,
+  placeholder,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+}) => {
+  const date = value ? new Date(`${value}T00:00:00`) : undefined;
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          className={cn(
+            "h-9 w-full justify-start rounded-xl border-gold/20 px-3 text-xs font-normal sm:h-8 sm:w-36",
+            !date && "text-muted-foreground",
+          )}
+        >
+          <CalendarIcon className="mr-2 h-3.5 w-3.5 shrink-0" />
+          {date ? format(date, "dd/MM/yyyy") : placeholder}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-auto p-0">
+        <Calendar
+          mode="single"
+          selected={date}
+          onSelect={(d) => onChange(d ? format(d, "yyyy-MM-dd") : "")}
+          initialFocus
+        />
+      </PopoverContent>
+    </Popover>
+  );
 };
 
 export const LeadsTable = ({ tenantId }: { tenantId: string }) => {
@@ -135,16 +178,16 @@ export const LeadsTable = ({ tenantId }: { tenantId: string }) => {
   return (
     <div className="space-y-4">
       {/* Filtros */}
-      <Card className="p-4">
-        <div className="flex flex-wrap items-end gap-4">
-          <div className="space-y-1.5">
+      <Card className="rounded-2xl border-gold/20 p-4">
+        <div className="grid grid-cols-2 items-end gap-3 sm:flex sm:flex-wrap sm:gap-4">
+          <div className="col-span-2 space-y-1.5 sm:col-auto">
             <Label className="text-xs">Status</Label>
             <Select
               key={`status-${clearKey}`}
               value={draft.status || "_all"}
               onValueChange={(v) => setDraft({ ...draft, status: v === "_all" ? "" : v })}
             >
-              <SelectTrigger className="h-8 w-36 text-xs">
+              <SelectTrigger className="h-9 w-full rounded-xl border-gold/20 text-xs sm:h-8 sm:w-36">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -156,39 +199,35 @@ export const LeadsTable = ({ tenantId }: { tenantId: string }) => {
             </Select>
           </div>
 
-          <div className="space-y-1.5">
+          <div className="col-span-2 min-w-0 space-y-1.5 sm:col-auto">
             <Label className="text-xs">De</Label>
-            <Input
-              key={`from-${clearKey}`}
-              type="date"
-              className="h-8 w-36 text-xs"
+            <DateField
               value={draft.dateFrom}
-              onChange={(e) => setDraft({ ...draft, dateFrom: e.target.value })}
+              onChange={(v) => setDraft({ ...draft, dateFrom: v })}
+              placeholder="dd/mm/aaaa"
             />
           </div>
 
-          <div className="space-y-1.5">
+          <div className="col-span-2 min-w-0 space-y-1.5 sm:col-auto">
             <Label className="text-xs">Até</Label>
-            <Input
-              key={`to-${clearKey}`}
-              type="date"
-              className="h-8 w-36 text-xs"
+            <DateField
               value={draft.dateTo}
-              onChange={(e) => setDraft({ ...draft, dateTo: e.target.value })}
+              onChange={(v) => setDraft({ ...draft, dateTo: v })}
+              placeholder="dd/mm/aaaa"
             />
           </div>
 
-          <div className="flex gap-2">
-            <Button size="sm" className="h-8" onClick={handleApply}>
+          <div className="col-span-2 flex gap-2 sm:col-auto">
+            <Button size="sm" className="h-9 rounded-xl max-sm:flex-1 sm:h-8" onClick={handleApply}>
               Filtrar
             </Button>
-            <Button size="sm" variant="ghost" className="h-8" onClick={handleClear}>
+            <Button size="sm" variant="outline" className="h-9 rounded-xl border-gold/20 text-muted-foreground max-sm:flex-1 sm:h-8" onClick={handleClear}>
               Limpar
             </Button>
           </div>
 
-          <div className="ml-auto">
-            <Button size="sm" variant="outline" className="h-8 gap-1.5" onClick={exportCsv}>
+          <div className="col-span-2 sm:col-auto sm:ml-auto">
+            <Button size="sm" variant="outline" className="h-9 w-full gap-1.5 rounded-xl border-gold/20 sm:h-8 sm:w-auto" onClick={exportCsv}>
               <Download className="h-3.5 w-3.5" />
               Exportar CSV
             </Button>
@@ -198,14 +237,14 @@ export const LeadsTable = ({ tenantId }: { tenantId: string }) => {
 
       {/* Barra de ações em massa */}
       {selectedIds.size > 0 && (
-        <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border/60 bg-muted/30 px-4 py-2.5">
+        <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-gold/20 bg-muted/30 px-4 py-2.5">
           <span className="text-sm font-medium">
             {selectedIds.size} {selectedIds.size === 1 ? "selecionado" : "selecionados"}
           </span>
           <Button
             size="sm"
             variant="outline"
-            className="h-7 gap-1.5 text-xs"
+            className="h-7 gap-1.5 rounded-xl border-gold/20 text-xs"
             onClick={handleExportSelected}
           >
             <Download className="h-3.5 w-3.5" />
@@ -214,7 +253,7 @@ export const LeadsTable = ({ tenantId }: { tenantId: string }) => {
           <Button
             size="sm"
             variant="destructive"
-            className="h-7 gap-1.5 text-xs"
+            className="h-7 gap-1.5 rounded-xl text-xs"
             onClick={() => setDeleteDialog((d) => ({ ...d, open: true }))}
           >
             <Trash2 className="h-3.5 w-3.5" />
@@ -223,7 +262,7 @@ export const LeadsTable = ({ tenantId }: { tenantId: string }) => {
           <Button
             size="sm"
             variant="ghost"
-            className="ml-auto h-7 text-xs"
+            className="ml-auto h-7 rounded-xl text-xs"
             onClick={() => setSelectedIds(new Set())}
           >
             Cancelar seleção
@@ -232,13 +271,13 @@ export const LeadsTable = ({ tenantId }: { tenantId: string }) => {
       )}
 
       {/* Tabela */}
-      <Card className="overflow-hidden">
+      <Card className="overflow-hidden rounded-2xl border-gold/20">
         {loading ? (
           <div className="flex items-center justify-center p-12">
             <Loader2 className="h-5 w-5 animate-spin text-primary" />
           </div>
         ) : leads.length === 0 ? (
-          <div className="flex flex-col items-center justify-center p-16 text-center">
+          <div className="flex flex-col items-center justify-center p-10 text-center sm:p-16">
             <Users className="mb-4 h-10 w-10 text-muted-foreground/40" />
             <p className="font-display text-lg">Nenhum lead ainda</p>
             <p className="mt-2 text-sm text-muted-foreground">
@@ -298,7 +337,7 @@ export const LeadsTable = ({ tenantId }: { tenantId: string }) => {
                       </td>
                       <td className="px-4 py-3">
                         {lead.pain_detected ? (
-                          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
+                          <span className="rounded-xl bg-primary/10 px-2 py-0.5 text-xs text-primary">
                             {PAIN_LABELS[lead.pain_detected] ?? lead.pain_detected}
                           </span>
                         ) : (
@@ -333,7 +372,7 @@ export const LeadsTable = ({ tenantId }: { tenantId: string }) => {
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="h-7 w-7"
+                  className="h-7 w-7 rounded-xl"
                   disabled={page === 0}
                   onClick={() => setPage(page - 1)}
                 >
@@ -342,7 +381,7 @@ export const LeadsTable = ({ tenantId }: { tenantId: string }) => {
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="h-7 w-7"
+                  className="h-7 w-7 rounded-xl"
                   disabled={page >= totalPages - 1}
                   onClick={() => setPage(page + 1)}
                 >
@@ -391,7 +430,7 @@ export const LeadsTable = ({ tenantId }: { tenantId: string }) => {
                     handleDeleteConfirm();
                   }
                 }}
-                className="pr-10"
+                className="rounded-2xl pr-10"
                 autoFocus
               />
               <button
@@ -461,7 +500,7 @@ const StatusBadge = ({ status }: { status: string | null }) => {
 
   return (
     <span
-      className={`rounded-full px-2 py-0.5 text-xs ${colorMap[status] ?? "bg-muted/50 text-muted-foreground"}`}
+      className={`rounded-xl px-2 py-0.5 text-xs ${colorMap[status] ?? "bg-muted/50 text-muted-foreground"}`}
     >
       {STATUS_LABELS[status] ?? status}
     </span>

@@ -44,7 +44,7 @@ export const ExclusiveOfferBlock = ({ benefits, onChange }: ExclusiveOfferBlockP
   };
 
   return (
-    <div className="rounded-md border border-gold/30 bg-gold/5 p-4 space-y-4">
+    <div className="rounded-2xl border border-gold/30 bg-gold/5 p-4 space-y-4">
       <SwitchField
         label="Modo: Oferta Exclusiva do Diagnóstico"
         hint="Ativa o layout de alta conversão (âncora + bônus + garantia)"

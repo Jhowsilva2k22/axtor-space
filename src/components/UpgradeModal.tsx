@@ -35,9 +35,9 @@ export const UpgradeModal = ({ feature, children }: Props) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-w-md rounded-sm border-gold-gradient bg-card/95 backdrop-blur">
+      <DialogContent className="max-w-md rounded-2xl border-gold-gradient bg-card/95 backdrop-blur">
         <DialogHeader>
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-sm border border-gold bg-gradient-gold-soft">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl border border-gold bg-gradient-gold-soft">
             <Sparkles className="h-5 w-5 text-primary" />
           </div>
           <DialogTitle className="mt-4 text-center font-display text-2xl">
@@ -49,7 +49,7 @@ export const UpgradeModal = ({ feature, children }: Props) => {
             <p className="font-medium text-foreground">{f.title}</p>
             <p className="mt-1 text-sm text-muted-foreground">{f.desc}</p>
           </div>
-          <div className="rounded-sm border border-gold/40 bg-background/40 p-4 text-left">
+          <div className="rounded-2xl border border-gold/40 bg-background/40 p-4 text-left">
             <p className="mb-2 text-[10px] uppercase tracking-[0.25em] text-muted-foreground">o plano pro inclui</p>
             <ul className="space-y-1.5 text-sm">
               {ALL_PRO.map((item) => (
@@ -61,7 +61,7 @@ export const UpgradeModal = ({ feature, children }: Props) => {
           </div>
           <Button
             asChild
-            className="btn-luxe h-11 w-full rounded-sm text-xs uppercase tracking-[0.2em]"
+            className="btn-luxe h-11 w-full rounded-2xl text-xs uppercase tracking-[0.2em]"
             onClick={() => setOpen(false)}
           >
             <Link to="/loja?plan=pro">Assinar o Pro</Link>

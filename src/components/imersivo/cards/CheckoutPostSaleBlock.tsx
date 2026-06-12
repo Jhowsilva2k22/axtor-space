@@ -29,7 +29,7 @@ export const CheckoutPostSaleBlock = ({
   const mode = ctaMode ?? "whatsapp";
 
   return (
-    <div className="rounded-md border border-primary/30 bg-primary/5 p-3 space-y-3">
+    <div className="rounded-2xl border border-primary/30 bg-primary/5 p-3 space-y-3">
       <p className="text-xs font-medium uppercase tracking-wider text-primary">Checkout & Pós-venda</p>
       <FieldWithHint
         label="Modo de Chamada para Ação (CTA)"

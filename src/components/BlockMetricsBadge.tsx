@@ -33,7 +33,7 @@ export const BlockMetricsBadge = ({ blockId }: { blockId: string }) => {
   return (
     <Link
       to={`/admin/blocks/${blockId}`}
-      className="group flex w-full items-center gap-3 rounded-sm border border-gold/30 bg-background/30 px-3 py-2 text-[10px] uppercase tracking-[0.18em] text-muted-foreground transition-all hover:border-gold hover:bg-background/50 hover:text-primary"
+      className="group flex w-full items-center gap-3 rounded-2xl border border-gold/30 bg-background/30 px-3 py-2 text-[10px] uppercase tracking-[0.18em] text-muted-foreground transition-all hover:border-gold hover:bg-background/50 hover:text-primary"
       title="Ver métricas detalhadas"
     >
       <BarChart3 className="h-3.5 w-3.5 shrink-0 text-primary" />

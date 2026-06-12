@@ -31,25 +31,25 @@ export const MetricsDashboard = ({ tenantId }: { tenantId: string }) => {
   const { metrics, loading, refetching, refetch } = useMetrics(tenantId, period);
 
   return (
-    <Card className="p-6">
+    <Card className="rounded-2xl border-gold/20 p-5 sm:p-6">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div>
+        <div className="min-w-0">
           <h2 className="font-display text-xl">
             <BarChart3 className="mr-2 inline-block h-5 w-5 text-primary" />
             Métricas
           </h2>
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className="mt-1 text-xs leading-snug text-muted-foreground/70">
             Visão geral do funil. Versão MVP — funil etapa-por-etapa entra na próxima onda.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="flex rounded-sm border border-gold/30 bg-card/40 p-0.5">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex rounded-2xl border border-gold/20 bg-card/40 p-0.5">
             {PERIODS.map((p) => (
               <button
                 key={p.value}
                 type="button"
                 onClick={() => setPeriod(p.value)}
-                className={`rounded-sm px-3 py-1.5 text-[10px] uppercase tracking-widest transition ${
+                className={`rounded-xl px-2.5 py-1.5 text-[10px] uppercase tracking-widest transition sm:px-3 ${
                   period === p.value
                     ? "bg-gradient-gold-soft text-primary"
                     : "text-muted-foreground hover:text-primary"
@@ -63,6 +63,7 @@ export const MetricsDashboard = ({ tenantId }: { tenantId: string }) => {
             type="button"
             variant="outline"
             size="icon"
+            className="rounded-xl border-gold/20"
             onClick={() => refetch()}
             disabled={loading || refetching}
             aria-label="Atualizar métricas"
@@ -143,8 +144,8 @@ const MetricCard = ({
   highlight?: boolean;
 }) => (
   <div
-    className={`rounded-sm border p-4 ${
-      highlight ? "border-gold bg-gradient-gold-soft" : "border-border bg-card/30"
+    className={`rounded-2xl border p-4 ${
+      highlight ? "border-gold bg-gradient-gold-soft" : "border-gold/20 bg-card/30"
     }`}
   >
     <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-muted-foreground">
@@ -159,7 +160,7 @@ const MetricCard = ({
       {value.toLocaleString("pt-BR")}
     </p>
     {hint && (
-      <p className="mt-1 text-[10px] text-muted-foreground">{hint}</p>
+      <p className="mt-1 text-[10px] leading-snug text-muted-foreground/70">{hint}</p>
     )}
   </div>
 );

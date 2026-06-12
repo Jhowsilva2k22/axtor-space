@@ -120,6 +120,7 @@ const App = () => (
             <Route path="/admin/hub" element={<AdminHub />} />
             <Route path="/painel" element={<Painel />} />
             <Route path="/painel/configuracoes" element={<PainelConfiguracoes />} />
+            <Route path="/painel/secao/:section" element={<Painel />} />
             <Route path="/painel/convites" element={<PainelInvites />} />
             <Route path="/painel/loja" element={<Loja />} />
             <Route path="/loja" element={<Loja />} />

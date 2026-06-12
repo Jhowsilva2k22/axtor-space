@@ -187,7 +187,7 @@ export const BriefingWizard = ({ tenantId, onGenerated, onCancel, initialBriefin
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
       >
-        <Card className="flex flex-col items-center justify-center gap-4 p-16 text-center">
+        <Card className="flex flex-col items-center justify-center gap-4 rounded-2xl border-gold/20 p-10 text-center sm:p-16">
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ repeat: Infinity, duration: 1.4, ease: "linear" }}
@@ -215,13 +215,13 @@ export const BriefingWizard = ({ tenantId, onGenerated, onCancel, initialBriefin
       transition={{ duration: 0.3 }}
       className="space-y-6"
     >
-      <Card className="space-y-4 p-6">
-        <div className="flex items-center gap-3">
-          <h1 className="font-display text-3xl">
+      <Card className="space-y-5 rounded-2xl border-gold/20 p-5 sm:p-6">
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 className="font-display text-2xl sm:text-3xl">
             {isEditMode ? "Refazer briefing" : "Briefing profundo"}
           </h1>
           {isEditMode && (
-            <span className="text-[11px] uppercase tracking-widest font-medium px-2.5 py-0.5 rounded-full bg-gold/10 text-gold border border-gold/20">
+            <span className="text-[11px] uppercase tracking-widest font-medium px-2.5 py-0.5 rounded-xl bg-gold/10 text-gold border border-gold/20">
               Editando
             </span>
           )}
@@ -243,10 +243,10 @@ export const BriefingWizard = ({ tenantId, onGenerated, onCancel, initialBriefin
           if (field.inputType === "input" && field.maxLength) {
             const atLimit = len >= field.maxLength;
             return (
-              <div key={field.key} className="space-y-2">
-                <div className="flex items-center justify-between">
+              <div key={field.key} className="space-y-1.5">
+                <div className="flex items-center justify-between gap-2">
                   <Label htmlFor={field.key}>{field.label}</Label>
-                  <span className={`text-xs tabular-nums ${atLimit ? "text-destructive font-medium" : "text-muted-foreground"}`}>
+                  <span className={`shrink-0 text-xs tabular-nums ${atLimit ? "text-destructive font-medium" : "text-muted-foreground"}`}>
                     {len}/{field.maxLength}
                   </span>
                 </div>
@@ -256,6 +256,7 @@ export const BriefingWizard = ({ tenantId, onGenerated, onCancel, initialBriefin
                   value={value}
                   maxLength={field.maxLength}
                   onChange={(e) => setBriefing((prev) => ({ ...prev, [field.key]: e.target.value }))}
+                  className="rounded-2xl"
                 />
                 {atLimit && (
                   <p className="text-xs text-destructive">
@@ -271,10 +272,10 @@ export const BriefingWizard = ({ tenantId, onGenerated, onCancel, initialBriefin
             const insufficient = hasContent && len < field.minLength;
             const sufficient = len >= field.minLength;
             return (
-              <div key={field.key} className="space-y-2">
-                <div className="flex items-center justify-between">
+              <div key={field.key} className="space-y-1.5">
+                <div className="flex items-center justify-between gap-2">
                   <Label htmlFor={field.key}>{field.label}</Label>
-                  <span className={`text-xs tabular-nums ${insufficient ? "text-amber-500" : sufficient ? "text-emerald-500" : "text-muted-foreground"}`}>
+                  <span className={`shrink-0 text-xs tabular-nums ${insufficient ? "text-amber-500" : sufficient ? "text-emerald-500" : "text-muted-foreground"}`}>
                     {len}/{field.minLength} mín.
                   </span>
                 </div>
@@ -283,10 +284,10 @@ export const BriefingWizard = ({ tenantId, onGenerated, onCancel, initialBriefin
                   placeholder={field.placeholder}
                   value={value}
                   onChange={(e) => setBriefing((prev) => ({ ...prev, [field.key]: e.target.value }))}
-                  className="min-h-[120px]"
+                  className="min-h-[120px] rounded-2xl"
                 />
                 {field.hint && !insufficient && (
-                  <p className="text-xs text-muted-foreground">{field.hint}</p>
+                  <p className="text-[11px] leading-snug text-muted-foreground/70">{field.hint}</p>
                 )}
                 {insufficient && (
                   <p className="text-xs text-amber-500">
@@ -298,14 +299,14 @@ export const BriefingWizard = ({ tenantId, onGenerated, onCancel, initialBriefin
           }
 
           return (
-            <div key={field.key} className="space-y-2">
+            <div key={field.key} className="space-y-1.5">
               <Label htmlFor={field.key}>{field.label}</Label>
               <Textarea
                 id={field.key}
                 placeholder={field.placeholder}
                 value={value}
                 onChange={(e) => setBriefing((prev) => ({ ...prev, [field.key]: e.target.value }))}
-                className="min-h-[80px]"
+                className="min-h-[80px] rounded-2xl"
               />
             </div>
           );
@@ -314,13 +315,13 @@ export const BriefingWizard = ({ tenantId, onGenerated, onCancel, initialBriefin
         <div ref={productsRef} className="space-y-3 pt-4">
           <div>
             <h2 className="font-display text-xl">Seus produtos / serviços principais</h2>
-            <p className="text-xs text-muted-foreground">
+            <p className="mt-1 text-[11px] leading-snug text-muted-foreground/70">
               Liste os produtos que você de fato vende. A IA vai usar exatamente esses como solução pra cada dor que diagnosticar — não inventa nada.
             </p>
           </div>
 
           {briefingProducts.map((p, idx) => (
-            <Card key={idx} className="space-y-3 p-4">
+            <Card key={idx} className="space-y-3 rounded-2xl border-gold/20 p-4">
               <div className="flex items-center justify-between">
                 <span className="text-xs uppercase tracking-widest text-muted-foreground">
                   Produto {idx + 1}
@@ -330,6 +331,7 @@ export const BriefingWizard = ({ tenantId, onGenerated, onCancel, initialBriefin
                     type="button"
                     variant="ghost"
                     size="sm"
+                    className="rounded-xl"
                     onClick={() =>
                       setBriefingProducts((prev) => prev.filter((_, i) => i !== idx))
                     }
@@ -341,6 +343,7 @@ export const BriefingWizard = ({ tenantId, onGenerated, onCancel, initialBriefin
 
               <Input
                 placeholder="Nome do produto/serviço"
+                className="rounded-2xl"
                 value={p.name}
                 onChange={(e) =>
                   setBriefingProducts((prev) =>
@@ -356,11 +359,12 @@ export const BriefingWizard = ({ tenantId, onGenerated, onCancel, initialBriefin
                     prev.map((x, i) => (i === idx ? { ...x, description: e.target.value } : x))
                   )
                 }
-                className="min-h-[70px]"
+                className="min-h-[70px] rounded-2xl"
               />
               <div className="grid gap-2 sm:grid-cols-2">
                 <Input
                   placeholder="Preço (ex: R$ 497)"
+                  className="rounded-2xl"
                   value={p.price_hint}
                   onChange={(e) =>
                     setBriefingProducts((prev) =>
@@ -370,6 +374,7 @@ export const BriefingWizard = ({ tenantId, onGenerated, onCancel, initialBriefin
                 />
                 <Input
                   placeholder="Link de checkout (opcional)"
+                  className="rounded-2xl"
                   value={p.link}
                   onChange={(e) =>
                     setBriefingProducts((prev) =>
@@ -381,6 +386,7 @@ export const BriefingWizard = ({ tenantId, onGenerated, onCancel, initialBriefin
               <div className="grid gap-2 sm:grid-cols-2">
                 <Input
                   placeholder="Duração da sessão (ex: 1 hora)"
+                  className="rounded-2xl"
                   value={p.session_duration}
                   onChange={(e) =>
                     setBriefingProducts((prev) =>
@@ -392,6 +398,7 @@ export const BriefingWizard = ({ tenantId, onGenerated, onCancel, initialBriefin
                 />
                 <Input
                   placeholder="Duração do plano (ex: 30 dias)"
+                  className="rounded-2xl"
                   value={p.plan_duration}
                   onChange={(e) =>
                     setBriefingProducts((prev) =>
@@ -405,6 +412,7 @@ export const BriefingWizard = ({ tenantId, onGenerated, onCancel, initialBriefin
               <div className="grid gap-2 sm:grid-cols-2">
                 <Input
                   placeholder="Tipo de entrega (ex: 1:1, grupo, app, presencial)"
+                  className="rounded-2xl"
                   value={p.tipo_entrega}
                   onChange={(e) =>
                     setBriefingProducts((prev) =>
@@ -416,6 +424,7 @@ export const BriefingWizard = ({ tenantId, onGenerated, onCancel, initialBriefin
                 />
                 <Input
                   placeholder="Público-alvo deste produto"
+                  className="rounded-2xl"
                   value={p.publico_alvo}
                   onChange={(e) =>
                     setBriefingProducts((prev) =>
@@ -429,6 +438,7 @@ export const BriefingWizard = ({ tenantId, onGenerated, onCancel, initialBriefin
               <Textarea
                 placeholder="Diferencial deste produto (o que só ele entrega)"
                 rows={2}
+                className="rounded-2xl"
                 value={p.diferencial}
                 onChange={(e) =>
                   setBriefingProducts((prev) =>
@@ -441,6 +451,7 @@ export const BriefingWizard = ({ tenantId, onGenerated, onCancel, initialBriefin
               <Textarea
                 placeholder="Bônus / garantia incluídos (opcional)"
                 rows={2}
+                className="rounded-2xl"
                 value={p.bonus_garantia}
                 onChange={(e) =>
                   setBriefingProducts((prev) =>
@@ -450,7 +461,7 @@ export const BriefingWizard = ({ tenantId, onGenerated, onCancel, initialBriefin
                   )
                 }
               />
-              <p className="text-[10px] text-muted-foreground">
+              <p className="text-[10px] leading-snug text-muted-foreground/70">
                 Esses campos são SEUS — a IA nunca inventa duração nem valor.
               </p>
             </Card>
@@ -461,14 +472,14 @@ export const BriefingWizard = ({ tenantId, onGenerated, onCancel, initialBriefin
               type="button"
               variant="outline"
               onClick={() => setBriefingProducts((prev) => [...prev, { ...EMPTY_PRODUCT }])}
-              className="gap-2"
+              className="gap-2 rounded-2xl border-gold/20 max-sm:w-full"
             >
               <Plus className="h-4 w-4" /> Adicionar produto
             </Button>
           )}
 
           {isEditMode && keepProducts === false && (
-            <div className="flex items-center gap-3 rounded-lg border border-gold/20 bg-gold/5 p-3">
+            <div className="flex items-center gap-3 rounded-2xl border border-gold/20 bg-gold/5 p-3">
               <Checkbox
                 id="products-confirmed"
                 checked={productsConfirmed}
@@ -482,8 +493,8 @@ export const BriefingWizard = ({ tenantId, onGenerated, onCancel, initialBriefin
         </div>
       </Card>
 
-      <div className="flex justify-between gap-3">
-        <Button variant="ghost" onClick={onCancel}>
+      <div className="flex flex-wrap justify-between gap-3">
+        <Button variant="ghost" className="rounded-2xl" onClick={onCancel}>
           Cancelar
         </Button>
         <Button
@@ -495,7 +506,7 @@ export const BriefingWizard = ({ tenantId, onGenerated, onCancel, initialBriefin
             }
           }}
           disabled={!hasValidProduct || (isEditMode && keepProducts === false && !productsConfirmed)}
-          className="gap-2 transition-transform hover:scale-[1.02]"
+          className="gap-2 rounded-2xl transition-transform hover:scale-[1.02]"
         >
           <Sparkles className="h-4 w-4" />
           {isEditMode ? "Atualizar Funil" : "Gerar funil com IA"}
@@ -512,6 +523,7 @@ export const BriefingWizard = ({ tenantId, onGenerated, onCancel, initialBriefin
           </p>
           <div className="flex flex-col gap-2 pt-2">
             <Button
+              className="rounded-2xl"
               onClick={() => {
                 setKeepProducts(true);
                 setShowProductDialog(false);
@@ -522,6 +534,7 @@ export const BriefingWizard = ({ tenantId, onGenerated, onCancel, initialBriefin
             </Button>
             <Button
               variant="outline"
+              className="rounded-2xl border-gold/20"
               onClick={() => {
                 setKeepProducts(false);
                 setShowProductDialog(false);

@@ -93,8 +93,8 @@ export const BioTemplatePicker = ({ tenantId, variant = "primary", onApplied }: 
 
   const triggerClass =
     variant === "primary"
-      ? "btn-luxe h-11 rounded-sm px-5 text-xs uppercase tracking-[0.2em]"
-      : "h-9 rounded-sm border border-gold/40 bg-card/40 px-4 text-[11px] uppercase tracking-[0.2em] text-muted-foreground hover:border-gold hover:text-primary";
+      ? "btn-luxe h-11 rounded-2xl px-5 text-xs uppercase tracking-[0.2em] max-sm:w-full"
+      : "h-9 rounded-2xl border border-gold/40 bg-card/40 px-4 text-[11px] uppercase tracking-[0.2em] text-muted-foreground hover:border-gold hover:text-primary max-sm:w-full max-sm:h-11";
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -103,7 +103,7 @@ export const BioTemplatePicker = ({ tenantId, variant = "primary", onApplied }: 
           <Sparkles className="h-4 w-4" /> Usar template
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-h-[85vh] max-w-3xl overflow-y-auto rounded-sm border-gold bg-card">
+      <DialogContent className="max-h-[85vh] max-w-3xl overflow-y-auto rounded-2xl border-gold bg-card">
         <DialogHeader>
           <DialogTitle className="font-display text-2xl">
             Escolha um <span className="text-gold italic">template</span>
@@ -117,14 +117,14 @@ export const BioTemplatePicker = ({ tenantId, variant = "primary", onApplied }: 
           {BIO_TEMPLATES.map((tpl) => (
             <div
               key={tpl.id}
-              className="rounded-sm border-gold-gradient bg-background/30 p-5 transition hover:border-gold"
+              className="rounded-2xl border-gold-gradient bg-background/30 p-5 transition hover:border-gold"
             >
               <div className="mb-3 flex items-start justify-between gap-3">
                 <div>
                   <p className="text-2xl">{tpl.emoji}</p>
                   <h3 className="mt-1 font-display text-lg">{tpl.name}</h3>
                 </div>
-                <span className="rounded-sm border border-gold/40 bg-gradient-gold-soft px-2 py-0.5 text-[10px] uppercase tracking-wider text-primary">
+                <span className="rounded-xl border border-gold/40 bg-gradient-gold-soft px-2 py-0.5 text-[10px] uppercase tracking-wider text-primary">
                   {tpl.blocks.length} blocos
                 </span>
               </div>
@@ -140,7 +140,7 @@ export const BioTemplatePicker = ({ tenantId, variant = "primary", onApplied }: 
                 type="button"
                 disabled={applying !== null}
                 onClick={() => apply(tpl)}
-                className="btn-luxe h-9 w-full rounded-sm text-[11px] uppercase tracking-[0.2em]"
+                className="btn-luxe h-9 w-full rounded-2xl text-[11px] uppercase tracking-[0.2em]"
               >
                 {applying === tpl.id ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />

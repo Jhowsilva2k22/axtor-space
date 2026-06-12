@@ -174,7 +174,7 @@ export default function ImageCropDialog({
             variant="ghost"
             onClick={onCancel}
             disabled={busy}
-            className="rounded-sm border border-border text-[11px] uppercase tracking-[0.2em] text-muted-foreground"
+            className="rounded-2xl border border-gold/20 text-[11px] uppercase tracking-[0.2em] text-muted-foreground"
           >
             Cancelar
           </Button>
@@ -182,7 +182,7 @@ export default function ImageCropDialog({
             type="button"
             onClick={handleConfirm}
             disabled={busy || !croppedArea}
-            className="rounded-sm bg-gradient-gold-soft text-[11px] uppercase tracking-[0.2em] text-primary hover:shadow-gold"
+            className="rounded-2xl bg-gradient-gold-soft text-[11px] uppercase tracking-[0.2em] text-primary hover:shadow-gold"
           >
             {busy ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : null}
             {busy ? "Processando..." : "Aplicar e enviar"}

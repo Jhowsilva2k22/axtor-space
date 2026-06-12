@@ -1,6 +1,18 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
-import { Navigate, useNavigate, Link } from "react-router-dom";
-import { Loader2, Lock, LayoutDashboard } from "lucide-react";
+import { Navigate, useNavigate, useParams, Link } from "react-router-dom";
+import {
+  Loader2,
+  Lock,
+  LayoutDashboard,
+  Magnet,
+  Link2,
+  Sparkles,
+  Image as ImageIcon,
+  BarChart3,
+  Users,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -46,10 +58,15 @@ const PLAN_LABELS: Record<string, string> = {
 };
 
 export default function Painel() {
-  const [activeTab, setActiveTab] = useState("captura");
   const nav = useNavigate();
+  const { section } = useParams<{ section?: string }>();
+  const PAINEL_TABS = ["bio", "captura", "imersivo", "imagens", "metricas", "leads"];
+  // Aba ativa vem da URL (/painel/secao/:section). Sem seção válida → Bio (entrada).
+  const activeTab = section && PAINEL_TABS.includes(section) ? section : "bio";
+  // Trocar de aba = navegar pra rota da seção (URL própria, back/forward funciona).
+  const setActiveTab = (value: string) => nav(`/painel/secao/${value}`);
   const { user, isAdmin, loading: authLoading } = useAuth();
-  const { current, loading: tenantLoading, refresh } = useCurrentTenant();
+  const { current, tenants, loading: tenantLoading, refresh } = useCurrentTenant();
 
   // Guards de tier — uma chamada por aba (cacheado via React Query, sem N round-trips reais).
   const accessCaptura = useCanAccessTab("captura");
@@ -189,20 +206,33 @@ export default function Painel() {
 
   const planLabel = isAdmin ? "Dono" : PLAN_LABELS[current.plan] ?? current.plan;
 
+  // Itens do bottom nav mobile — mesmos values do Tabs (estado compartilhado),
+  // labels curtos pra caber 6 itens, lock preservado por seção.
+  const mobileNavItems: MobileNavItem[] = [
+    { value: "bio", label: "Bio", icon: Link2, canAccess: accessBio.canAccess },
+    { value: "captura", label: "Captura", icon: Magnet, canAccess: accessCaptura.canAccess },
+    { value: "imersivo", label: "Imersivo", icon: Sparkles, canAccess: accessImersivo.canAccess },
+    { value: "imagens", label: "Imagens", icon: ImageIcon, canAccess: accessImagens.canAccess },
+    { value: "metricas", label: "Métricas", icon: BarChart3, canAccess: accessMetricas.canAccess },
+    { value: "leads", label: "Leads", icon: Users, canAccess: accessLeads.canAccess },
+  ];
+
   return (
     <div className="relative isolate min-h-screen bg-background">
       <BGPattern />
-      <div className="relative mx-auto max-w-6xl px-6 py-8">
-        <header className="mb-8 flex flex-wrap items-start justify-between gap-4">
+      {/* pb extra no mobile pra nada ficar escondido atrás do bottom nav fixo */}
+      <div className="relative mx-auto max-w-6xl px-4 pb-28 pt-6 sm:px-6 sm:py-8">
+        {/* Header desktop — layout original preservado (≥ sm) */}
+        <header className="mb-8 hidden flex-wrap items-start justify-between gap-4 sm:flex">
           <div>
-            <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+            <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">
               Painel do tenant
             </p>
             <h1 className="mt-1 font-display text-3xl">{current.display_name}</h1>
             <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
               <span className="font-mono">/{current.slug}</span>
               <span className="text-muted-foreground/40">·</span>
-              <span className="rounded-full border border-gold/40 bg-gold/5 px-2 py-0.5 text-[10px] uppercase tracking-widest text-gold">
+              <span className="rounded-full border border-gold/40 bg-gold/5 px-2 py-0.5 text-[11px] uppercase tracking-widest text-gold">
                 {planLabel}
               </span>
             </div>
@@ -214,12 +244,52 @@ export default function Painel() {
             {isAdmin && (
               <Link
                 to="/admin/hub"
-                className="inline-flex h-9 items-center gap-1.5 rounded-sm border border-zinc-600 bg-zinc-900 px-3 text-[10px] uppercase tracking-[0.2em] text-zinc-300 transition-all hover:bg-zinc-800 hover:text-white"
+                className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-zinc-600 bg-zinc-900 px-3 text-[11px] uppercase tracking-[0.2em] text-zinc-300 transition-all hover:bg-zinc-800 hover:text-white"
               >
                 Hub <LayoutDashboard className="h-3 w-3" />
               </Link>
             )}
           </div>
+        </header>
+
+        {/* App bar mobile — densa, cara de app: nome+plano numa linha,
+            créditos como chip, ações como ícones. Mesmo conteúdo do desktop. */}
+        <header className="mb-6 sm:hidden">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <h1 className="truncate font-display text-xl leading-tight">
+                  {current.display_name}
+                </h1>
+                <span className="shrink-0 rounded-full border border-gold/40 bg-gold/5 px-2 py-0.5 text-[11px] uppercase tracking-widest text-gold">
+                  {planLabel}
+                </span>
+              </div>
+              <p className="mt-0.5 truncate font-mono text-xs text-muted-foreground">
+                /{current.slug}
+              </p>
+            </div>
+            <CreditsCard compact />
+          </div>
+          <div className="mt-3 flex items-center justify-between gap-2">
+            <PainelHeaderActions slug={current.slug} compact />
+            {isAdmin && (
+              <Link
+                to="/admin/hub"
+                aria-label="Hub do admin"
+                title="Hub do admin"
+                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-zinc-600 bg-zinc-900 text-zinc-300 transition-all hover:bg-zinc-800 hover:text-white"
+              >
+                <LayoutDashboard className="h-4 w-4" />
+              </Link>
+            )}
+          </div>
+          {/* Seletor só aparece quando há mais de um tenant (senão duplicaria o nome) */}
+          {tenants.length > 1 && (
+            <div className="mt-3">
+              <TenantSelector />
+            </div>
+          )}
         </header>
 
         {/* Banner que aparece quando o user chega após pagar (?activated=true).
@@ -232,9 +302,10 @@ export default function Painel() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6">
-            <TabsTriggerGuarded value="captura" label="Captura" canAccess={accessCaptura.canAccess} />
+          {/* Top tabs só no desktop — no mobile a navegação é o bottom nav fixo */}
+          <TabsList className="hidden w-full grid-cols-6 sm:grid">
             <TabsTriggerGuarded value="bio" label="Link na Bio" canAccess={accessBio.canAccess} />
+            <TabsTriggerGuarded value="captura" label="Captura" canAccess={accessCaptura.canAccess} />
             <TabsTriggerGuarded value="imersivo" label="Diagnóstico Imersivo" canAccess={accessImersivo.canAccess} />
             <TabsTriggerGuarded value="imagens" label="Imagens" canAccess={accessImagens.canAccess} />
             <TabsTriggerGuarded value="metricas" label="Métricas" canAccess={accessMetricas.canAccess} />
@@ -255,7 +326,7 @@ export default function Painel() {
             {accessIntegracoes.canAccess ? (
               <PlaceholderTab
                 title="Integrações"
-                description="Conexão com agentes externos: WhatsApp Business, OpenAI, n8n, Zapier, ManyChat, CRMs. Schema do banco já reservado; UI dos formulários entra em ondas futuras."
+                description="Em breve você conecta WhatsApp, IA e outras ferramentas aqui pra automatizar seus funis."
                 etiqueta="estrutura"
               />
             ) : (
@@ -305,6 +376,13 @@ export default function Painel() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Bottom nav mobile — navegação fixa estilo app nativo (< sm) */}
+      <MobileBottomNav
+        items={mobileNavItems}
+        active={activeTab}
+        onSelect={setActiveTab}
+      />
     </div>
   );
 }
@@ -312,6 +390,72 @@ export default function Painel() {
 // =============================================================================
 // Componentes locais
 // =============================================================================
+
+type MobileNavItem = {
+  value: string;
+  label: string;
+  icon: LucideIcon;
+  canAccess: boolean;
+};
+
+/**
+ * Bottom nav mobile (< sm) — barra fixa no rodapé com as 6 seções do Painel.
+ * - Mesmo estado do Tabs (activeTab/setActiveTab), só muda a apresentação.
+ * - Seção bloqueada pelo plano fica desabilitada com cadeado (mesma regra
+ *   do TabsTriggerGuarded do desktop).
+ * - Respeita o safe-area do iPhone (home indicator) via env().
+ */
+const MobileBottomNav = ({
+  items,
+  active,
+  onSelect,
+}: {
+  items: MobileNavItem[];
+  active: string;
+  onSelect: (value: string) => void;
+}) => (
+  <nav
+    aria-label="Seções do painel"
+    className="fixed inset-x-0 bottom-0 z-40 border-t border-gold/20 bg-background/90 backdrop-blur-md sm:hidden"
+  >
+    <div className="flex items-stretch pb-[env(safe-area-inset-bottom)]">
+      {items.map(({ value, label, icon: Icon, canAccess }) => {
+        const isActive = active === value;
+        return (
+          <button
+            key={value}
+            type="button"
+            disabled={!canAccess}
+            aria-current={isActive ? "page" : undefined}
+            onClick={() => onSelect(value)}
+            className={cn(
+              "relative flex min-w-0 flex-1 flex-col items-center gap-1 pb-2 pt-2.5 transition-colors",
+              isActive ? "text-primary" : "text-muted-foreground",
+              !canAccess && "cursor-not-allowed opacity-40",
+            )}
+          >
+            {/* Indicador dourado da seção ativa */}
+            {isActive && (
+              <span
+                className="absolute top-0 h-0.5 w-8 rounded-full bg-gradient-gold"
+                aria-hidden
+              />
+            )}
+            <span className="relative">
+              <Icon className="h-5 w-5" aria-hidden />
+              {!canAccess && (
+                <Lock className="absolute -right-2 -top-1 h-3 w-3" aria-hidden />
+              )}
+            </span>
+            <span className="max-w-full truncate px-0.5 text-[11px] leading-none">
+              {label}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  </nav>
+);
 
 const TabsTriggerGuarded = ({
   value,
@@ -337,8 +481,8 @@ const TabsTriggerGuarded = ({
 type Etiqueta = "estrutura" | "referencia";
 
 const ETIQUETA_LABEL: Record<Etiqueta, string> = {
-  estrutura: "Estrutura agora · UI depois",
-  referencia: "Referência · futuro",
+  estrutura: "Em construção",
+  referencia: "Em breve",
 };
 
 const PlaceholderTab = ({
@@ -350,17 +494,14 @@ const PlaceholderTab = ({
   description: string;
   etiqueta?: Etiqueta;
 }) => (
-  <Card className="p-12 text-center">
+  <Card className="rounded-2xl border-gold/20 p-8 text-center sm:p-12">
     {etiqueta && (
-      <span className="mb-4 inline-block rounded-full border border-gold/40 bg-gold/5 px-3 py-1 text-[10px] uppercase tracking-widest text-gold">
+      <span className="mb-4 inline-block rounded-xl border border-gold/40 bg-gold/5 px-3 py-1 text-[11px] uppercase tracking-widest text-gold">
         {ETIQUETA_LABEL[etiqueta]}
       </span>
     )}
     <h2 className="mb-3 font-display text-2xl">{title}</h2>
     <p className="mx-auto max-w-lg text-sm text-muted-foreground">{description}</p>
-    <p className="mt-6 text-[10px] uppercase tracking-widest text-muted-foreground/60">
-      Conteúdo em construção · Fase 1 do roadmap
-    </p>
   </Card>
 );
 
@@ -371,13 +512,13 @@ const UpgradeBlock = ({
   title: string;
   subtitle?: string;
 }) => (
-  <Card className="p-12 text-center">
+  <Card className="rounded-2xl border-gold/20 p-8 text-center sm:p-12">
     <Lock className="mx-auto mb-4 h-8 w-8 text-muted-foreground" aria-hidden />
     <h2 className="mb-3 font-display text-2xl">{title}</h2>
     <p className="mx-auto max-w-lg text-sm text-muted-foreground">
       {subtitle ?? "Esse recurso está disponível a partir do plano Pro."}
     </p>
-    <p className="mt-6 text-[10px] uppercase tracking-widest text-gold">
+    <p className="mt-6 text-[11px] uppercase tracking-widest text-gold">
       Upgrade em breve
     </p>
   </Card>
@@ -515,7 +656,7 @@ const BioTabPanel = ({
  */
 const BioRemainingSectionsCard = () => (
   <Card className="p-8">
-    <span className="mb-3 inline-block rounded-full border border-gold/40 bg-gold/5 px-3 py-1 text-[10px] uppercase tracking-widest text-gold">
+    <span className="mb-3 inline-block rounded-full border border-gold/40 bg-gold/5 px-3 py-1 text-[11px] uppercase tracking-widest text-gold">
       Em consolidação · próximo PR
     </span>
     <h3 className="font-display text-lg">Tema visual / templates da bio</h3>
@@ -565,7 +706,7 @@ const DeepDiagnosticTabPanel = () => {
 
   if (loading) {
     return (
-      <Card className="flex items-center justify-center p-12">
+      <Card className="flex items-center justify-center rounded-2xl border-gold/20 p-12">
         <Loader2 className="h-5 w-5 animate-spin text-primary" />
       </Card>
     );

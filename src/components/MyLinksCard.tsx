@@ -65,7 +65,8 @@ const Row = ({
       </div>
       <div className="min-w-0">
         <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">{title}</div>
-        <div className="mt-0.5 break-all font-mono text-xs text-primary">{url}</div>
+        {/* .selectable: link pode ser copiado com seleção nativa no touch */}
+        <div className="selectable mt-0.5 break-all font-mono text-xs text-primary">{url}</div>
         {hint && <div className="mt-1 text-[11px] text-muted-foreground">{hint}</div>}
       </div>
     </div>
@@ -185,7 +186,7 @@ export const MyLinksCard = ({ slug, tenantId }: Props) => {
                     </div>
                     <div className="min-w-0">
                       <div className="text-[10px] uppercase tracking-[0.25em] font-bold text-muted-foreground/60">Link de Captação / {partnerName}</div>
-                      <div className="mt-1 break-all font-mono text-xs text-gold">{partnerUrl}</div>
+                      <div className="selectable mt-1 break-all font-mono text-xs text-gold">{partnerUrl}</div>
                       <p className="mt-1 text-[11px] text-muted-foreground/80">Leads que entrarem por aqui são atribuídos automaticamente a você.</p>
                     </div>
                   </div>

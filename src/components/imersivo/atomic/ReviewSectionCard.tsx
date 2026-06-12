@@ -16,7 +16,7 @@ export const ReviewSectionCard = ({
   titleClassName,
 }: ReviewSectionCardProps) => {
   return (
-    <Card className={cn("space-y-4 p-6", className)}>
+    <Card className={cn("space-y-4 rounded-2xl border-gold/20 p-5 sm:p-6", className)}>
       <h2 className={cn("font-display text-lg", titleClassName)}>{title}</h2>
       {children}
     </Card>

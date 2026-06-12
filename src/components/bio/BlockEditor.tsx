@@ -103,7 +103,7 @@ export const BlockEditor = ({
     <div
       ref={setNodeRef}
       style={style}
-      className={`min-w-0 overflow-hidden rounded-sm border p-2 sm:p-2.5 transition-all ${
+      className={`min-w-0 overflow-hidden rounded-2xl border p-2 sm:p-2.5 transition-all ${
         hasDraft
           ? "border-yellow-500/70 bg-yellow-500/[0.04]"
           : block.is_active
@@ -112,7 +112,7 @@ export const BlockEditor = ({
       } ${isDragging ? "shadow-2xl" : ""}`}
     >
       {hasDraft && (
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-sm border border-yellow-500/40 bg-yellow-500/5 px-3 py-2">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-yellow-500/40 bg-yellow-500/5 px-3 py-2">
           <span className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.2em] text-yellow-500">
             <FileEdit className="h-3 w-3" /> rascunho não publicado
           </span>
@@ -120,7 +120,7 @@ export const BlockEditor = ({
             <button
               type="button"
               onClick={onDiscardDraft}
-              className="inline-flex h-8 items-center gap-1.5 rounded-sm border border-border px-3 text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-primary"
+              className="inline-flex h-8 items-center gap-1.5 rounded-xl border border-border px-3 text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-primary"
             >
               <Undo2 className="h-3 w-3" /> Descartar
             </button>
@@ -128,7 +128,7 @@ export const BlockEditor = ({
               type="button"
               onClick={onPublish}
               disabled={isPublishing}
-              className="btn-luxe h-8 rounded-sm px-3 text-[10px] uppercase tracking-[0.2em]"
+              className="btn-luxe h-8 rounded-xl px-3 text-[10px] uppercase tracking-[0.2em]"
             >
               {isPublishing ? (
                 <Loader2 className="h-3 w-3 animate-spin" />
@@ -147,7 +147,7 @@ export const BlockEditor = ({
           type="button"
           {...attributes}
           {...listeners}
-          className="hidden cursor-grab touch-none rounded-sm border border-border p-1 text-muted-foreground hover:text-primary active:cursor-grabbing md:inline-flex"
+          className="hidden cursor-grab touch-none rounded-lg border border-border p-1 text-muted-foreground hover:text-primary active:cursor-grabbing md:inline-flex"
           title="Arraste para reordenar"
         >
           <GripVertical className="h-3 w-3" />
@@ -155,7 +155,7 @@ export const BlockEditor = ({
         <button
           onClick={onMoveUp}
           disabled={isFirst}
-          className="rounded-sm border border-border p-1 text-muted-foreground hover:text-primary disabled:opacity-30"
+          className="rounded-lg border border-border p-1 text-muted-foreground hover:text-primary disabled:opacity-30"
           title="Subir"
         >
           <ArrowUp className="h-3 w-3" />
@@ -163,7 +163,7 @@ export const BlockEditor = ({
         <button
           onClick={onMoveDown}
           disabled={isLast}
-          className="rounded-sm border border-border p-1 text-muted-foreground hover:text-primary disabled:opacity-30"
+          className="rounded-lg border border-border p-1 text-muted-foreground hover:text-primary disabled:opacity-30"
           title="Descer"
         >
           <ArrowDown className="h-3 w-3" />
@@ -187,7 +187,7 @@ export const BlockEditor = ({
             type="button"
             onClick={() => setExpanded((v) => !v)}
             aria-label={isExpanded ? "Recolher bloco" : "Expandir bloco"}
-            className="inline-flex h-7 w-7 items-center justify-center rounded-sm border border-border text-muted-foreground hover:border-gold hover:text-primary"
+            className="inline-flex h-7 w-7 items-center justify-center rounded-xl border border-border text-muted-foreground hover:border-gold hover:text-primary"
           >
             {isExpanded ? (
               <ChevronUp className="h-3.5 w-3.5" />
@@ -196,7 +196,7 @@ export const BlockEditor = ({
             )}
           </button>
           <span
-            className={`hidden sm:inline-flex h-6 items-center gap-1.5 rounded-sm border px-2 text-[9px] uppercase tracking-[0.2em] transition-all ${
+            className={`hidden sm:inline-flex h-6 items-center gap-1.5 rounded-xl border px-2 text-[9px] uppercase tracking-[0.2em] transition-all ${
               block.is_active
                 ? "border-gold/40 text-primary animate-pulse-soft"
                 : "border-border text-muted-foreground"
@@ -212,7 +212,7 @@ export const BlockEditor = ({
               <button
                 type="button"
                 aria-label="Mais ações"
-                className="inline-flex h-7 w-7 items-center justify-center rounded-sm border border-border text-muted-foreground hover:border-gold hover:text-primary"
+                className="inline-flex h-7 w-7 items-center justify-center rounded-xl border border-border text-muted-foreground hover:border-gold hover:text-primary"
               >
                 <MoreVertical className="h-3.5 w-3.5" />
               </button>
@@ -290,7 +290,7 @@ export const BlockEditor = ({
               onChange({ kind: v, icon: block.icon || k?.icon || "Link2" });
             }}
           >
-            <SelectTrigger className="h-9 rounded-sm border-gold bg-input">
+            <SelectTrigger className="h-9 rounded-2xl border-gold bg-input">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -320,7 +320,7 @@ export const BlockEditor = ({
           <Input
             value={block.label}
             onChange={(e) => onChange({ label: e.target.value })}
-            className="h-9 rounded-sm border-gold bg-input"
+            className="h-9 rounded-2xl border-gold bg-input"
           />
         </Field>
         <Field label="Badge (opcional)">
@@ -341,11 +341,11 @@ export const BlockEditor = ({
             customLabel="Usar badge personalizada"
           />
           {block.badge && (
-            <div className="mt-2 inline-flex items-center gap-2 rounded-sm border border-gold/40 bg-card/40 px-2 py-1">
+            <div className="mt-2 inline-flex items-center gap-2 rounded-xl border border-gold/40 bg-card/40 px-2 py-1">
               <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                 prévia:
               </span>
-              <span className="rounded-sm border border-gold bg-background/40 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">
+              <span className="rounded-xl border border-gold bg-background/40 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">
                 {block.badge}
               </span>
             </div>
@@ -358,7 +358,7 @@ export const BlockEditor = ({
               onChange({ category_id: v === "__none__" ? null : v })
             }
           >
-            <SelectTrigger className="h-9 rounded-sm border-gold bg-input">
+            <SelectTrigger className="h-9 rounded-2xl border-gold bg-input">
               <SelectValue placeholder="Sem categoria" />
             </SelectTrigger>
             <SelectContent>
@@ -391,14 +391,14 @@ export const BlockEditor = ({
             value={block.url}
             onChange={(e) => onChange({ url: e.target.value })}
             placeholder="https:// ou /rota interna"
-            className="h-9 rounded-sm border-gold bg-input"
+            className="h-9 rounded-2xl border-gold bg-input"
           />
         </Field>
         <Field label="Descrição (opcional)" full>
           <Input
             value={block.description ?? ""}
             onChange={(e) => onChange({ description: e.target.value })}
-            className="h-9 rounded-sm border-gold bg-input"
+            className="h-9 rounded-2xl border-gold bg-input"
           />
         </Field>
       </div>
@@ -406,7 +406,7 @@ export const BlockEditor = ({
       <div className="mt-4 flex justify-end">
         <Button
           onClick={onSave}
-          className="btn-luxe h-10 w-full sm:w-auto rounded-sm px-5 text-[11px] font-semibold uppercase tracking-[0.18em]"
+          className="btn-luxe h-10 w-full sm:w-auto rounded-2xl px-5 text-[11px] font-semibold uppercase tracking-[0.18em]"
         >
           <Save className="h-3.5 w-3.5" /> Salvar bloco
         </Button>
@@ -451,7 +451,7 @@ const ToggleChip = ({
   onChange: (v: boolean) => void;
 }) => (
   <label
-    className={`flex min-h-[40px] w-full cursor-pointer items-center justify-between gap-2 rounded-sm border px-3 py-1.5 transition-colors ${
+    className={`flex min-h-[40px] w-full cursor-pointer items-center justify-between gap-2 rounded-2xl border px-3 py-1.5 transition-colors ${
       checked
         ? "border-gold/60 bg-card/60 text-primary"
         : "border-border bg-card/20 text-muted-foreground hover:border-gold/30"
