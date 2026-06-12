@@ -10,6 +10,8 @@ import { Loader2, Sparkles, Check, X, ExternalLink, Copy, Gift, Eye, EyeOff } fr
 import { useBrasilLockedTheme } from "@/components/ThemeToggle";
 import { PublicFooter } from "@/components/PublicFooter";
 import { DottedSurface } from "@/components/landing/DottedSurface";
+import { GlowPanel } from "@/components/landing/GlowPanel";
+import { fieldLabel } from "@/lib/ui";
 import { savePendingSignup, clearPendingSignup } from "@/lib/pendingSignup";
 
 const slugify = (s: string) =>
@@ -211,7 +213,7 @@ const Signup = () => {
           style={{ background: "radial-gradient(ellipse at top, hsl(223 68% 12%), hsl(223 68% 4%))" }}
         />
         <DottedSurface />
-        <div data-glow style={{ ["--glow-radius" as string]: "32" } as React.CSSProperties} className="relative z-10 w-full max-w-sm rounded-[32px] border border-gold/20 bg-card/40 p-10 shadow-2xl backdrop-blur-xl text-center">
+        <GlowPanel className="p-10 text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-gold/30 bg-gradient-gold-soft shadow-gold/20 shadow-lg">
             <Sparkles className="h-6 w-6 text-primary" />
           </div>
@@ -233,7 +235,7 @@ const Signup = () => {
               tente outro email
             </button>
           </p>
-        </div>
+        </GlowPanel>
       </div>
     );
   }
@@ -246,7 +248,7 @@ const Signup = () => {
           style={{ background: "radial-gradient(ellipse at top, hsl(223 68% 12%), hsl(223 68% 4%))" }}
         />
         <DottedSurface />
-        <div data-glow style={{ ["--glow-radius" as string]: "32" } as React.CSSProperties} className="relative z-10 w-full max-w-sm rounded-[32px] border border-gold/20 bg-card/40 p-10 shadow-2xl backdrop-blur-xl text-center">
+        <GlowPanel className="p-10 text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-gold/30 bg-gradient-gold-soft shadow-gold/20 shadow-lg">
             <Sparkles className="h-6 w-6 text-primary" />
           </div>
@@ -268,7 +270,7 @@ const Signup = () => {
               </a>
             </Button>
           </div>
-        </div>
+        </GlowPanel>
       </div>
     );
   }
@@ -282,12 +284,7 @@ const Signup = () => {
       />
       <DottedSurface />
       <div className="relative z-10 flex flex-1 items-center justify-center px-6 py-10">
-      <form
-        onSubmit={onSubmit}
-        data-glow
-        style={{ ["--glow-radius" as string]: "32" } as React.CSSProperties}
-        className="relative z-10 w-full max-w-sm rounded-[32px] border border-gold/20 bg-card/40 p-8 shadow-2xl backdrop-blur-xl"
-      >
+      <GlowPanel as="form" onSubmit={onSubmit} className="p-8">
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-gold/30 bg-gradient-gold-soft shadow-gold/20 shadow-lg">
           <Sparkles className="h-6 w-6 text-primary" />
         </div>
@@ -296,15 +293,15 @@ const Signup = () => {
 
         <div className="mt-6 space-y-4">
           <div className="space-y-2">
-            <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/80">Nome completo</label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} required minLength={2} maxLength={80} className="h-12 rounded-full border-gold/20 bg-card/30 px-5 font-light transition-all focus:border-gold/50 focus:shadow-gold/10" placeholder="Ex: Stefany Mello" />
+            <label className={fieldLabel}>Nome completo</label>
+            <Input value={name} onChange={(e) => setName(e.target.value)} required minLength={2} maxLength={80} className="h-12 rounded-full border-gold/20 bg-card/30 px-5 font-light transition-all focus:border-gold/50 focus:shadow-gold/10" placeholder="Seu nome completo" />
           </div>
           <div className="space-y-2">
-            <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/80">Email</label>
+            <label className={fieldLabel}>Email</label>
             <Input value={email} onChange={(e) => setEmail(e.target.value)} type="email" autoComplete="email" required className="h-12 rounded-full border-gold/20 bg-card/30 px-5 font-light transition-all focus:border-gold/50 focus:shadow-gold/10" placeholder="voce@exemplo.com" />
           </div>
           <div className="space-y-2">
-            <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/80">Senha (mín. 8)</label>
+            <label className={fieldLabel}>Senha (mín. 8)</label>
             <div className="relative">
               <Input value={password} onChange={(e) => setPassword(e.target.value)} type={showPassword ? "text" : "password"} autoComplete="new-password" required minLength={8} className="h-12 rounded-full border-gold/20 bg-card/30 px-5 pr-12 font-light transition-all focus:border-gold/50 focus:shadow-gold/10" placeholder="••••••••" />
               <button
@@ -318,7 +315,7 @@ const Signup = () => {
             </div>
           </div>
           <div className="space-y-2">
-            <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/80">Sua URL</label>
+            <label className={fieldLabel}>Sua URL</label>
             <div className="relative">
               <span className="absolute left-5 top-1/2 -translate-y-1/2 select-none text-sm text-muted-foreground/50">axtor.space/</span>
               <Input
@@ -366,7 +363,7 @@ const Signup = () => {
               </button>
             ) : (
               <div className="space-y-2 animate-fade-in">
-                <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/80">Código de convite</label>
+                <label className={fieldLabel}>Código de convite</label>
                 <Input
                   value={inviteCode}
                   onChange={(e) => setInviteCode(e.target.value.toUpperCase().trim())}
@@ -403,7 +400,7 @@ const Signup = () => {
         <p className="mt-6 text-center text-xs text-muted-foreground">
           Já tem conta? <Link to={redirectTo !== "/painel" ? `/admin/login?redirect=${encodeURIComponent(redirectTo)}` : "/admin/login"} className="font-bold text-gold hover:underline">Entrar</Link>
         </p>
-      </form>
+      </GlowPanel>
       </div>
       <PublicFooter />
     </div>

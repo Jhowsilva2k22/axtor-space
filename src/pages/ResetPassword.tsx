@@ -7,6 +7,9 @@ import { toast } from "sonner";
 import { KeyRound, Loader2, Eye, EyeOff } from "lucide-react";
 import { useBrasilLockedTheme } from "@/components/ThemeToggle";
 import { DottedSurface } from "@/components/landing/DottedSurface";
+import { GlowPanel } from "@/components/landing/GlowPanel";
+import { fieldLabel } from "@/lib/ui";
+import { cn } from "@/lib/utils";
 
 const ResetPassword = () => {
   useBrasilLockedTheme();
@@ -82,7 +85,7 @@ const ResetPassword = () => {
       />
       <DottedSurface />
 
-      <div data-glow style={{ ["--glow-radius" as string]: "32" } as React.CSSProperties} className="relative z-10 w-full max-w-sm rounded-[32px] border border-gold/20 bg-card/40 p-10 shadow-2xl backdrop-blur-xl">
+      <GlowPanel>
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-gold/30 bg-gradient-gold-soft shadow-gold/20 shadow-lg">
           <KeyRound className="h-6 w-6 text-primary" />
         </div>
@@ -109,7 +112,7 @@ const ResetPassword = () => {
         ) : (
           <form onSubmit={onSubmit} className="mt-8 space-y-4">
             <div>
-              <label className="mb-2 block text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/80">
+              <label className={cn("mb-2", fieldLabel)}>
                 Nova senha
               </label>
               <div className="relative">
@@ -133,7 +136,7 @@ const ResetPassword = () => {
               </div>
             </div>
             <div>
-              <label className="mb-2 block text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/80">
+              <label className={cn("mb-2", fieldLabel)}>
                 Confirmar senha
               </label>
               <div className="relative">
@@ -165,7 +168,7 @@ const ResetPassword = () => {
             </Button>
           </form>
         )}
-      </div>
+      </GlowPanel>
     </div>
   );
 };

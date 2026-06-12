@@ -8,6 +8,8 @@ import { toast } from "sonner";
 import { Lock, Loader2, RotateCcw, Eye, EyeOff } from "lucide-react";
 import { useBrasilLockedTheme } from "@/components/ThemeToggle";
 import { DottedSurface } from "@/components/landing/DottedSurface";
+import { GlowPanel } from "@/components/landing/GlowPanel";
+import { fieldLabel } from "@/lib/ui";
 
 const AdminLogin = () => {
   const { user, isAdmin, loading, signIn } = useAuth();
@@ -88,12 +90,7 @@ const AdminLogin = () => {
         style={{ background: "radial-gradient(ellipse at top, hsl(223 68% 12%), hsl(223 68% 4%))" }}
       />
       <DottedSurface />
-      <form
-        onSubmit={onSubmit}
-        data-glow
-        style={{ ["--glow-radius" as string]: "32" } as React.CSSProperties}
-        className="relative z-10 w-full max-w-sm rounded-[32px] border border-gold/20 bg-card/40 p-10 shadow-2xl backdrop-blur-xl"
-      >
+      <GlowPanel as="form" onSubmit={onSubmit}>
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-gold/30 bg-gradient-gold-soft shadow-gold/20 shadow-lg">
           <Lock className="h-6 w-6 text-primary" />
         </div>
@@ -102,11 +99,11 @@ const AdminLogin = () => {
 
         <div className="mt-10 space-y-5">
           <div className="space-y-2">
-            <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/80">Email</label>
+            <label className={fieldLabel}>Email</label>
             <Input value={email} onChange={(e) => setEmail(e.target.value)} type="email" autoComplete="email" required className="h-12 rounded-full border-gold/20 bg-card/30 px-5 font-light transition-all focus:border-gold/50 focus:shadow-gold/10" placeholder="voce@exemplo.com" />
           </div>
           <div className="space-y-2">
-            <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/80">Senha</label>
+            <label className={fieldLabel}>Senha</label>
             <div className="relative">
               <Input value={password} onChange={(e) => setPassword(e.target.value)} type={showPassword ? "text" : "password"} autoComplete="current-password" required className="h-12 rounded-full border-gold/20 bg-card/30 px-5 pr-12 font-light transition-all focus:border-gold/50 focus:shadow-gold/10" placeholder="••••••••" />
               <button
@@ -149,7 +146,7 @@ const AdminLogin = () => {
             limpa cookies locais se travar
           </p>
         </div>
-      </form>
+      </GlowPanel>
     </div>
   );
 };
