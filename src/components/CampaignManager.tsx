@@ -114,7 +114,7 @@ export const CampaignManager = ({ blockId, blockLabel }: { blockId: string; bloc
   };
 
   return (
-    <div className="mt-5 rounded-sm border border-gold/30 bg-background/30">
+    <div className="mt-5 rounded-2xl border border-gold/30 bg-background/30">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -141,10 +141,10 @@ export const CampaignManager = ({ blockId, blockLabel }: { blockId: string; bloc
               )}
               <div className="space-y-3">
                 {items.map((c) => (
-                  <div key={c.id} className="rounded-sm border border-gold/40 bg-card/40 p-3">
+                  <div key={c.id} className="rounded-2xl border border-gold/40 bg-card/40 p-3">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
-                        <code className="rounded-sm bg-background/60 px-2 py-0.5 text-[10px] text-primary">
+                        <code className="rounded-xl bg-background/60 px-2 py-0.5 text-[10px] text-primary">
                           /r/{c.slug}
                         </code>
                         <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
@@ -161,13 +161,13 @@ export const CampaignManager = ({ blockId, blockLabel }: { blockId: string; bloc
                         </label>
                         <button
                           onClick={() => copyLink(c.slug)}
-                          className="inline-flex h-8 items-center gap-1 rounded-sm border border-gold/40 px-2 text-[10px] uppercase tracking-[0.2em] text-primary hover:bg-gradient-gold-soft"
+                          className="inline-flex h-8 items-center gap-1 rounded-xl border border-gold/40 px-2 text-[10px] uppercase tracking-[0.2em] text-primary hover:bg-gradient-gold-soft"
                         >
                           <Copy className="h-3 w-3" /> copiar
                         </button>
                         <button
                           onClick={() => remove(c.id)}
-                          className="inline-flex h-8 items-center justify-center rounded-sm border border-destructive/40 px-2 text-destructive hover:bg-destructive/10"
+                          className="inline-flex h-8 items-center justify-center rounded-xl border border-destructive/40 px-2 text-destructive hover:bg-destructive/10"
                         >
                           <Trash2 className="h-3 w-3" />
                         </button>
@@ -178,7 +178,7 @@ export const CampaignManager = ({ blockId, blockLabel }: { blockId: string; bloc
                         <Input
                           value={c.label}
                           onChange={(e) => update(c.id, { label: e.target.value })}
-                          className="h-9 rounded-sm border-gold/40 bg-input text-xs"
+                          className="h-9 rounded-2xl border-gold/40 bg-input text-xs"
                           placeholder="ex: Stories 22/04"
                         />
                       </FieldSm>
@@ -186,7 +186,7 @@ export const CampaignManager = ({ blockId, blockLabel }: { blockId: string; bloc
                         <Input
                           value={c.slug}
                           onChange={(e) => update(c.id, { slug: slugify(e.target.value) || c.slug })}
-                          className="h-9 rounded-sm border-gold/40 bg-input text-xs font-mono"
+                          className="h-9 rounded-2xl border-gold/40 bg-input text-xs font-mono"
                         />
                       </FieldSm>
                       <FieldSm label="utm_source">
@@ -227,7 +227,7 @@ export const CampaignManager = ({ blockId, blockLabel }: { blockId: string; bloc
                 <Button
                   onClick={create}
                   disabled={creating}
-                  className="btn-luxe h-9 rounded-sm px-4 text-[10px] uppercase tracking-[0.2em]"
+                  className="btn-luxe h-9 rounded-2xl px-4 text-[10px] uppercase tracking-[0.2em]"
                 >
                   {creating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <><Plus className="h-3.5 w-3.5" /> Nova campanha</>}
                 </Button>

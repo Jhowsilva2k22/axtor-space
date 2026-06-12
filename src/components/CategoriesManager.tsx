@@ -160,7 +160,7 @@ export const CategoriesManager = ({ tenantId }: { tenantId: string }) => {
 
   return (
     <TooltipProvider delayDuration={150}>
-      <section id="categorias" className="rounded-sm border-gold-gradient p-4 scroll-mt-24">
+      <section id="categorias" className="rounded-2xl border-gold-gradient p-4 scroll-mt-24">
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
@@ -171,12 +171,12 @@ export const CategoriesManager = ({ tenantId }: { tenantId: string }) => {
             <FolderOpen className="h-4 w-4 text-primary" />
             <h2 className="font-display text-xl">Categorias</h2>
             {items.length > 0 && (
-              <span className="rounded-sm border border-gold/40 bg-card/40 px-2 py-0.5 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+              <span className="rounded-xl border border-gold/40 bg-card/40 px-2 py-0.5 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
                 {items.filter((c) => c.is_active).length}/{items.length} ativas
               </span>
             )}
           </div>
-          <span className="inline-flex h-7 w-7 items-center justify-center rounded-sm border border-border text-muted-foreground">
+          <span className="inline-flex h-7 w-7 items-center justify-center rounded-xl border border-border text-muted-foreground">
             {expanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
           </span>
         </button>
@@ -184,7 +184,7 @@ export const CategoriesManager = ({ tenantId }: { tenantId: string }) => {
         {!expanded ? null : (
         <>
         <div className="mt-3 mb-3 flex items-center justify-end">
-          <Button onClick={create} disabled={creating} className="btn-luxe h-8 rounded-sm px-3 text-[10px] uppercase tracking-[0.2em]">
+          <Button onClick={create} disabled={creating} className="btn-luxe h-8 rounded-xl px-3 text-[10px] uppercase tracking-[0.2em]">
             {creating ? <Loader2 className="h-3 w-3 animate-spin" /> : <><Plus className="h-3 w-3" /> Nova</>}
           </Button>
         </div>
@@ -204,18 +204,18 @@ export const CategoriesManager = ({ tenantId }: { tenantId: string }) => {
               const IconComp = (c.icon && (LucideIcons as any)[c.icon]) || LucideIcons.FolderOpen;
               const isAdv = !!advancedOpen[c.id];
               return (
-                <div key={c.id} className="rounded-sm border border-gold/40 bg-card/40 p-2">
+                <div key={c.id} className="rounded-2xl border border-gold/40 bg-card/40 p-2">
                   <div className="flex flex-wrap items-center gap-2">
                     <div className="flex items-center gap-1">
-                      <button onClick={() => move(i, -1)} disabled={i === 0} className="rounded-sm border border-border p-1 text-muted-foreground hover:text-primary disabled:opacity-30">
+                      <button onClick={() => move(i, -1)} disabled={i === 0} className="rounded-lg border border-border p-1 text-muted-foreground hover:text-primary disabled:opacity-30">
                         <ArrowUp className="h-3 w-3" />
                       </button>
-                      <button onClick={() => move(i, 1)} disabled={i === items.length - 1} className="rounded-sm border border-border p-1 text-muted-foreground hover:text-primary disabled:opacity-30">
+                      <button onClick={() => move(i, 1)} disabled={i === items.length - 1} className="rounded-lg border border-border p-1 text-muted-foreground hover:text-primary disabled:opacity-30">
                         <ArrowDown className="h-3 w-3" />
                       </button>
                     </div>
 
-                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-sm border border-gold/40 bg-background/40 text-primary">
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl border border-gold/40 bg-background/40 text-primary">
                       <IconComp className="h-3.5 w-3.5" />
                     </div>
 
@@ -223,7 +223,7 @@ export const CategoriesManager = ({ tenantId }: { tenantId: string }) => {
                       value={c.name}
                       onChange={(e) => updateName(c.id, e.target.value)}
                       placeholder="Nome da categoria"
-                      className="h-8 flex-1 min-w-[140px] rounded-sm border-gold/40 bg-input text-sm"
+                      className="h-8 flex-1 min-w-[140px] rounded-2xl border-gold/40 bg-input text-sm"
                     />
 
                     <div className="w-[140px]">
@@ -238,7 +238,7 @@ export const CategoriesManager = ({ tenantId }: { tenantId: string }) => {
                       <Switch checked={c.is_active} onCheckedChange={(v) => update(c.id, { is_active: v })} />
                     </label>
 
-                    <button onClick={() => remove(c.id)} className="rounded-sm border border-destructive/40 p-1.5 text-destructive hover:bg-destructive/10" title="Excluir">
+                    <button onClick={() => remove(c.id)} className="rounded-lg border border-destructive/40 p-1.5 text-destructive hover:bg-destructive/10" title="Excluir">
                       <Trash2 className="h-3 w-3" />
                     </button>
                   </div>
@@ -249,15 +249,15 @@ export const CategoriesManager = ({ tenantId }: { tenantId: string }) => {
                       {isAdv ? "ocultar avançado" : "avançado"}
                     </CollapsibleTrigger>
                     <CollapsibleContent className="mt-2">
-                      <div className="rounded-sm border border-border/60 bg-background/30 p-2">
-                        <label className="mb-1 block text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                      <div className="rounded-2xl border border-border/60 bg-background/30 p-2">
+                        <label className="mb-1 block text-[10px] uppercase tracking-[0.2em] text-muted-foreground max-sm:normal-case max-sm:tracking-normal">
                           slug (identificador técnico — gerado automaticamente)
                         </label>
                         <Input
                           value={c.slug}
                           onChange={(e) => update(c.id, { slug: slugify(e.target.value) || c.slug })}
                           placeholder="slug"
-                          className="h-8 w-full max-w-xs rounded-sm border-gold/40 bg-input font-mono text-xs"
+                          className="h-8 w-full max-w-xs rounded-2xl border-gold/40 bg-input font-mono text-xs"
                         />
                       </div>
                     </CollapsibleContent>
@@ -269,10 +269,10 @@ export const CategoriesManager = ({ tenantId }: { tenantId: string }) => {
         )}
 
         {/* Presets — adicione com 1 clique */}
-        <div className="mt-6 rounded-sm border border-gold/30 bg-card/30 p-4">
+        <div className="mt-6 rounded-2xl border border-gold/30 bg-card/30 p-4">
           <div className="mb-3 flex items-center gap-2">
             <Sparkles className="h-3.5 w-3.5 text-primary" />
-            <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+            <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground max-sm:normal-case max-sm:tracking-normal">
               Adicionar pronta — 1 clique
             </p>
           </div>
@@ -285,13 +285,13 @@ export const CategoriesManager = ({ tenantId }: { tenantId: string }) => {
                 <button
                   key={p.slug}
                   onClick={() => addPreset(p)}
-                  className="inline-flex h-8 items-center gap-1.5 rounded-sm border border-gold/40 bg-card/40 px-3 text-[10px] uppercase tracking-[0.2em] text-primary transition-all hover:border-gold hover:bg-gradient-gold-soft"
+                  className="inline-flex h-8 items-center gap-1.5 rounded-xl border border-gold/40 bg-card/40 px-3 text-[10px] uppercase tracking-[0.2em] text-primary transition-all hover:border-gold hover:bg-gradient-gold-soft"
                 >
                   <Plus className="h-3 w-3" />
                   <PresetIcon name={p.icon} />
                   {p.name}
                   {count > 0 && (
-                    <span className="ml-1 rounded-sm bg-gold/20 px-1.5 text-[9px] text-primary">
+                    <span className="ml-1 rounded-xl bg-gold/20 px-1.5 text-[9px] text-primary">
                       {count}
                     </span>
                   )}

@@ -23,8 +23,15 @@ import { PUBLIC_BASE_URL } from "@/lib/site";
  *   - QR Code (modal com PNG da URL pública pra download)
  *   - Toggle Dark/Light
  *   - Sair (logout)
+ * `compact`: variante da app bar mobile — tudo vira ícone (sem pílula larga).
  */
-export const PainelHeaderActions = ({ slug }: { slug: string }) => {
+export const PainelHeaderActions = ({
+  slug,
+  compact = false,
+}: {
+  slug: string;
+  compact?: boolean;
+}) => {
   const bioUrl = `${PUBLIC_BASE_URL}/${slug}`;
   const nav = useNavigate();
   const { isAdmin } = useAuth();
@@ -43,26 +50,42 @@ export const PainelHeaderActions = ({ slug }: { slug: string }) => {
     }
   };
 
+  // Compact: botões 36px (ícone só) pra caber na app bar do celular.
+  const iconBtn = compact ? "h-9 w-9" : "h-10 w-10";
+
   return (
     <div className="flex items-center gap-2">
-      <a
-        href={`/${slug}`}
-        target="_blank"
-        rel="noreferrer noopener"
-        className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-gold/40 bg-card/60 px-4 text-xs uppercase tracking-widest text-gold backdrop-blur transition-all hover:border-gold hover:shadow-gold"
-      >
-        <ExternalLink className="h-3.5 w-3.5" />
-        Ver minha bio
-      </a>
+      {compact ? (
+        <a
+          href={`/${slug}`}
+          target="_blank"
+          rel="noreferrer noopener"
+          aria-label="Ver minha bio"
+          title="Ver minha bio"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gold/40 bg-card/60 text-gold transition-all hover:border-gold hover:shadow-gold"
+        >
+          <ExternalLink className="h-4 w-4" />
+        </a>
+      ) : (
+        <a
+          href={`/${slug}`}
+          target="_blank"
+          rel="noreferrer noopener"
+          className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-gold/40 bg-card/60 px-4 text-xs uppercase tracking-widest text-gold backdrop-blur transition-all hover:border-gold hover:shadow-gold"
+        >
+          <ExternalLink className="h-3.5 w-3.5" />
+          Ver minha bio
+        </a>
+      )}
 
-      <QRCodeButton bioUrl={bioUrl} slug={slug} />
+      <QRCodeButton bioUrl={bioUrl} slug={slug} compact={compact} />
 
       {isAdmin && (
         <Button
           variant="outline"
           size="icon"
           asChild
-          className="h-10 w-10 rounded-full border-gold/40 bg-card/60 text-gold hover:border-gold hover:shadow-gold"
+          className={`${iconBtn} rounded-full border-gold/40 bg-card/60 text-gold hover:border-gold hover:shadow-gold`}
           aria-label="Convites"
           title="Gerenciar convites"
         >
@@ -76,7 +99,7 @@ export const PainelHeaderActions = ({ slug }: { slug: string }) => {
         variant="outline"
         size="icon"
         asChild
-        className="h-10 w-10 rounded-full border-gold/40 bg-card/60 text-muted-foreground hover:border-gold/60 hover:text-gold"
+        className={`${iconBtn} rounded-full border-gold/40 bg-card/60 text-muted-foreground hover:border-gold/60 hover:text-gold`}
         aria-label="Configurações"
         title="Configurações"
       >
@@ -90,7 +113,7 @@ export const PainelHeaderActions = ({ slug }: { slug: string }) => {
         size="icon"
         onClick={handleSignOut}
         disabled={signingOut}
-        className="h-10 w-10 rounded-full border-destructive/30 bg-card/60 text-muted-foreground hover:border-destructive/60 hover:text-destructive"
+        className={`${iconBtn} rounded-full border-destructive/30 bg-card/60 text-muted-foreground hover:border-destructive/60 hover:text-destructive`}
         aria-label="Sair"
         title="Sair"
       >
@@ -100,7 +123,15 @@ export const PainelHeaderActions = ({ slug }: { slug: string }) => {
   );
 };
 
-const QRCodeButton = ({ bioUrl, slug }: { bioUrl: string; slug: string }) => {
+const QRCodeButton = ({
+  bioUrl,
+  slug,
+  compact = false,
+}: {
+  bioUrl: string;
+  slug: string;
+  compact?: boolean;
+}) => {
   const [open, setOpen] = useState(false);
   const [dataUrl, setDataUrl] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
@@ -151,7 +182,7 @@ const QRCodeButton = ({ bioUrl, slug }: { bioUrl: string; slug: string }) => {
         <Button
           variant="outline"
           size="icon"
-          className="h-10 w-10 rounded-full border-gold/40 bg-card/60 text-gold hover:border-gold hover:shadow-gold"
+          className={`${compact ? "h-9 w-9" : "h-10 w-10"} rounded-full border-gold/40 bg-card/60 text-gold hover:border-gold hover:shadow-gold`}
           aria-label="Ver QR Code da bio"
         >
           <QrCode className="h-4 w-4" />
@@ -178,7 +209,8 @@ const QRCodeButton = ({ bioUrl, slug }: { bioUrl: string; slug: string }) => {
             />
           )}
 
-          <p className="break-all text-center text-xs text-muted-foreground">{bioUrl}</p>
+          {/* .selectable: URL pode ser copiada com seleção nativa no touch */}
+          <p className="selectable break-all text-center text-xs text-muted-foreground">{bioUrl}</p>
 
           <div className="flex w-full gap-2">
             <Button onClick={handleCopyLink} variant="outline" className="flex-1">

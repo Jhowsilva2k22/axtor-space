@@ -7,9 +7,10 @@ import { useCredits } from "@/hooks/useCredits";
  * - Mostra saldo total e a data de renovação da cota do plano.
  * - Quando o saldo fica baixo (<= 6, custo de 1 funil), acende em âmbar e
  *   oferece "Recarregar" (leva pra Loja).
+ * - `compact`: variante chip pra app bar mobile — uma linha só, denso.
  * Leitura via useCredits (RLS libera o dono ler o próprio saldo).
  */
-export const CreditsCard = () => {
+export const CreditsCard = ({ compact = false }: { compact?: boolean }) => {
   const { credits, isLoading } = useCredits();
 
   // Enquanto carrega ou se não houver registro de saldo, não renderiza nada
@@ -26,6 +27,43 @@ export const CreditsCard = () => {
   // Contas internas (dono/sócio/tester) têm cota gigante — mostra "Ilimitado"
   // em vez do número cru.
   const unlimited = credits.total >= 100000;
+
+  // Chip compacto (app bar mobile): saldo + renovação numa linha só.
+  if (compact) {
+    return (
+      <div
+        className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 ${
+          credits.low
+            ? "border-amber-500/40 bg-amber-500/5"
+            : "border-gold/20 bg-card/40"
+        }`}
+      >
+        <Zap
+          className={`h-3.5 w-3.5 flex-shrink-0 ${
+            credits.low ? "text-amber-400" : "text-gold"
+          }`}
+        />
+        <span className="text-xs font-bold leading-none">
+          {unlimited
+            ? "Ilimitado"
+            : `${credits.total} ${credits.total === 1 ? "crédito" : "créditos"}`}
+        </span>
+        {!unlimited && renova && (
+          <span className="text-xs leading-none text-muted-foreground">
+            · {renova}
+          </span>
+        )}
+        {credits.low && (
+          <Link
+            to="/loja"
+            className="ml-1 inline-flex h-6 items-center rounded-full bg-gradient-to-br from-primary to-primary-glow px-3 text-[11px] font-bold leading-none text-primary-foreground"
+          >
+            Recarregar
+          </Link>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div
@@ -47,7 +85,7 @@ export const CreditsCard = () => {
             : `${credits.total} ${credits.total === 1 ? "crédito" : "créditos"}`}
         </p>
         {!unlimited && renova && (
-          <p className="text-[10px] text-muted-foreground">renova em {renova}</p>
+          <p className="text-xs text-muted-foreground">renova em {renova}</p>
         )}
       </div>
       {credits.low && (

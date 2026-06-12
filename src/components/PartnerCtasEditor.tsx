@@ -105,7 +105,7 @@ export const PartnerCtasEditor = ({ tenantId, slug }: Props) => {
   return (
     <Card className="border-gold p-6">
       <div className="flex items-start gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm border border-gold/40 bg-gradient-gold-soft text-primary">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-gold/40 bg-gradient-gold-soft text-primary">
           <Megaphone className="h-5 w-5" />
         </div>
         <div className="min-w-0 flex-1">
@@ -114,7 +114,7 @@ export const PartnerCtasEditor = ({ tenantId, slug }: Props) => {
           </h2>
           <p className="mt-1 text-xs text-muted-foreground">
             Esses são os links que aparecem pro lead no fim do diagnóstico que ele fez vindo do seu UTM{" "}
-            <span className="rounded-sm border border-gold/40 bg-gradient-gold-soft px-2 py-0.5 font-mono text-[10px] text-primary">
+            <span className="rounded-xl border border-gold/40 bg-gradient-gold-soft px-2 py-0.5 font-mono text-[10px] text-primary">
               {row.utm_source}
             </span>
             . Tudo opcional — sem preencher cai no padrão (sua bio).
@@ -129,7 +129,7 @@ export const PartnerCtasEditor = ({ tenantId, slug }: Props) => {
             value={form.bio_url}
             onChange={(e) => setForm((f) => ({ ...f, bio_url: e.target.value }))}
             placeholder={`${ORIGIN}/${slug}`}
-            className="mt-1 h-11 rounded-sm border-gold bg-input"
+            className="mt-1 h-11 rounded-2xl border-gold bg-input"
           />
         </div>
         <div>
@@ -138,7 +138,7 @@ export const PartnerCtasEditor = ({ tenantId, slug }: Props) => {
             value={form.instagram_handle}
             onChange={(e) => setForm((f) => ({ ...f, instagram_handle: e.target.value }))}
             placeholder="seuusuario"
-            className="mt-1 h-11 rounded-sm border-gold bg-input"
+            className="mt-1 h-11 rounded-2xl border-gold bg-input"
           />
         </div>
         <div>
@@ -147,7 +147,7 @@ export const PartnerCtasEditor = ({ tenantId, slug }: Props) => {
             value={form.whatsapp_number}
             onChange={(e) => setForm((f) => ({ ...f, whatsapp_number: e.target.value }))}
             placeholder="5511999999999"
-            className="mt-1 h-11 rounded-sm border-gold bg-input"
+            className="mt-1 h-11 rounded-2xl border-gold bg-input"
           />
         </div>
         <div className="md:col-span-2">
@@ -157,7 +157,7 @@ export const PartnerCtasEditor = ({ tenantId, slug }: Props) => {
             onChange={(e) => setForm((f) => ({ ...f, whatsapp_message: e.target.value }))}
             placeholder="Oi! Acabei de ver seu diagnóstico e quero entender melhor."
             rows={2}
-            className="mt-1 rounded-sm border-gold bg-input"
+            className="mt-1 rounded-2xl border-gold bg-input"
           />
         </div>
         <div>
@@ -166,7 +166,7 @@ export const PartnerCtasEditor = ({ tenantId, slug }: Props) => {
             value={form.secondary_cta_label}
             onChange={(e) => setForm((f) => ({ ...f, secondary_cta_label: e.target.value }))}
             placeholder="Agende uma call"
-            className="mt-1 h-11 rounded-sm border-gold bg-input"
+            className="mt-1 h-11 rounded-2xl border-gold bg-input"
           />
         </div>
         <div>
@@ -175,13 +175,13 @@ export const PartnerCtasEditor = ({ tenantId, slug }: Props) => {
             value={form.secondary_cta_url}
             onChange={(e) => setForm((f) => ({ ...f, secondary_cta_url: e.target.value }))}
             placeholder="https://calendly.com/..."
-            className="mt-1 h-11 rounded-sm border-gold bg-input"
+            className="mt-1 h-11 rounded-2xl border-gold bg-input"
           />
         </div>
       </div>
 
       <div className="mt-5 flex justify-end">
-        <Button onClick={save} disabled={saving} className="btn-luxe h-11 rounded-sm">
+        <Button onClick={save} disabled={saving} className="btn-luxe h-11 rounded-2xl max-sm:w-full">
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} salvar destinos
         </Button>
       </div>

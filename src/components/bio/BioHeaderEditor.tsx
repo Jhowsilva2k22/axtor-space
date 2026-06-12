@@ -53,7 +53,7 @@ export const BioHeaderEditor = ({
   // Cabeçalho colapsa por padrão (igual aos blocos) — abre quando user clica.
   const [expanded, setExpanded] = useState(false);
   return (
-    <section id="admin-header-section" className="rounded-sm border-gold-gradient p-4">
+    <section id="admin-header-section" className="rounded-2xl border-gold-gradient p-4">
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}
@@ -63,7 +63,7 @@ export const BioHeaderEditor = ({
         <h2 className="font-display text-xl">
           Cabeçalho da <span className="text-gold italic">bio</span>
         </h2>
-        <span className="inline-flex h-7 w-7 items-center justify-center rounded-sm border border-border text-muted-foreground">
+        <span className="inline-flex h-7 w-7 items-center justify-center rounded-2xl border border-border text-muted-foreground">
           {expanded ? (
             <ChevronUp className="h-3.5 w-3.5" />
           ) : (
@@ -82,7 +82,7 @@ export const BioHeaderEditor = ({
           <Input
             value={cfg.display_name}
             onChange={(e) => onUpdate({ display_name: e.target.value })}
-            className="h-11 rounded-sm border-gold bg-input"
+            className="h-11 rounded-2xl border-gold bg-input"
           />
         </Field>
 
@@ -92,14 +92,14 @@ export const BioHeaderEditor = ({
               <img
                 src={cfg.avatar_url}
                 alt="avatar"
-                className="h-16 w-16 shrink-0 rounded-full border border-gold object-cover"
+                className="h-16 w-16 shrink-0 rounded-2xl border border-gold object-cover"
               />
             ) : (
-              <div className="h-16 w-16 shrink-0 rounded-full border border-dashed border-gold/50" />
+              <div className="h-16 w-16 shrink-0 rounded-2xl border border-dashed border-gold/50" />
             )}
             <div className="flex min-w-0 flex-1 flex-col justify-center gap-2.5">
               <div>
-                <label className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-sm border border-gold bg-card/40 px-4 text-[10px] uppercase tracking-[0.2em] text-primary transition-all hover:bg-gradient-gold-soft">
+                <label className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-2xl border border-gold bg-card/40 px-4 text-[10px] uppercase tracking-[0.2em] text-primary transition-all hover:bg-gradient-gold-soft">
                   {uploadingAvatar ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
@@ -123,7 +123,7 @@ export const BioHeaderEditor = ({
                 value={cfg.avatar_url ?? ""}
                 onChange={(e) => onUpdate({ avatar_url: e.target.value })}
                 placeholder="ou cole uma URL https://..."
-                className="h-9 rounded-sm border-gold/50 bg-input text-xs"
+                className="h-9 rounded-2xl border-gold/50 bg-input text-xs"
               />
             </div>
           </div>
@@ -137,7 +137,7 @@ export const BioHeaderEditor = ({
             value={cfg.headline}
             onChange={(e) => onUpdate({ headline: e.target.value })}
             rows={3}
-            className="rounded-sm border-gold bg-input"
+            className="rounded-2xl border-gold bg-input"
           />
         </Field>
 
@@ -148,7 +148,7 @@ export const BioHeaderEditor = ({
           <Input
             value={cfg.sub_headline ?? ""}
             onChange={(e) => onUpdate({ sub_headline: e.target.value || null })}
-            className="h-11 rounded-sm border-gold bg-input"
+            className="h-11 rounded-2xl border-gold bg-input"
           />
         </Field>
 
@@ -183,7 +183,7 @@ export const BioHeaderEditor = ({
           </p>
           <div className="flex flex-col gap-3">
             {cfg.cover_url ? (
-              <div className="relative h-32 w-full overflow-hidden rounded-sm border border-gold">
+              <div className="relative h-32 w-full overflow-hidden rounded-2xl border border-gold">
                 <img src={cfg.cover_url} alt="capa" className="h-full w-full object-cover" />
                 <div
                   aria-hidden
@@ -193,19 +193,19 @@ export const BioHeaderEditor = ({
                       "radial-gradient(ellipse at center, transparent 0%, transparent 30%, hsl(var(--background) / 0.65) 70%, hsl(var(--background) / 0.92) 100%)",
                   }}
                 />
-                <div className="absolute bottom-2 right-2 rounded-sm border border-gold bg-background/80 px-2 py-1 text-[9px] uppercase tracking-[0.2em] text-primary backdrop-blur">
+                <div className="absolute bottom-2 right-2 rounded-2xl border border-gold bg-background/80 px-2 py-1 text-[9px] uppercase tracking-[0.2em] text-primary backdrop-blur">
                   prévia com vinheta
                 </div>
               </div>
             ) : (
-              <div className="flex h-32 w-full items-center justify-center rounded-sm border border-dashed border-gold/40 bg-card/30">
+              <div className="flex h-32 w-full items-center justify-center rounded-2xl border border-dashed border-gold/40 bg-card/30">
                 <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
                   sem capa — fundo do tema
                 </p>
               </div>
             )}
             <div className="flex flex-wrap gap-2">
-              <label className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-sm border border-gold bg-card/40 px-4 text-[11px] uppercase tracking-[0.2em] text-primary transition-all hover:bg-gradient-gold-soft">
+              <label className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-2xl border border-gold bg-card/40 px-4 text-[11px] uppercase tracking-[0.2em] text-primary transition-all hover:bg-gradient-gold-soft">
                 {uploadingCover ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
@@ -229,7 +229,7 @@ export const BioHeaderEditor = ({
                   type="button"
                   onClick={() => onRemoveCover()}
                   variant="ghost"
-                  className="h-10 rounded-sm border border-border px-4 text-[11px] uppercase tracking-[0.2em] text-muted-foreground hover:text-destructive"
+                  className="h-10 rounded-2xl border border-border px-4 text-[11px] uppercase tracking-[0.2em] text-muted-foreground hover:text-destructive"
                 >
                   <Trash2 className="h-3.5 w-3.5" /> Remover
                 </Button>
@@ -242,7 +242,7 @@ export const BioHeaderEditor = ({
         <Button
           onClick={() => onSave()}
           disabled={saving}
-          className="btn-luxe h-11 rounded-sm px-6 text-xs uppercase tracking-[0.2em]"
+          className="btn-luxe h-11 rounded-2xl px-6 text-xs uppercase tracking-[0.2em]"
         >
           {saving ? (
             <Loader2 className="h-4 w-4 animate-spin" />

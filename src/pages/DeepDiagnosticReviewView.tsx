@@ -217,12 +217,12 @@ export function DeepDiagnosticReviewView({ funnelId, onBack }: DeepDiagnosticRev
             transition={{ duration: 0.35 }}
             className="space-y-6"
           >
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
                 <h1 className="font-display text-2xl">{funnel.name}</h1>
                 <p className="text-xs text-muted-foreground">Slug: /d/funnel/{funnel.slug}</p>
               </div>
-              <Button variant="ghost" onClick={() => onBack ? onBack() : navigate("/painel?tab=imersivo")}>
+              <Button variant="ghost" className="shrink-0 rounded-2xl max-sm:self-start" onClick={() => onBack ? onBack() : navigate("/painel?tab=imersivo")}>
                 ← Voltar pra lista
               </Button>
             </div>
@@ -248,13 +248,13 @@ export function DeepDiagnosticReviewView({ funnelId, onBack }: DeepDiagnosticRev
             />
 
             {wppNumbers.length > 0 && (
-              <Card className="p-6">
+              <Card className="rounded-2xl border-gold/20 p-5 sm:p-6">
                 <div className="flex items-center gap-2 mb-3">
                   <Phone className="h-4 w-4 text-muted-foreground" />
                   <h3 className="font-medium text-sm">WhatsApp deste funil</h3>
                 </div>
-                <p className="text-xs text-muted-foreground mb-3">
-                  Escolha qual número aparece no botão de contato. Deixe "Padrão do tenant" para usar o número marcado como padrão nas configurações.
+                <p className="text-xs leading-snug text-muted-foreground/70 mb-3">
+                  Escolha qual número aparece no botão de contato. Deixe em "Número padrão" para usar o número marcado como padrão nas configurações.
                 </p>
                 <Select
                   value={funnel?.whatsapp_number_id ?? "__default"}
@@ -262,11 +262,11 @@ export function DeepDiagnosticReviewView({ funnelId, onBack }: DeepDiagnosticRev
                     setFunnel((prev: any) => ({ ...prev, whatsapp_number_id: v === "__default" ? null : v }))
                   }
                 >
-                  <SelectTrigger className="w-full max-w-sm">
-                    <SelectValue placeholder="Padrão do tenant" />
+                  <SelectTrigger className="w-full max-w-sm rounded-2xl border-gold/20">
+                    <SelectValue placeholder="Número padrão" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="__default">Padrão do tenant</SelectItem>
+                    <SelectItem value="__default">Número padrão</SelectItem>
                     {wppNumbers.map((n) => (
                       <SelectItem key={n.id} value={n.id}>
                         {n.label} — {n.phone}
@@ -277,7 +277,7 @@ export function DeepDiagnosticReviewView({ funnelId, onBack }: DeepDiagnosticRev
               </Card>
             )}
 
-            <div className="sticky bottom-4 flex justify-end gap-2 rounded-md border border-border bg-card p-3 shadow-lg">
+            <div className="sticky bottom-4 flex flex-wrap justify-end gap-2 rounded-2xl border border-gold/20 bg-card p-3 shadow-lg max-sm:bottom-20">
               <Button
                 variant="outline"
                 onClick={() => saveAll(false)}

@@ -332,7 +332,7 @@ export const BioBlocksManagerStandalone = ({
   return (
     <div className="space-y-4">
       {/* Toolbar de publish-immediate + save-all */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-sm border border-gold/30 bg-card/40 p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-gold/30 bg-card/40 p-4">
         <label className="flex items-center gap-3 text-xs">
           <Switch checked={publishImmediate} onCheckedChange={setPublishImmediate} />
           <span>
@@ -340,8 +340,9 @@ export const BioBlocksManagerStandalone = ({
           </span>
         </label>
         {totalDirty > 0 && (
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+          // Mobile: contador em cima, botões quebram linha sem cortar texto.
+          <div className="flex flex-wrap items-center gap-2 max-sm:w-full">
+            <span className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground max-sm:w-full max-sm:normal-case max-sm:tracking-normal">
               {totalDirty} alteração{totalDirty === 1 ? "" : "ões"} pendente
               {totalDirty === 1 ? "" : "s"}
             </span>
@@ -351,6 +352,7 @@ export const BioBlocksManagerStandalone = ({
               size="sm"
               onClick={saveAllDirty}
               disabled={savingAll}
+              className="rounded-xl"
             >
               {savingAll ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -360,7 +362,13 @@ export const BioBlocksManagerStandalone = ({
                 </>
               )}
             </Button>
-            <Button type="button" size="sm" onClick={publishAllDirty} disabled={savingAll}>
+            <Button
+              type="button"
+              size="sm"
+              onClick={publishAllDirty}
+              disabled={savingAll}
+              className="rounded-xl"
+            >
               <Send className="mr-2 h-4 w-4" /> Publicar tudo
             </Button>
           </div>

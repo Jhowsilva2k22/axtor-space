@@ -130,19 +130,21 @@ export const BioFullPreview = ({
 
   return (
     <Card className="overflow-hidden">
-      <div className="flex items-center justify-between border-b border-border/40 bg-muted/30 px-4 py-2">
-        <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+      <div className="flex items-center justify-between gap-2 border-b border-border/40 bg-muted/30 px-4 py-2">
+        <span className="shrink-0 text-[10px] uppercase tracking-widest text-muted-foreground">
           Pré-visualização ao vivo
         </span>
-        <div className="flex items-center gap-2">
-          {isFetching && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
+        <div className="flex min-w-0 items-center gap-2">
+          {isFetching && <Loader2 className="h-3 w-3 shrink-0 animate-spin text-muted-foreground" />}
+          {/* Slug longo trunca com reticências em vez de quebrar em 2 linhas no mobile */}
           <a
             href={`/${slug}`}
             target="_blank"
             rel="noreferrer noopener"
-            className="inline-flex items-center gap-1 text-[10px] uppercase tracking-widest text-gold hover:underline"
+            className="inline-flex min-w-0 items-center gap-1 text-[10px] uppercase tracking-widest text-gold hover:underline"
           >
-            <ExternalLink className="h-3 w-3" /> /{slug}
+            <ExternalLink className="h-3 w-3 shrink-0" />
+            <span className="truncate">/{slug}</span>
           </a>
         </div>
       </div>
@@ -194,13 +196,13 @@ export const BioFullPreview = ({
             )}
           </div>
 
-          {/* Categorias (chips) — largura uniforme pra evitar órfãos quando faz wrap. */}
+          {/* Categorias (chips) — largura natural pro texto não cortar; trunca só se passar do card. */}
           {categories.length > 0 && (
             <div className="mt-8 flex flex-wrap justify-center gap-2">
               {categories.map((c) => (
                 <span
                   key={c.id}
-                  className="inline-flex w-[120px] items-center justify-center gap-1.5 rounded-full border border-gold/30 bg-card/40 px-3 py-1 text-[10px] uppercase tracking-widest text-muted-foreground"
+                  className="inline-flex max-w-full items-center justify-center gap-1.5 rounded-full border border-gold/30 bg-card/40 px-3 py-1 text-[10px] uppercase tracking-widest text-muted-foreground"
                   title={c.name}
                 >
                   <RenderIcon name={c.icon} />

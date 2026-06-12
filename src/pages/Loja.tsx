@@ -150,9 +150,9 @@ const Loja = () => {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-6">
         <Card className="max-w-md p-8 text-center">
-          <h2 className="mb-3 font-display text-2xl">Sem tenant ativo</h2>
+          <h2 className="mb-3 font-display text-2xl">Sem conta ativa</h2>
           <p className="text-sm text-muted-foreground">
-            Você precisa de um tenant configurado pra acessar a loja.
+            Você precisa de uma conta configurada pra acessar a loja.
           </p>
         </Card>
       </div>

@@ -113,16 +113,22 @@ export const WhatsAppNumbersManager = ({ tenantId }: { tenantId: string }) => {
   };
 
   return (
-    <Card className="p-8">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
+    <Card className="rounded-2xl border-gold/20 p-5 sm:p-8">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
           <h2 className="font-display text-xl">Números de WhatsApp</h2>
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className="mt-1 text-xs leading-snug text-muted-foreground/70">
             Cadastre os números que aparecem como botão de contato nos funis. O número marcado como
             padrão é usado quando o funil não tem um número específico configurado.
           </p>
         </div>
-        <Button size="sm" onClick={openAdd} disabled={addOpen || !!editingId}>
+        <Button
+          size="sm"
+          variant="outline"
+          className="shrink-0 rounded-xl border-gold/40 text-primary max-sm:w-full"
+          onClick={openAdd}
+          disabled={addOpen || !!editingId}
+        >
           <Plus className="h-4 w-4 mr-1" /> Adicionar
         </Button>
       </div>
@@ -140,7 +146,7 @@ export const WhatsAppNumbersManager = ({ tenantId }: { tenantId: string }) => {
           )}
 
           {numbers.map((n) => (
-            <div key={n.id} className="rounded-lg border border-border/60 bg-muted/20 p-4">
+            <div key={n.id} className="rounded-2xl border border-gold/20 bg-muted/20 p-4">
               {editingId === n.id ? (
                 <InlineForm
                   form={form}
@@ -150,7 +156,7 @@ export const WhatsAppNumbersManager = ({ tenantId }: { tenantId: string }) => {
                   saving={saving}
                 />
               ) : (
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-3 min-w-0">
                     <Phone className="h-4 w-4 text-muted-foreground shrink-0" />
                     <div className="min-w-0">
@@ -158,30 +164,30 @@ export const WhatsAppNumbersManager = ({ tenantId }: { tenantId: string }) => {
                       <p className="text-xs text-muted-foreground">{n.phone}</p>
                     </div>
                     {n.is_default && (
-                      <Badge variant="outline" className="shrink-0 text-[10px]">
+                      <Badge variant="outline" className="shrink-0 rounded-xl border-gold/30 text-[10px]">
                         Padrão
                       </Badge>
                     )}
                   </div>
-                  <div className="flex items-center gap-1 shrink-0">
+                  <div className="flex flex-wrap items-center gap-1 shrink-0 max-sm:justify-end">
                     {!n.is_default && (
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="h-7 px-2 text-xs"
+                        className="h-7 rounded-xl px-2 text-xs"
                         onClick={() => handleSetDefault(n.id)}
                         disabled={saving}
                       >
                         <Star className="h-3 w-3 mr-1" /> Padrão
                       </Button>
                     )}
-                    <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => openEdit(n)}>
+                    <Button size="sm" variant="ghost" className="h-7 rounded-xl px-2" onClick={() => openEdit(n)}>
                       Editar
                     </Button>
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="h-7 px-2 text-destructive hover:text-destructive"
+                      className="h-7 rounded-xl px-2 text-destructive hover:text-destructive"
                       onClick={() => handleDelete(n.id)}
                     >
                       <Trash2 className="h-3 w-3" />
@@ -193,7 +199,7 @@ export const WhatsAppNumbersManager = ({ tenantId }: { tenantId: string }) => {
           ))}
 
           {addOpen && (
-            <div className="rounded-lg border border-border/60 bg-muted/20 p-4">
+            <div className="rounded-2xl border border-gold/20 bg-muted/20 p-4">
               <p className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wider">Novo número</p>
               <InlineForm
                 form={form}
@@ -220,7 +226,7 @@ type InlineFormProps = {
 
 const InlineForm = ({ form, onChange, onSave, onCancel, saving }: InlineFormProps) => (
   <div className="space-y-3">
-    <div className="grid grid-cols-2 gap-3">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
       <div className="space-y-1">
         <Label className="text-xs">Nome / etiqueta</Label>
         <Input
@@ -228,6 +234,7 @@ const InlineForm = ({ form, onChange, onSave, onCancel, saving }: InlineFormProp
           value={form.label}
           onChange={(e) => onChange({ ...form, label: e.target.value })}
           maxLength={60}
+          className="rounded-2xl"
         />
       </div>
       <div className="space-y-1">
@@ -237,15 +244,16 @@ const InlineForm = ({ form, onChange, onSave, onCancel, saving }: InlineFormProp
           value={form.phone}
           onChange={(e) => onChange({ ...form, phone: e.target.value })}
           maxLength={20}
+          className="rounded-2xl"
         />
       </div>
     </div>
-    <p className="text-[10px] text-muted-foreground">
+    <p className="text-[10px] leading-snug text-muted-foreground/70">
       Somente dígitos, incluindo código do país. Ex: 5511999999999 (BR + DDD + número).
     </p>
     <div className="flex gap-2 justify-end">
-      <Button size="sm" variant="ghost" onClick={onCancel} disabled={saving}>Cancelar</Button>
-      <Button size="sm" onClick={onSave} disabled={saving}>
+      <Button size="sm" variant="ghost" className="rounded-2xl" onClick={onCancel} disabled={saving}>Cancelar</Button>
+      <Button size="sm" className="rounded-2xl" onClick={onSave} disabled={saving}>
         {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : "Salvar"}
       </Button>
     </div>

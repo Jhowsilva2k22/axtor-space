@@ -79,7 +79,7 @@ export const CaptureConfigForm = ({ tenantId }: { tenantId: string }) => {
 
   if (loading || !draft) {
     return (
-      <Card className="flex items-center justify-center p-12">
+      <Card className="flex items-center justify-center rounded-2xl border-gold/20 p-12">
         <Loader2 className="h-5 w-5 animate-spin text-primary" />
       </Card>
     );
@@ -87,7 +87,7 @@ export const CaptureConfigForm = ({ tenantId }: { tenantId: string }) => {
 
   if (error) {
     return (
-      <Card className="p-6">
+      <Card className="rounded-2xl border-gold/20 p-6">
         <p className="text-sm text-destructive">
           Não consegui carregar a config: {(error as Error).message}
         </p>
@@ -112,10 +112,10 @@ export const CaptureConfigForm = ({ tenantId }: { tenantId: string }) => {
 
   return (
     <>
-    <Card className="p-8">
+    <Card className="rounded-2xl border-gold/20 p-5 sm:p-8">
       <div className="mb-6">
         <h2 className="font-display text-xl">Configuração da Captura</h2>
-        <p className="mt-1 text-xs text-muted-foreground">
+        <p className="mt-1 text-xs leading-snug text-muted-foreground/70">
           Controle total do conteúdo e do botão CTA da sua página de captura, separado do Link na Bio.
         </p>
       </div>
@@ -126,28 +126,28 @@ export const CaptureConfigForm = ({ tenantId }: { tenantId: string }) => {
         hasTagline={hasTagline}
       />
 
-      <div className="space-y-6">
+      <div className="space-y-7">
         {/* ── CONTEÚDO DA PÁGINA ── */}
-        <div className="space-y-4 rounded-lg border border-border/40 bg-muted/10 p-4">
+        <div className="space-y-5 rounded-2xl border border-gold/20 bg-muted/10 p-4 sm:p-5">
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             Conteúdo da página
           </p>
 
           {/* capture_avatar_url */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label>Foto da página de captura</Label>
             <div className="flex items-center gap-4">
               {draft.capture_avatar_url ? (
                 <img
                   src={draft.capture_avatar_url}
                   alt="foto captura"
-                  className="h-16 w-16 shrink-0 rounded-full border border-gold/40 object-cover"
+                  className="h-16 w-16 shrink-0 rounded-2xl border border-gold/40 object-cover"
                 />
               ) : (
-                <div className="h-16 w-16 shrink-0 rounded-full border border-dashed border-gold/40 bg-muted/20" />
+                <div className="h-16 w-16 shrink-0 rounded-2xl border border-dashed border-gold/40 bg-muted/20" />
               )}
               <div className="flex flex-col gap-2">
-                <label className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-md border border-gold/40 bg-card/40 px-4 text-[10px] uppercase tracking-[0.2em] text-primary transition-all hover:bg-gold/10">
+                <label className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-2xl border border-gold/40 bg-card/40 px-4 text-[11px] uppercase tracking-[0.2em] text-primary transition-all hover:bg-gold/10">
                   {uploadingPhoto ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
@@ -170,20 +170,20 @@ export const CaptureConfigForm = ({ tenantId }: { tenantId: string }) => {
                   <button
                     type="button"
                     onClick={() => setDraft((d) => (d ? { ...d, capture_avatar_url: null } : d))}
-                    className="text-left text-[10px] text-muted-foreground hover:text-destructive"
+                    className="text-left text-xs text-muted-foreground hover:text-destructive"
                   >
                     Remover foto
                   </button>
                 )}
               </div>
             </div>
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-[11px] leading-snug text-muted-foreground/70">
               Foto exibida no card de autoridade da capture page. Se vazio, usa a foto da bio.
             </p>
           </div>
 
           {/* capture_headline */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="capture_headline">Headline (quem você é)</Label>
             <Input
               id="capture_headline"
@@ -191,30 +191,31 @@ export const CaptureConfigForm = ({ tenantId }: { tenantId: string }) => {
               onChange={(e) => setDraft({ ...draft, capture_headline: e.target.value || null })}
               placeholder="é especialista em X e ajuda Y a conquistar Z"
               maxLength={200}
+              className="rounded-2xl"
             />
-            <p className="text-[10px] text-muted-foreground">
-              Exibida na seção de autoridade da captura. Se vazio, usa a headline do Link na Bio como fallback.
+            <p className="text-[11px] leading-snug text-muted-foreground/70">
+              Se deixar vazio, usamos a headline da sua bio.
             </p>
           </div>
 
           {/* capture_sub_headline */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="capture_sub_headline">Sub-headline (parágrafos de bio)</Label>
             <Textarea
               id="capture_sub_headline"
               value={draft.capture_sub_headline ?? ""}
               onChange={(e) => setDraft({ ...draft, capture_sub_headline: e.target.value || null })}
-              placeholder={"Linha 1 sobre sua trajetória.\n\nLinha 2 com a transformação que você entrega."}
-              rows={4}
-              className="resize-none"
+              placeholder={"Sua trajetória em 1 linha.\n\nA transformação que você entrega."}
+              rows={3}
+              className="resize-none rounded-2xl"
             />
-            <p className="text-[10px] text-muted-foreground">
-              Parágrafos separados por linha em branco. Fallback para sub-headline do Link na Bio.
+            <p className="text-[11px] leading-snug text-muted-foreground/70">
+              Separe os parágrafos por uma linha em branco. Vazio? Usamos o texto da sua bio.
             </p>
           </div>
 
           {/* capture_tagline */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="capture_tagline">Tagline (frase de efeito)</Label>
             <Input
               id="capture_tagline"
@@ -222,21 +223,22 @@ export const CaptureConfigForm = ({ tenantId }: { tenantId: string }) => {
               onChange={(e) => setDraft({ ...draft, capture_tagline: e.target.value || null })}
               placeholder="Para quem entendeu que presença digital não é sobre estar online."
               maxLength={300}
+              className="rounded-2xl"
             />
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-[11px] leading-snug text-muted-foreground/70">
               Frase em itálico exibida no card de autoridade. Deixe vazio para usar o texto padrão.
             </p>
           </div>
         </div>
 
         {/* ── BOTÃO CTA ── */}
-        <div className="space-y-4 rounded-lg border border-border/40 bg-muted/10 p-4">
+        <div className="space-y-5 rounded-2xl border border-gold/20 bg-muted/10 p-4 sm:p-5">
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             Botão e destino do lead
           </p>
 
         {/* button_label */}
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <Label htmlFor="button_label">Texto do botão</Label>
           <Input
             id="button_label"
@@ -244,20 +246,21 @@ export const CaptureConfigForm = ({ tenantId }: { tenantId: string }) => {
             onChange={(e) => setDraft({ ...draft, button_label: e.target.value })}
             placeholder="Quero meu diagnóstico gratuito"
             maxLength={80}
+            className="rounded-2xl"
           />
-          <p className="text-[10px] text-muted-foreground">
+          <p className="text-[11px] leading-snug text-muted-foreground/70">
             Aparece no botão principal do funil. Máx 80 caracteres.
           </p>
         </div>
 
         {/* button_style */}
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <Label htmlFor="button_style">Estilo do botão</Label>
           <Select
             value={draft.button_style}
             onValueChange={(v) => setDraft({ ...draft, button_style: v as ButtonStyle })}
           >
-            <SelectTrigger id="button_style">
+            <SelectTrigger id="button_style" className="rounded-2xl border-gold/20">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -271,7 +274,7 @@ export const CaptureConfigForm = ({ tenantId }: { tenantId: string }) => {
         </div>
 
         {/* lead_destination_type */}
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <Label htmlFor="lead_destination_type">Destino do lead</Label>
           <Select
             value={draft.lead_destination_type}
@@ -279,7 +282,7 @@ export const CaptureConfigForm = ({ tenantId }: { tenantId: string }) => {
               setDraft({ ...draft, lead_destination_type: v as LeadDestinationType })
             }
           >
-            <SelectTrigger id="lead_destination_type">
+            <SelectTrigger id="lead_destination_type" className="rounded-2xl border-gold/20">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -293,7 +296,7 @@ export const CaptureConfigForm = ({ tenantId }: { tenantId: string }) => {
         </div>
 
         {/* lead_destination_url */}
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <Label htmlFor="lead_destination_url">
             {draft.lead_destination_type === "email"
               ? "E-mail de destino"
@@ -306,31 +309,33 @@ export const CaptureConfigForm = ({ tenantId }: { tenantId: string }) => {
             value={draft.lead_destination_url ?? ""}
             onChange={(e) => setDraft({ ...draft, lead_destination_url: e.target.value || null })}
             placeholder={DESTINATION_HINT[draft.lead_destination_type]}
+            className="rounded-2xl"
           />
-          <p className="text-[10px] text-muted-foreground">
+          <p className="text-[11px] leading-snug text-muted-foreground/70">
             {DESTINATION_HINT[draft.lead_destination_type]}
           </p>
         </div>
 
         {/* cta_redirect_url */}
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <Label htmlFor="cta_redirect_url">URL de redirecionamento após captura (opcional)</Label>
           <Input
             id="cta_redirect_url"
             value={draft.cta_redirect_url ?? ""}
             onChange={(e) => setDraft({ ...draft, cta_redirect_url: e.target.value || null })}
             placeholder="https://exemplo.com/obrigado"
+            className="rounded-2xl"
           />
-          <p className="text-[10px] text-muted-foreground">
+          <p className="text-[11px] leading-snug text-muted-foreground/70">
             Opcional. Se vazio, mostra a tela de loading + diagnóstico padrão.
           </p>
         </div>
         </div>{/* ── fim Botão e destino do lead ── */}
 
         {/* Preview */}
-        <div className="space-y-2 border-t border-border/40 pt-6">
+        <div className="space-y-2 border-t border-gold/20 pt-6">
           <Label>Pré-visualização</Label>
-          <div className="rounded-md border border-border/40 bg-muted/30 p-6">
+          <div className="rounded-2xl border border-gold/20 bg-muted/30 p-6">
             <div className="flex justify-center">
               <button
                 type="button"
@@ -344,15 +349,16 @@ export const CaptureConfigForm = ({ tenantId }: { tenantId: string }) => {
         </div>
 
         {/* Save */}
-        <div className="flex justify-end gap-3 border-t border-border/40 pt-6">
+        <div className="flex justify-end gap-3 border-t border-gold/20 pt-6">
           <Button
             variant="ghost"
+            className="rounded-2xl"
             onClick={() => config && setDraft(config)}
             disabled={!isDirty || saving}
           >
             Descartar
           </Button>
-          <Button onClick={handleSave} disabled={!isDirty || saving}>
+          <Button className="rounded-2xl" onClick={handleSave} disabled={!isDirty || saving}>
             {saving ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Salvando…
@@ -383,7 +389,7 @@ export const CaptureConfigForm = ({ tenantId }: { tenantId: string }) => {
 
 const previewClassName = (style: ButtonStyle): string => {
   const base =
-    "inline-flex items-center justify-center rounded-md px-6 py-3 text-sm font-medium transition";
+    "inline-flex items-center justify-center rounded-2xl px-6 py-3 text-sm font-medium transition";
   switch (style) {
     case "gold-pulse":
       return `${base} animate-gold-pulse btn-luxe`;

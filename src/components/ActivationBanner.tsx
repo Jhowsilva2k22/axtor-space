@@ -87,8 +87,8 @@ export const ActivationBanner = ({ onAction }: ActivationBannerProps = {}) => {
   const message =
     COPY_BY_SLUG[info.slug] ??
     (info.type === "plan"
-      ? `Plano ${info.slug.toUpperCase()} ativo no seu ecossistema.`
-      : `${info.slug.replace(/_/g, " ")} liberado no seu ecossistema.`);
+      ? `Plano ${info.slug.toUpperCase()} ativo na sua conta.`
+      : `${info.slug.replace(/_/g, " ")} liberado na sua conta.`);
 
   const targetTab = TAB_BY_SLUG[info.slug];
   const actionLabel = TAB_LABEL_BY_SLUG[info.slug] ?? "Ir agora";

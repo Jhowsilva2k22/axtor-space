@@ -122,11 +122,11 @@ export const MediaGallery = ({ tenantId }: { tenantId: string }) => {
   const [pickerOpen, setPickerOpen] = useState(false);
 
   return (
-    <Card className="p-6">
+    <Card className="rounded-2xl border-gold/20 p-5 sm:p-6">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div>
+        <div className="min-w-0">
           <h2 className="font-display text-xl">Banco de mídia</h2>
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className="mt-1 text-xs leading-snug text-muted-foreground/70">
             Galeria organizada por tipo. Reutilize fotos em diferentes blocos, capas e funis.
             Compressão automática reduz peso sem perder qualidade.
           </p>
@@ -134,7 +134,7 @@ export const MediaGallery = ({ tenantId }: { tenantId: string }) => {
         <Button
           onClick={() => setPickerOpen(true)}
           disabled={uploading}
-          className="btn-luxe h-10 rounded-sm px-4 text-[10px] uppercase tracking-[0.2em]"
+          className="btn-luxe h-10 rounded-2xl px-4 text-[10px] uppercase tracking-[0.2em] max-sm:w-full"
         >
           {uploading ? (
             <>
@@ -175,7 +175,7 @@ export const MediaGallery = ({ tenantId }: { tenantId: string }) => {
                   setPickerOpen(false);
                   handleStartUpload(t);
                 }}
-                className="flex w-full items-start gap-3 rounded-sm border border-border bg-card/30 p-3 text-left transition hover:border-gold hover:bg-gradient-gold-soft"
+                className="flex w-full items-start gap-3 rounded-2xl border border-gold/20 bg-card/30 p-3 text-left transition hover:border-gold hover:bg-gradient-gold-soft"
               >
                 <span className="mt-0.5 text-gold">{TYPE_ICONS[t]}</span>
                 <div className="flex-1">
@@ -189,7 +189,7 @@ export const MediaGallery = ({ tenantId }: { tenantId: string }) => {
       </Dialog>
 
       {/* Filtros */}
-      <div className="mb-4 flex flex-wrap gap-1">
+      <div className="mb-4 flex flex-wrap gap-1.5">
         {FILTERS.map((f) => {
           const count =
             f.value === "all" ? items.length : items.filter((it) => it.type === f.value).length;
@@ -198,14 +198,14 @@ export const MediaGallery = ({ tenantId }: { tenantId: string }) => {
               key={f.value}
               type="button"
               onClick={() => setFilter(f.value)}
-              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] uppercase tracking-widest transition ${
+              className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-[10px] uppercase tracking-widest transition ${
                 filter === f.value
                   ? "border-gold bg-gradient-gold-soft text-primary"
-                  : "border-border bg-card/30 text-muted-foreground hover:border-gold/40"
+                  : "border-gold/20 bg-card/30 text-muted-foreground hover:border-gold/40"
               }`}
             >
               {f.label}
-              <span className="rounded-sm bg-background/40 px-1.5 py-0.5 text-[9px]">
+              <span className="rounded-md bg-background/40 px-1.5 py-0.5 text-[9px]">
                 {count}
               </span>
             </button>
@@ -218,7 +218,7 @@ export const MediaGallery = ({ tenantId }: { tenantId: string }) => {
           <Loader2 className="h-5 w-5 animate-spin text-primary" />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 rounded-md border border-dashed border-muted-foreground/30 p-12 text-center">
+        <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-gold/25 p-8 text-center sm:p-12">
           <ImageIcon className="h-8 w-8 text-muted-foreground/40" />
           <p className="font-display text-lg">
             {filter === "all" ? "Nenhuma imagem ainda" : `Nenhuma ${TYPE_LABEL[filter as MediaType].toLowerCase()}`}
@@ -233,7 +233,7 @@ export const MediaGallery = ({ tenantId }: { tenantId: string }) => {
           {filtered.map((item) => (
             <div
               key={item.id}
-              className="group relative aspect-square overflow-hidden rounded-md border border-border bg-card/30"
+              className="group relative aspect-square overflow-hidden rounded-2xl border border-gold/20 bg-card/30"
             >
               <img
                 src={item.url}
@@ -241,19 +241,19 @@ export const MediaGallery = ({ tenantId }: { tenantId: string }) => {
                 className="h-full w-full object-cover object-top transition-transform group-hover:scale-105"
                 loading="lazy"
               />
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 max-sm:opacity-100" />
 
               {/* Badge do tipo */}
-              <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-sm border border-gold/40 bg-background/80 px-1.5 py-0.5 text-[8px] uppercase tracking-widest text-primary backdrop-blur">
+              <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-lg border border-gold/40 bg-background/80 px-1.5 py-0.5 text-[8px] uppercase tracking-widest text-primary backdrop-blur">
                 {TYPE_ICONS[item.type]}
                 {TYPE_LABEL[item.type]}
               </span>
 
-              <div className="absolute inset-x-0 bottom-0 flex items-center justify-end gap-1 p-2 opacity-0 transition-opacity group-hover:opacity-100">
+              <div className="absolute inset-x-0 bottom-0 flex items-center justify-end gap-1 p-2 opacity-0 transition-opacity group-hover:opacity-100 max-sm:opacity-100">
                 <button
                   type="button"
                   onClick={() => handleCopyUrl(item.url)}
-                  className="rounded-sm border border-gold/40 bg-background/80 px-2 py-1 text-[10px] uppercase tracking-widest text-primary backdrop-blur hover:bg-background"
+                  className="rounded-xl border border-gold/40 bg-background/80 px-2 py-1 text-[10px] uppercase tracking-widest text-primary backdrop-blur hover:bg-background"
                   title="Copiar URL"
                 >
                   copiar
@@ -262,7 +262,7 @@ export const MediaGallery = ({ tenantId }: { tenantId: string }) => {
                   type="button"
                   onClick={() => handleDelete(item)}
                   disabled={removing}
-                  className="rounded-sm border border-destructive/40 bg-background/80 p-1.5 text-destructive backdrop-blur hover:bg-destructive/10"
+                  className="rounded-xl border border-destructive/40 bg-background/80 p-1.5 text-destructive backdrop-blur hover:bg-destructive/10"
                   title="Excluir"
                   aria-label="Excluir imagem"
                 >

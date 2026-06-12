@@ -22,19 +22,19 @@ export const FunnelListView = ({ funnels, onNew, onEdit, onEditBriefing, onDelet
       transition={{ duration: 0.3 }}
       className="space-y-6"
     >
-      <div className="flex items-center justify-between">
-        <h1 className="font-display text-3xl">Seus funis</h1>
-        <Button onClick={onNew} className="btn-luxe animate-pulse-soft h-11 rounded-sm gap-2 px-5 text-xs uppercase tracking-[0.2em]">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="font-display text-2xl sm:text-3xl">Seus funis</h1>
+        <Button onClick={onNew} className="btn-luxe animate-pulse-soft h-11 rounded-2xl gap-2 px-5 text-xs uppercase tracking-[0.2em] max-sm:w-full">
           <Plus className="h-4 w-4" /> Novo funil
         </Button>
       </div>
 
       {funnels.length === 0 && (
-        <Card className="p-8 text-center">
+        <Card className="rounded-2xl border-gold/20 p-6 text-center sm:p-8">
           <p className="text-muted-foreground">
             Você ainda não criou nenhum funil. Comece pelo briefing.
           </p>
-          <Button className="mt-4" onClick={onNew}>
+          <Button className="mt-4 rounded-2xl" onClick={onNew}>
             Criar meu primeiro funil
           </Button>
         </Card>
@@ -47,21 +47,21 @@ export const FunnelListView = ({ funnels, onNew, onEdit, onEditBriefing, onDelet
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 + i * 0.04, duration: 0.25 }}
         >
-          <Card className="flex items-center justify-between gap-4 p-5 transition-colors hover:border-primary/40">
+          <Card className="flex flex-col gap-3 rounded-2xl border-gold/20 p-4 transition-colors hover:border-primary/40 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:p-5">
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <h3 className="truncate font-medium">{f.name}</h3>
                 {f.is_published ? (
-                  <Badge variant="default">Publicado</Badge>
+                  <Badge variant="default" className="rounded-xl">Publicado</Badge>
                 ) : (
-                  <Badge variant="secondary">Rascunho</Badge>
+                  <Badge variant="secondary" className="rounded-xl">Rascunho</Badge>
                 )}
               </div>
               <p className="truncate text-xs text-muted-foreground">/d/funnel/{f.slug}</p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {f.is_published && (
-                <Button variant="outline" size="sm" asChild>
+                <Button variant="outline" size="sm" className="rounded-xl border-gold/20" asChild>
                   <a
                     href={`/d/funnel/${f.slug}`}
                     target="_blank"
@@ -76,7 +76,7 @@ export const FunnelListView = ({ funnels, onNew, onEdit, onEditBriefing, onDelet
                 variant="outline"
                 size="sm"
                 onClick={() => onEditBriefing(f.id)}
-                className="gap-1"
+                className="gap-1 rounded-xl border-gold/20"
               >
                 <FileEdit className="h-3 w-3" /> Briefing
               </Button>
@@ -85,10 +85,11 @@ export const FunnelListView = ({ funnels, onNew, onEdit, onEditBriefing, onDelet
                 size="sm"
                 onClick={() => onDelete(f.id, f.name)}
                 aria-label={`Excluir funil ${f.name}`}
+                className="rounded-xl"
               >
                 <Trash2 className="h-3 w-3" />
               </Button>
-              <Button size="sm" onClick={() => onEdit(f.id)}>
+              <Button size="sm" className="rounded-xl" onClick={() => onEdit(f.id)}>
                 Editar
               </Button>
             </div>

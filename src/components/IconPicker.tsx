@@ -122,7 +122,7 @@ export const IconPicker = ({
           setQuery("");
         }}
         title={name}
-        className={`group relative flex h-11 items-center justify-center rounded-sm border transition-all ${
+        className={`group relative flex h-11 items-center justify-center rounded-xl border transition-all ${
           active
             ? "border-gold bg-gradient-gold-soft text-primary"
             : "border-border bg-card/40 text-muted-foreground hover:border-gold/60 hover:text-primary"
@@ -177,11 +177,11 @@ export const IconPicker = ({
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="flex h-9 w-full items-center justify-between gap-2 rounded-sm border border-gold bg-input px-3 text-sm text-foreground transition-all hover:bg-card/60"
+          className="flex h-9 w-full items-center justify-between gap-2 rounded-2xl border border-gold bg-input px-3 text-sm text-foreground transition-all hover:bg-card/60"
         >
           <span className="flex items-center gap-2 min-w-0">
             {iconUrl ? (
-              <img src={iconUrl} alt="" className="h-5 w-5 rounded-sm object-contain" />
+              <img src={iconUrl} alt="" className="h-5 w-5 rounded-md object-contain" />
             ) : (
               <Current className="h-4 w-4 text-primary" />
             )}
@@ -204,7 +204,7 @@ export const IconPicker = ({
                   }
                 }}
                 title="Resetar (volta ao ícone da biblioteca)"
-                className="rounded-sm border border-border p-1 text-muted-foreground hover:text-destructive cursor-pointer"
+                className="rounded-lg border border-border p-1 text-muted-foreground hover:text-destructive cursor-pointer"
               >
                 <RotateCcw className="h-3 w-3" />
               </span>
@@ -213,7 +213,7 @@ export const IconPicker = ({
           </span>
         </button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-[min(460px,92vw)] rounded-sm border-gold bg-popover p-0">
+      <PopoverContent align="start" className="w-[min(460px,92vw)] rounded-2xl border-gold bg-popover p-0">
         <Tabs value={tab} onValueChange={(v) => setTab(v as any)} className="w-full">
           <TabsList className="grid w-full grid-cols-1 rounded-none border-b border-border bg-transparent p-0">
             <TabsTrigger
@@ -259,13 +259,13 @@ export const IconPicker = ({
           <TabsContent value="ai" className="mt-0">
             <div className="space-y-3 p-4">
               {iconUrl && (
-                <div className="flex items-center gap-3 rounded-sm border border-gold bg-gradient-gold-soft p-3">
-                  <img src={iconUrl} alt="" className="h-12 w-12 shrink-0 rounded-sm bg-background/40 object-contain p-1" />
+                <div className="flex items-center gap-3 rounded-2xl border border-gold bg-gradient-gold-soft p-3">
+                  <img src={iconUrl} alt="" className="h-12 w-12 shrink-0 rounded-xl bg-background/40 object-contain p-1" />
                   <div className="flex-1 text-[10px] uppercase tracking-[0.2em] text-primary">Ícone atual</div>
                   <button
                     type="button"
                     onClick={resetIcon}
-                    className="rounded-sm border border-border p-1.5 text-muted-foreground hover:text-destructive"
+                    className="rounded-lg border border-border p-1.5 text-muted-foreground hover:text-destructive"
                     title="Resetar"
                   >
                     <X className="h-3.5 w-3.5" />
@@ -285,7 +285,7 @@ export const IconPicker = ({
                         onClick={() => setStyle(s.v)}
                         disabled={generating}
                         title={s.desc}
-                        className={`rounded-sm border p-2 text-left transition-all ${
+                        className={`rounded-xl border p-2 text-left transition-all ${
                           active
                             ? "border-gold bg-gradient-gold-soft text-primary"
                             : "border-border bg-card/40 text-muted-foreground hover:border-gold/60"
@@ -310,7 +310,7 @@ export const IconPicker = ({
                   rows={3}
                   maxLength={300}
                   disabled={generating || atLimit}
-                  className="rounded-sm border-gold bg-input text-xs"
+                  className="rounded-2xl border-gold bg-input text-xs"
                 />
                 <p className="mt-1 text-[10px] text-muted-foreground">{aiPrompt.length}/300</p>
               </div>
@@ -319,7 +319,7 @@ export const IconPicker = ({
                 type="button"
                 onClick={handleGenerate}
                 disabled={generating || atLimit || !blockId || aiPrompt.trim().length < 3}
-                className="flex h-10 w-full items-center justify-center gap-2 rounded-sm border border-gold bg-gradient-gold-soft text-[11px] uppercase tracking-[0.2em] text-primary transition-all hover:shadow-gold disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex h-10 w-full items-center justify-center gap-2 rounded-2xl border border-gold bg-gradient-gold-soft text-[11px] uppercase tracking-[0.2em] text-primary transition-all hover:shadow-gold disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {generating ? (
                   <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Gerando...</>
@@ -347,12 +347,12 @@ export const IconPicker = ({
               </div>
 
               {!blockId && (
-                <p className="rounded-sm border border-border bg-card/40 p-2 text-[10px] text-muted-foreground">
+                <p className="rounded-xl border border-border bg-card/40 p-2 text-[10px] text-muted-foreground">
                   Salve o bloco primeiro pra liberar a geração com IA.
                 </p>
               )}
               {atLimit && blockId && (
-                <p className="rounded-sm border border-destructive/40 bg-destructive/5 p-2 text-[10px] text-destructive">
+                <p className="rounded-xl border border-destructive/40 bg-destructive/5 p-2 text-[10px] text-destructive">
                   Limite atingido. Use a aba <strong>Histórico</strong> pra reaproveitar uma geração anterior, ou a <strong>Galeria</strong> pra usar de outro bloco.
                 </p>
               )}
@@ -418,7 +418,7 @@ const GeneratedThumb = ({
     type="button"
     onClick={() => onPick(gen.icon_url)}
     title={gen.prompt}
-    className={`group relative flex aspect-square items-center justify-center rounded-sm border bg-background/40 p-2 transition-all ${
+    className={`group relative flex aspect-square items-center justify-center rounded-xl border bg-background/40 p-2 transition-all ${
       active ? "border-gold shadow-gold" : "border-border hover:border-gold/60"
     }`}
   >

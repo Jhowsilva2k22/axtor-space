@@ -56,8 +56,8 @@ export const ReviewBoasVindasCard = ({
         </div>
       </div>
 
-      <div className="rounded-md border border-gold/30 bg-gold/5 p-4 space-y-4">
-        <div className="flex items-center justify-between">
+      <div className="rounded-2xl border border-gold/30 bg-gold/5 p-4 space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <p className="text-xs font-bold uppercase tracking-wider text-gold">
               Identidade de Autoridade
@@ -93,7 +93,7 @@ export const ReviewBoasVindasCard = ({
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="bg-gold/20 border border-gold/30 p-2.5 rounded-md mb-2">
+              <div className="bg-gold/20 border border-gold/30 p-2.5 rounded-xl mb-2">
                 <p className="text-[10px] text-gold font-bold uppercase tracking-wider flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-gold animate-pulse" />
                   Modo Exclusivo Ativo
@@ -143,7 +143,7 @@ export const ReviewBoasVindasCard = ({
         </div>
       </div>
 
-      <div className="rounded-md border border-primary/30 bg-primary/5 p-3 space-y-3">
+      <div className="rounded-2xl border border-primary/30 bg-primary/5 p-3 space-y-3">
         <p className="text-xs font-medium uppercase tracking-wider text-primary">
           Tela de obrigado (fallback global)
         </p>

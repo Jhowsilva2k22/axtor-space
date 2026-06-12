@@ -91,10 +91,10 @@ export const OnboardingChecklist = ({
   };
 
   return (
-    <section className="rounded-sm border-gold-gradient bg-gradient-gold-soft p-5 shadow-deep">
+    <section className="rounded-2xl border-gold-gradient bg-gradient-gold-soft p-5 shadow-deep">
       <header className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-sm border border-gold bg-background/40">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-gold bg-background/40">
             <Sparkles className="h-4 w-4 text-primary" />
           </div>
           <div>
@@ -116,7 +116,7 @@ export const OnboardingChecklist = ({
           <button
             type="button"
             onClick={() => setCollapsed((c) => !c)}
-            className="inline-flex h-8 items-center gap-1 rounded-sm border border-gold/40 bg-background/30 px-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-primary"
+            className="inline-flex h-8 items-center gap-1 rounded-xl border border-gold/40 bg-background/30 px-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-primary"
             aria-label={collapsed ? "Expandir" : "Recolher"}
           >
             {collapsed ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronUp className="h-3.5 w-3.5" />}
@@ -124,7 +124,7 @@ export const OnboardingChecklist = ({
           <button
             type="button"
             onClick={dismiss}
-            className="hidden h-8 items-center rounded-sm border border-border/40 bg-background/30 px-3 text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-destructive sm:inline-flex"
+            className="hidden h-8 items-center rounded-xl border border-border/40 bg-background/30 px-3 text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-destructive sm:inline-flex"
           >
             dispensar
           </button>
@@ -136,13 +136,13 @@ export const OnboardingChecklist = ({
           {steps.map((s) => (
             <li
               key={s.id}
-              className={`flex items-center justify-between gap-3 rounded-sm border px-3 py-3 transition-all ${
+              className={`flex flex-col items-start gap-3 rounded-2xl border px-3 py-3 transition-all sm:flex-row sm:items-center sm:justify-between ${
                 s.done
                   ? "border-gold/30 bg-background/20 opacity-70"
                   : "border-gold/50 bg-background/40 hover:border-gold"
               }`}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex w-full min-w-0 items-start gap-3 sm:w-auto sm:items-center">
                 {s.done ? (
                   <div className="flex h-6 w-6 items-center justify-center rounded-full border border-gold bg-gradient-gold-soft">
                     <Check className="h-3.5 w-3.5 text-primary" />
@@ -159,7 +159,7 @@ export const OnboardingChecklist = ({
                     {s.label}
                   </p>
                   {!s.done && (
-                    <p className="mt-0.5 text-[10px] uppercase tracking-[0.2em] text-muted-foreground/70">
+                    <p className="mt-0.5 text-[10px] uppercase tracking-[0.2em] text-muted-foreground/70 max-sm:normal-case max-sm:tracking-normal max-sm:text-muted-foreground">
                       {s.hint}
                     </p>
                   )}
@@ -172,14 +172,14 @@ export const OnboardingChecklist = ({
                       href={s.cta.href}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex h-8 shrink-0 items-center gap-1 rounded-sm border border-gold bg-background/40 px-3 text-[10px] uppercase tracking-[0.2em] text-primary hover:bg-gradient-gold-soft"
+                      className="inline-flex h-8 shrink-0 items-center gap-1 rounded-xl border border-gold bg-background/40 px-3 text-[10px] uppercase tracking-[0.2em] text-primary hover:bg-gradient-gold-soft max-sm:w-full max-sm:justify-center max-sm:h-10"
                     >
                       {s.cta.label} <ExternalLink className="h-3 w-3" />
                     </a>
                   ) : (
                     <Link
                       to={s.cta.href}
-                      className="inline-flex h-8 shrink-0 items-center gap-1 rounded-sm border border-gold bg-background/40 px-3 text-[10px] uppercase tracking-[0.2em] text-primary hover:bg-gradient-gold-soft"
+                      className="inline-flex h-8 shrink-0 items-center gap-1 rounded-xl border border-gold bg-background/40 px-3 text-[10px] uppercase tracking-[0.2em] text-primary hover:bg-gradient-gold-soft max-sm:w-full max-sm:justify-center max-sm:h-10"
                     >
                       {s.cta.label}
                     </Link>
@@ -188,7 +188,7 @@ export const OnboardingChecklist = ({
                   <button
                     type="button"
                     onClick={s.cta.onClick}
-                    className="inline-flex h-8 shrink-0 items-center gap-1 rounded-sm border border-gold bg-background/40 px-3 text-[10px] uppercase tracking-[0.2em] text-primary hover:bg-gradient-gold-soft"
+                    className="inline-flex h-8 shrink-0 items-center gap-1 rounded-xl border border-gold bg-background/40 px-3 text-[10px] uppercase tracking-[0.2em] text-primary hover:bg-gradient-gold-soft max-sm:h-10 max-sm:w-full max-sm:justify-center"
                   >
                     {s.cta.label}
                   </button>

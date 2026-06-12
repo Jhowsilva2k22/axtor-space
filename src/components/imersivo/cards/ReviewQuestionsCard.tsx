@@ -103,7 +103,7 @@ export const ReviewQuestionsCard = ({
         >
           <div className="flex items-center justify-between gap-2 border-b border-gold/10 pb-4">
             <div className="flex items-center gap-2">
-              <Badge variant="outline" className="rounded-full border-gold/30 text-gold bg-gold/5">Pergunta {idx + 1}</Badge>
+              <Badge variant="outline" className="rounded-xl border-gold/30 text-gold bg-gold/5">Pergunta {idx + 1}</Badge>
               <span className="text-[10px] uppercase tracking-widest text-muted-foreground/60 font-bold">Configuração da Etapa</span>
             </div>
             <DeleteIconButton
@@ -174,7 +174,7 @@ export const ReviewQuestionsCard = ({
                 </span>
                 <Badge
                   variant="outline"
-                  className="rounded-full border-gold/30 bg-gold/5 px-1.5 text-[10px] text-gold"
+                  className="rounded-lg border-gold/30 bg-gold/5 px-1.5 text-[10px] text-gold"
                 >
                   {(q.options ?? []).length}
                 </Badge>
