@@ -35,8 +35,10 @@ export default defineConfig(() => ({
             id.includes("node_modules/scheduler")
           )
             return "vendor-react";
+          // lucide-react fica FORA deste chunk de proposito: agrupa-lo aqui
+          // forcava a biblioteca inteira de icones no bundle sempre-carregado.
+          // Sem agrupar, o rollup co-localiza so os icones usados por rota.
           if (
-            id.includes("node_modules/lucide-react") ||
             id.includes("node_modules/sonner") ||
             id.includes("node_modules/clsx") ||
             id.includes("node_modules/class-variance-authority") ||
