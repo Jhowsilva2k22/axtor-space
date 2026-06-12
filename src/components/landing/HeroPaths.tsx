@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 
@@ -14,6 +15,11 @@ interface HeroPathsProps {
  * Adaptado do componente BackgroundPaths para a marca Axtor (gold-noir).
  */
 export function HeroPaths({ title, accent, subtitle }: HeroPathsProps) {
+  // Desktop anima letra a letra. Mobile pinta o titulo NA HORA — ele e o
+  // elemento de LCP e animar empurrava o LCP no celular.
+  const [isDesktop] = useState(
+    () => typeof window !== "undefined" && window.matchMedia("(min-width: 768px)").matches
+  );
   // Anima letra por letra, mas agrupa por PALAVRA (whitespace-nowrap) pra
   // nenhuma palavra quebrar no meio. Mantém o índice global pra cadência.
   const renderLetters = (text: string, isAccent: boolean, offset: number) => {
@@ -28,7 +34,7 @@ export function HeroPaths({ title, accent, subtitle }: HeroPathsProps) {
         <span key={`${isAccent ? "a" : "n"}-w-${ti}`} className="inline-block whitespace-nowrap">
           {Array.from(token).map((char) => {
             const i = idx++;
-            return (
+            return isDesktop ? (
               <motion.span
                 key={i}
                 initial={{ y: "0.5em", opacity: 0 }}
@@ -38,6 +44,10 @@ export function HeroPaths({ title, accent, subtitle }: HeroPathsProps) {
               >
                 {char}
               </motion.span>
+            ) : (
+              <span key={i} className={charClass}>
+                {char}
+              </span>
             );
           })}
         </span>

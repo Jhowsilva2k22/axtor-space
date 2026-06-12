@@ -15,10 +15,12 @@ import { useGlowEffect } from "./components/landing/GlowCard";
 
 // Eager: rotas mais visitadas (entry points públicos)
 import Index from "./pages/Index.tsx";
-import Bio from "./pages/Bio.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 // Lazy: tudo o resto carrega sob demanda → bundle inicial muito menor
+// Bio e lazy: ela usa a biblioteca inteira de icones (import *), que NAO deve
+// pesar nas demais telas (vendas, planos, login). Sob demanda, so na bio.
+const Bio = lazy(() => import("./pages/Bio.tsx"));
 const SharePage = lazy(() => import("./pages/Share.tsx"));
 const AdminLogin = lazy(() => import("./pages/AdminLogin.tsx"));
 const Admin = lazy(() => import("./pages/Admin.tsx"));

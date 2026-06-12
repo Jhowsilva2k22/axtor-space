@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { DottedSurface } from "@/components/landing/DottedSurface";
@@ -92,6 +93,11 @@ const HEAD: { t: string; accent: boolean }[] = [
 
 function AnimatedTitle() {
   let i = 0;
+  // Desktop anima letra a letra (nota ja e otima la). Mobile pinta o titulo
+  // NA HORA — ele e o elemento de LCP e animar empurrava o LCP pra ~6s.
+  const [isDesktop] = useState(
+    () => typeof window !== "undefined" && window.matchMedia("(min-width: 768px)").matches
+  );
   return (
     <h1 className="pb-[0.12em] text-5xl font-extrabold leading-[1.2] tracking-tight sm:text-6xl">
       {HEAD.flatMap((seg, s) =>
@@ -100,20 +106,24 @@ function AnimatedTitle() {
             <span className="inline-block whitespace-nowrap">
               {Array.from(word).map((char) => {
                 const idx = i++;
-                return (
+                const cls = seg.accent
+                  ? "inline-block pb-[0.16em] bg-gradient-to-r from-primary-glow to-primary bg-clip-text text-transparent"
+                  : "inline-block pb-[0.16em] bg-gradient-to-b from-white to-white/85 bg-clip-text text-transparent";
+                // Desktop: anima letra a letra. Mobile: pinta na hora (LCP).
+                return isDesktop ? (
                   <motion.span
                     key={idx}
                     initial={{ y: "0.4em", opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.3 + idx * 0.012, type: "spring", stiffness: 150, damping: 25 }}
-                    className={
-                      seg.accent
-                        ? "inline-block pb-[0.16em] bg-gradient-to-r from-primary-glow to-primary bg-clip-text text-transparent"
-                        : "inline-block pb-[0.16em] bg-gradient-to-b from-white to-white/85 bg-clip-text text-transparent"
-                    }
+                    className={cls}
                   >
                     {char}
                   </motion.span>
+                ) : (
+                  <span key={idx} className={cls}>
+                    {char}
+                  </span>
                 );
               })}
             </span>{" "}
