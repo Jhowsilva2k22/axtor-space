@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Copy, ExternalLink, Link2, LayoutDashboard, Sparkles, Megaphone, Settings2, Save, Loader2, MessageCircle } from "lucide-react";
+import { Copy, ExternalLink, Link2, LayoutDashboard, Sparkles, Megaphone, Settings2, Save, Loader2, MessageCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -117,6 +117,8 @@ const Row = ({
 export const MyLinksCard = ({ slug, tenantId }: Props) => {
   const { funnels } = useDeepDiagnostic();
   const [partners, setPartners] = useState<PartnerRow[]>([]);
+  // Recolhido por padrão: acompanha toda tela sem virar bloco gigante aberto.
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -142,17 +144,26 @@ export const MyLinksCard = ({ slug, tenantId }: Props) => {
     <Card className="relative overflow-hidden border-gold-gradient bg-gradient-to-br from-background via-background to-primary/5 p-6">
       <div className="absolute right-0 top-0 h-40 w-40 -translate-y-1/2 translate-x-1/2 rounded-full bg-primary/10 blur-3xl" />
       <div className="relative">
-        <div className="flex items-start justify-between gap-4">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="flex w-full items-center justify-between gap-4 text-left"
+          aria-expanded={open}
+        >
           <div>
             <h2 className="font-display text-2xl tracking-tight">
               Seus <span className="text-gold italic">links</span>
             </h2>
             <p className="mt-1 max-w-xl text-sm text-muted-foreground">
-              Estes são os links da sua conta. Copie, divulgue, gere QR.
+              Toque pra ver: bio pública, link de captação e painel.
             </p>
           </div>
-        </div>
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-gold/30 text-muted-foreground">
+            {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </span>
+        </button>
 
+        {open && (
         <div className="mt-5 space-y-3">
           <Row
             icon={<Link2 className="h-4 w-4" />}
@@ -175,7 +186,7 @@ export const MyLinksCard = ({ slug, tenantId }: Props) => {
           )}
 
           {partners.map((p) => {
-            const partnerUrl = `${ORIGIN}/?utm_source=${encodeURIComponent(p.utm_source)}&utm_medium=instagram`;
+            const partnerUrl = `${ORIGIN}/diagnostico?utm_source=${encodeURIComponent(p.utm_source)}&utm_medium=instagram`;
             const partnerName = p.note || p.utm_source;
             return (
               <div key={p.id} className="group flex flex-col gap-3 rounded-[24px] border border-gold/20 bg-card/40 p-5 transition-all hover:bg-card/50">
@@ -220,7 +231,7 @@ export const MyLinksCard = ({ slug, tenantId }: Props) => {
             <Row
               icon={<Megaphone className="h-4 w-4" />}
               title="Link de captação"
-              url={`${ORIGIN}/?utm_source=${encodeURIComponent(slug)}`}
+              url={`${ORIGIN}/diagnostico?utm_source=${encodeURIComponent(slug)}`}
               hint="Cole no Instagram, no story, no WhatsApp. Leads que entrarem por aqui são atribuídos a você."
               qrSlug={`capture-${slug}`}
               showQr
@@ -235,6 +246,7 @@ export const MyLinksCard = ({ slug, tenantId }: Props) => {
             newTab={false}
           />
         </div>
+        )}
       </div>
     </Card>
   );
