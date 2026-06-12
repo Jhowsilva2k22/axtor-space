@@ -4,6 +4,7 @@ import { Loader2, Lock, LayoutDashboard } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PUBLIC_BASE_URL } from "@/lib/site";
 import { TenantSelector } from "@/components/TenantSelector";
 import { BGPattern } from "@/components/BGPattern";
 import { useAuth } from "@/hooks/useAuth";
@@ -105,7 +106,7 @@ export default function Painel() {
             templateData: {
               name: pending.displayName,
               bioUrl: result.url,
-              adminUrl: `${window.location.origin}/painel`,
+              adminUrl: `${PUBLIC_BASE_URL}/painel`,
               slug: result.slug,
               plan: result.plan ?? "free",
             },
@@ -461,7 +462,7 @@ const BioTabPanel = ({
   const hasAvatar = !!(liveCfg?.avatar_url);
   const hasHeadline = !!(liveCfg?.headline);
   const hasActiveBlock = !!liveBlocks?.some((b) => b.is_active);
-  const bioUrl = `${window.location.origin}/${slug}`;
+  const bioUrl = `${PUBLIC_BASE_URL}/${slug}`;
 
   return (
     <div className="space-y-6">

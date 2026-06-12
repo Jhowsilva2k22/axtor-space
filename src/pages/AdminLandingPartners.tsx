@@ -13,6 +13,7 @@ import { ArrowLeft, ChevronDown, ChevronUp, Copy, Loader2, Plus, Save, Trash2 } 
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { PUBLIC_BASE_URL } from "@/lib/site";
 
 type PartnerRow = {
   id: string;
@@ -33,7 +34,7 @@ type PartnerRow = {
 
 type TenantOpt = { id: string; slug: string; display_name: string };
 
-const ORIGIN = typeof window !== "undefined" ? window.location.origin : "https://axtor.space";
+const ORIGIN = PUBLIC_BASE_URL;
 
 const slugify = (s: string) =>
   s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
