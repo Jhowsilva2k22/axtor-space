@@ -428,7 +428,7 @@ const HandleStep = ({ handle, setHandle, onSubmit, bioCfg, captureCfg, tenant, p
       </div>
 
       <form onSubmit={onSubmit} className="mx-auto mt-12 max-w-xl">
-        <div className="group relative flex items-center overflow-hidden rounded-full border-gold-gradient backdrop-blur transition-all focus-within:shadow-gold-lg">
+        <div className="group relative flex items-center rounded-full border-gold-gradient transition-all focus-within:shadow-gold-lg">
           <span className="pl-5 text-2xl font-display text-primary">@</span>
           <Input
             value={handle}
