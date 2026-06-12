@@ -2,7 +2,8 @@
 
 > Leia este arquivo no início de cada conversa para entender o estado atual.
 > Memória aditiva: nunca substituir, sempre acrescentar.
-> Última atualização: 2026-06-12 (#173 guest checkout Pix + domínio + GlowPanel + mobile-first do painel; #174 fix do link do diagnóstico /→/diagnostico + lazy do fundo 3D + jargão — tudo no ar). EM ABERTO: desempenho mobile de /vendas e /planos (~60) — só prerender resolve. Ver docs/CHECKPOINT-2026-06-12.md.
+> Última atualização: 2026-06-12 (sessão perf mobile: #176→#179). Desempenho mobile de /vendas e /planos investigado a fundo e ENCERRADO: a nota ~60 é teto da stack (SPA React pesado) — prerender NÃO roda no build da Vercel e renderia só ~70 mesmo. Shipados ganhos reais (sem pipeline) + copy. NÃO re-tentar prerender/SSR sem decisão de migrar stack. Ver docs/CHECKPOINT-2026-06-12-perf-mobile.md.
+> Antes (mesmo dia): #173 guest checkout Pix + domínio + GlowPanel + mobile-first do painel; #174 fix do link do diagnóstico /→/diagnostico + lazy do fundo 3D + jargão. Ver docs/CHECKPOINT-2026-06-12.md.
 
 ## O que é
 
@@ -88,6 +89,32 @@ RLS sempre ativa. Sem emoji em UI, sem visual de chatbot.
 6. Sem moralismo, sem clichê de coach, sem emoji em UI.
 7. Antes de implementar feature: grep no projeto pra não duplicar.
 8. Ao fechar algo importante: ATUALIZAR os docs do sistema no mesmo fluxo.
+
+## Resolvido em 2026-06-12 (sessão perf mobile)
+
+Investigação completa do desempenho mobile de /vendas e /planos (estava ~60).
+Sequência de PRs (todos mergeados/deploy):
+
+- #176: prerender de /vendas e /planos (HTML pronto via Chromium). FUNCIONOU local
+  (~72), mas no build da Vercel o Chromium NÃO sobe (falta libnss3) → prerender
+  pulado em produção, sem ganho. @sparticuz/chromium também falhou no build.
+- #177: REVERTE o prerender (peso morto na Vercel + erros de hidratação) e volta
+  o 3D no mobile. Removidos puppeteer/script.
+- #178 (no ar): ganhos REAIS sem pipeline — (a) `Bio` lazy + lucide fora do
+  manualChunk `vendor-ui` (582→52 kB; ícones 530 kB só na bio/editor, fora de
+  vendas/planos/login/signup/loja); (b) título do hero instantâneo no MOBILE
+  (AnimatedTitle na Vendas, HeroPaths na /planos) — desktop mantém animação;
+  (c) `index.html` com fundo escuro desde o 1º byte (mata flash branco).
+- #179 (no ar): copy de clareza na /vendas — card "Direcionamento" (produto/
+  serviço/conteúdo certo pro resultado) + seção "Você decide" (são dois
+  diagnósticos, ative o que faz sentido ou use os dois).
+
+LIÇÃO/DECISÃO: a nota mobile de laboratório é TETO desta stack (SPA React +
+CSS render-blocking + LCP de fonte). Nem prerender nem cortar three.js/ícones
+movem a nota de forma relevante (FCP/LCP seguem presos); o three.js e os ícones
+já eram lazy. O único lever real é SSR de verdade (migrar p/ Next ou similar) —
+fora de escopo. NÃO re-tentar prerender/SSR sem decisão explícita de migrar.
+Ganho entregue = experiência real (menos dados, sem flash, título na hora).
 
 ## Resolvido em 2026-06-11
 
