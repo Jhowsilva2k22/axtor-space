@@ -22,3 +22,4 @@ Manter `docs/CHECKPOINT-*.md` atualizado a cada milestone significativo.
 - [Design rules](mem://design/rules) — (existente)
 - [Manual técnico 2026-04-23](docs/MANUAL-TECNICO-2026-04-23.md) — Planta completa do sistema (14 partes)
 - [Checkpoint 2026-06-09](docs/CHECKPOINT-2026-06-09.md) — Estado do main @ PR #140: changelog #81–#140, migrations, páginas, pendências
+- [Checkpoint 2026-06-12](docs/CHECKPOINT-2026-06-12.md) — #173 guest checkout + mobile painel; #174 fix link diagnóstico + perf fundo 3D + jargão. EM ABERTO: perf mobile /vendas /planos (prerender)
