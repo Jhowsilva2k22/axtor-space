@@ -1,21 +1,27 @@
 import { ReactNode, useState } from "react";
+import { Link } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Check, Mail } from "lucide-react";
+import { Sparkles, Check } from "lucide-react";
 
-const UPGRADE_EMAIL = "contatojhow@icloud.com";
-const UPGRADE_WHATSAPP = "5500000000000"; // placeholder — trocar quando o usuário informar
-
+// Descrição por recurso bloqueado. Sem promessa de "ilimitado".
 const FEATURES: Record<string, { title: string; desc: string }> = {
-  analytics: { title: "Analytics avançado", desc: "Veja cliques, dispositivos, fontes de tráfego e funis em tempo real." },
-  campaigns: { title: "Campanhas com UTM", desc: "Crie links rastreáveis com UTM e meça ROI por canal." },
-  improvements: { title: "Sugestões com IA", desc: "Receba recomendações automáticas para aumentar conversão." },
+  analytics: { title: "Métricas e analytics", desc: "Veja cliques, dispositivos e fontes de tráfego da sua bio." },
+  campaigns: { title: "Campanhas com UTM", desc: "Crie links rastreáveis com UTM e meça por canal." },
+  improvements: { title: "Sugestões com IA", desc: "Recomendações automáticas pra aumentar a conversão." },
   themes: { title: "Temas customizados", desc: "Personalize cores, fontes e estilo da sua bio." },
-  blocks: { title: "Blocos ilimitados", desc: "Adicione quantos blocos quiser, sem o limite de 3." },
+  blocks: { title: "Mais blocos na bio", desc: "Vá além do limite de 3 blocos do Free." },
   badge: { title: "Remover selo", desc: "Esconda o selo 'feito com axtor' do rodapé da sua bio." },
 };
 
-const ALL_PRO = ["Blocos ilimitados", "Analytics completo", "Campanhas com UTM", "Sugestões com IA", "Temas premium", "Sem selo"];
+// O que o Pro entrega — alinhado com a Loja (mesma lista, sem "ilimitado").
+const ALL_PRO = [
+  "75 créditos de IA por mês",
+  "Diagnóstico imersivo (1 funil)",
+  "Exportar leads (CSV)",
+  "Bio sem o limite de 3 blocos",
+  'Marca "Axtor" removida',
+];
 
 type Props = {
   feature: keyof typeof FEATURES | string;
@@ -53,26 +59,13 @@ export const UpgradeModal = ({ feature, children }: Props) => {
               ))}
             </ul>
           </div>
-          <div className="space-y-2">
-            <Button
-              asChild
-              className="btn-luxe h-11 w-full rounded-sm text-xs uppercase tracking-[0.2em]"
-            >
-              <a
-                href={`https://wa.me/${UPGRADE_WHATSAPP}?text=${encodeURIComponent("Quero fazer upgrade pro plano Pro do axtor")}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Falar no WhatsApp
-              </a>
-            </Button>
-            <a
-              href={`mailto:${UPGRADE_EMAIL}?subject=${encodeURIComponent("Upgrade plano axtor")}`}
-              className="inline-flex h-9 w-full items-center justify-center gap-2 text-[11px] uppercase tracking-[0.2em] text-muted-foreground hover:text-primary"
-            >
-              <Mail className="h-3 w-3" /> {UPGRADE_EMAIL}
-            </a>
-          </div>
+          <Button
+            asChild
+            className="btn-luxe h-11 w-full rounded-sm text-xs uppercase tracking-[0.2em]"
+            onClick={() => setOpen(false)}
+          >
+            <Link to="/loja?plan=pro">Assinar o Pro</Link>
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

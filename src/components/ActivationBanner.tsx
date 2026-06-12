@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, CheckCircle2, X } from "lucide-react";
+import { useCurrentTenant } from "@/hooks/useCurrentTenant";
 
 /**
  * Onda 4 Fase 6 — Banner "Plano/Addon ativo desde agora".
@@ -51,6 +52,7 @@ type ActivationBannerProps = {
 
 export const ActivationBanner = ({ onAction }: ActivationBannerProps = {}) => {
   const [params, setParams] = useSearchParams();
+  const { refresh } = useCurrentTenant();
   const [visible, setVisible] = useState(false);
   const [info, setInfo] = useState<{
     type: string | null;
@@ -64,6 +66,10 @@ export const ActivationBanner = ({ onAction }: ActivationBannerProps = {}) => {
     setInfo({ type, slug });
     setVisible(true);
 
+    // Recarrega o tenant pra refletir o plano novo (badge + recursos liberados)
+    // sem o usuário precisar dar reload manual.
+    void refresh();
+
     // Limpa os params da URL pra não reabrir o banner ao recarregar
     const next = new URLSearchParams(params);
     next.delete("activated");
@@ -74,7 +80,7 @@ export const ActivationBanner = ({ onAction }: ActivationBannerProps = {}) => {
     // Auto-fecha em 60s
     const t = setTimeout(() => setVisible(false), 60_000);
     return () => clearTimeout(t);
-  }, [params, setParams]);
+  }, [params, setParams, refresh]);
 
   if (!info) return null;
 
