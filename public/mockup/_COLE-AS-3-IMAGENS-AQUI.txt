@@ -1,0 +1,10 @@
+Cole aqui as 3 telas do mockup da /vendas e renomeie exatamente assim:
+
+  1-bio.png          -> a bio da Juliana Martins (foto + links)
+  2-diagnostico.png  -> a pergunta "o que vem primeiro na sua mente?"
+  3-resultado.png    -> o resultado 86/100
+
+Depois me avise que eu converto pra WebP leve e ligo no carrossel do celular.
+(O formulario de captacao NAO entra aqui — e do redesign.)
+
+Pode apagar este arquivo depois.
