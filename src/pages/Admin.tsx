@@ -249,7 +249,7 @@ const Admin = () => {
   };
 
   const addBlock = async () => {
-    if (!currentTenant) return toast.error("Nenhum tenant ativo selecionado");
+    if (!currentTenant) return toast.error("Nenhuma conta ativa selecionada");
     const nextPos = (blocks[blocks.length - 1]?.position ?? 0) + 1;
     const { data, error } = await supabase
       .from("bio_blocks")
@@ -268,7 +268,7 @@ const Admin = () => {
   };
 
   const duplicateBlock = async (b: Block) => {
-    if (!currentTenant) return toast.error("Nenhum tenant ativo selecionado");
+    if (!currentTenant) return toast.error("Nenhuma conta ativa selecionada");
     const nextPos = (blocks[blocks.length - 1]?.position ?? 0) + 1;
     const { data, error } = await supabase
       .from("bio_blocks")

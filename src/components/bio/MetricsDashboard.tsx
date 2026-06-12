@@ -110,9 +110,9 @@ export const MetricsDashboard = ({ tenantId }: { tenantId: string }) => {
           />
           <MetricCard
             icon={<Eye className="h-4 w-4" />}
-            label="Page views"
+            label="Visualizações"
             value={metrics.total_page_views}
-            hint="Visitas a páginas do tenant"
+            hint="Visitas às suas páginas"
           />
           <MetricCard
             icon={<Users className="h-4 w-4" />}

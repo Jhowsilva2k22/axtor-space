@@ -20,7 +20,7 @@ export const BioTemplatePicker = ({ tenantId, variant = "primary", onApplied }: 
 
   const apply = async (tpl: BioTemplate) => {
     if (!tenantId) {
-      toast.error("Nenhum tenant ativo selecionado");
+      toast.error("Nenhuma conta ativa selecionada");
       return;
     }
     if (

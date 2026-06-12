@@ -254,7 +254,7 @@ export function DeepDiagnosticReviewView({ funnelId, onBack }: DeepDiagnosticRev
                   <h3 className="font-medium text-sm">WhatsApp deste funil</h3>
                 </div>
                 <p className="text-xs leading-snug text-muted-foreground/70 mb-3">
-                  Escolha qual número aparece no botão de contato. Deixe "Padrão do tenant" para usar o número marcado como padrão nas configurações.
+                  Escolha qual número aparece no botão de contato. Deixe em "Número padrão" para usar o número marcado como padrão nas configurações.
                 </p>
                 <Select
                   value={funnel?.whatsapp_number_id ?? "__default"}
@@ -263,10 +263,10 @@ export function DeepDiagnosticReviewView({ funnelId, onBack }: DeepDiagnosticRev
                   }
                 >
                   <SelectTrigger className="w-full max-w-sm rounded-2xl border-gold/20">
-                    <SelectValue placeholder="Padrão do tenant" />
+                    <SelectValue placeholder="Número padrão" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="__default">Padrão do tenant</SelectItem>
+                    <SelectItem value="__default">Número padrão</SelectItem>
                     {wppNumbers.map((n) => (
                       <SelectItem key={n.id} value={n.id}>
                         {n.label} — {n.phone}
