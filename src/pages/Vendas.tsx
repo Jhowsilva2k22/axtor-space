@@ -46,7 +46,7 @@ const jornada = [
 const etapas = [
   { titulo: "Apresentação", texto: "Quem você é, o que faz e para quem serve." },
   { titulo: "Diagnóstico", texto: "Perguntas simples, no seu nicho, para entender a intenção do visitante." },
-  { titulo: "Direcionamento", texto: "Um próximo passo claro com base no perfil de cada pessoa." },
+  { titulo: "Direcionamento", texto: "Um próximo passo claro: o produto, serviço ou conteúdo certo para o resultado de cada pessoa." },
 ];
 
 const segmentos = [
@@ -291,7 +291,7 @@ const Vendas = () => {
         <Reveal className="mx-auto max-w-6xl px-6 py-16">
           <div className="mx-auto mb-12 max-w-2xl text-center">
             <h2 className="text-4xl font-extrabold tracking-tight sm:text-5xl">Você decide como cada peça trabalha.</h2>
-            <p className="mt-3 text-lg text-foreground/80">O diagnóstico é o centro. O de Instagram você liga ou desliga. O link na bio segura tudo num lugar só.</p>
+            <p className="mt-3 text-lg text-foreground/80">São dois diagnósticos. Ative o que faz mais sentido para o seu nicho, ou use os dois. O link na bio reúne tudo num lugar só.</p>
           </div>
           <div className="grid gap-4 md:grid-cols-3">
             {mecanismo.map((m) => (
