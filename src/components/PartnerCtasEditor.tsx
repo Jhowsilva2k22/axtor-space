@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Save, Megaphone } from "lucide-react";
 import { toast } from "sonner";
+import { PUBLIC_BASE_URL } from "@/lib/site";
 
 type PartnerRow = {
   id: string;
@@ -23,7 +24,7 @@ type Props = {
   slug: string;
 };
 
-const ORIGIN = typeof window !== "undefined" ? window.location.origin : "https://axtor.space";
+const ORIGIN = PUBLIC_BASE_URL;
 
 export const PartnerCtasEditor = ({ tenantId, slug }: Props) => {
   const [row, setRow] = useState<PartnerRow | null>(null);

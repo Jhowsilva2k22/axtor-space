@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { toast } from "sonner";
 import { QRCodeDialog } from "@/components/QRCodeDialog";
 import { useDeepDiagnostic } from "@/hooks/useDeepDiagnostic";
+import { PUBLIC_BASE_URL } from "@/lib/site";
 
 type Props = {
   slug: string;
@@ -29,7 +30,7 @@ type PartnerRow = {
   secondary_cta_url: string | null;
 };
 
-const ORIGIN = typeof window !== "undefined" ? window.location.origin : "https://axtor.space";
+const ORIGIN = PUBLIC_BASE_URL;
 
 const copy = async (label: string, value: string) => {
   try {

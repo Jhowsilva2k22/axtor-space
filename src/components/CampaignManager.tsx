@@ -6,6 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { Combobox } from "@/components/Combobox";
 import { toast } from "sonner";
 import { Copy, Loader2, Plus, Trash2, Megaphone } from "lucide-react";
+import { PUBLIC_BASE_URL } from "@/lib/site";
 
 type Campaign = {
   id: string;
@@ -103,7 +104,7 @@ export const CampaignManager = ({ blockId, blockLabel }: { blockId: string; bloc
   };
 
   const copyLink = async (slug: string) => {
-    const url = `${window.location.origin}/r/${slug}`;
+    const url = `${PUBLIC_BASE_URL}/r/${slug}`;
     try {
       await navigator.clipboard.writeText(url);
       toast.success("Link copiado");

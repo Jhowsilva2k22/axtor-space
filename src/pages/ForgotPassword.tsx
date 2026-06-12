@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import { Mail, Loader2, ArrowLeft } from "lucide-react";
 import { useBrasilLockedTheme } from "@/components/ThemeToggle";
 import { DottedSurface } from "@/components/landing/DottedSurface";
+import { GlowPanel } from "@/components/landing/GlowPanel";
+import { fieldLabel } from "@/lib/ui";
 
 const ForgotPassword = () => {
   useBrasilLockedTheme();
@@ -39,7 +41,7 @@ const ForgotPassword = () => {
       />
       <DottedSurface />
 
-      <div data-glow style={{ ["--glow-radius" as string]: "32" } as React.CSSProperties} className="relative z-10 w-full max-w-sm rounded-[32px] border border-gold/20 bg-card/40 p-10 shadow-2xl backdrop-blur-xl">
+      <GlowPanel>
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-gold/30 bg-gradient-gold-soft shadow-gold/20 shadow-lg">
           <Mail className="h-6 w-6 text-primary" />
         </div>
@@ -70,7 +72,7 @@ const ForgotPassword = () => {
         ) : (
           <form onSubmit={onSubmit} className="mt-10 space-y-6">
             <div className="space-y-2">
-              <label className="block text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/80">
+              <label className={fieldLabel}>
                 Email da conta
               </label>
               <Input
@@ -101,7 +103,7 @@ const ForgotPassword = () => {
             <ArrowLeft className="h-3.5 w-3.5" /> Voltar para login
           </Link>
         </div>
-      </div>
+      </GlowPanel>
     </div>
   );
 };

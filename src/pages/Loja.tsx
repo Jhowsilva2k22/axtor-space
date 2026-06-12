@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { Navigate, Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Loader2, ArrowLeft, Check, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BGPattern } from "@/components/BGPattern";
+import { DottedSurface } from "@/components/landing/DottedSurface";
 import { useAuth } from "@/hooks/useAuth";
 import { useCurrentTenant } from "@/hooks/useCurrentTenant";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,6 +17,7 @@ import {
   PaymentDataModal,
   type PaymentSubmitData,
 } from "@/components/store/PaymentDataModal";
+import { GuestCheckout } from "@/components/store/GuestCheckout";
 
 /**
  * Onda 4 Fase 6 — Loja do tenant.
@@ -121,9 +123,28 @@ const Loja = () => {
   }
 
   if (!user) {
-    const qs = searchParams.toString();
-    const back = "/loja" + (qs ? `?${qs}` : "");
-    return <Navigate to={`/admin/login?redirect=${encodeURIComponent(back)}`} replace />;
+    // Deslogado: oferece o checkout de CONVIDADO (paga primeiro, conta depois)
+    // em vez de forçar login. O plano vem do ?plan= (default pro).
+    const guestPlan: "pro" | "premium" =
+      searchParams.get("plan") === "premium" ? "premium" : "pro";
+    return (
+      <div className="relative flex min-h-screen flex-col overflow-x-hidden grain">
+        <div
+          className="pointer-events-none fixed inset-0 -z-20"
+          style={{ background: "radial-gradient(ellipse at top, hsl(223 68% 12%), hsl(223 68% 4%))" }}
+        />
+        <DottedSurface />
+        <div className="relative z-10 mx-auto w-full max-w-sm px-6 py-10">
+          <Link
+            to="/"
+            className="mb-4 inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-muted-foreground hover:text-primary"
+          >
+            <ArrowLeft className="h-3 w-3" /> voltar
+          </Link>
+          <GuestCheckout planSlug={guestPlan} />
+        </div>
+      </div>
+    );
   }
   if (!current) {
     return (

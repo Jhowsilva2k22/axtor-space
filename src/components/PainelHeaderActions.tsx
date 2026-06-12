@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { PUBLIC_BASE_URL } from "@/lib/site";
 
 /**
  * Onda 3 v2 Fase 3 — utilitários do header do Painel.
@@ -24,7 +25,7 @@ import { useAuth } from "@/hooks/useAuth";
  *   - Sair (logout)
  */
 export const PainelHeaderActions = ({ slug }: { slug: string }) => {
-  const bioUrl = `${window.location.origin}/${slug}`;
+  const bioUrl = `${PUBLIC_BASE_URL}/${slug}`;
   const nav = useNavigate();
   const { isAdmin } = useAuth();
   const [signingOut, setSigningOut] = useState(false);

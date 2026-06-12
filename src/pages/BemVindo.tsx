@@ -122,12 +122,21 @@ const FEATURES_BY_SLUG: Record<string, { title: string; items: string[] }> = {
   pro: {
     title: "Plano Pro ativo",
     items: [
-      "Blocos ilimitados na bio",
-      "Diagnóstico Imersivo",
-      "Banco de mídia organizado",
-      "Métricas completas",
-      "Tema visual customizado",
-      "Sem selo Axtor na bio",
+      "Tudo do Free",
+      "75 créditos de IA por mês",
+      "Diagnóstico imersivo (1 funil)",
+      "Exportar leads (CSV)",
+      'Marca "Axtor" removida da bio',
+    ],
+  },
+  premium: {
+    title: "Plano Premium ativo",
+    items: [
+      "Tudo do Pro",
+      "200 créditos de IA por mês",
+      "Diagnóstico imersivo (até 5 funis)",
+      "Domínio próprio + Analytics+",
+      "Suporte prioritário",
     ],
   },
   deep_diagnostic: {

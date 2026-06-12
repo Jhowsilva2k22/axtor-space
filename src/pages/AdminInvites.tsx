@@ -2,6 +2,7 @@ import { useEffect, useState, FormEvent } from "react";
 import { Navigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { PUBLIC_BASE_URL } from "@/lib/site";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -269,7 +270,7 @@ const AdminInvites = () => {
   };
 
   const buildLink = (inv: InviteRow) => {
-    const base = `${window.location.origin}/signup?invite=${inv.code}`;
+    const base = `${PUBLIC_BASE_URL}/signup?invite=${inv.code}`;
     return inv.mode === "email" && inv.target_email
       ? `${base}&email=${encodeURIComponent(inv.target_email)}`
       : base;

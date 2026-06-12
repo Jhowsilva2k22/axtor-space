@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Navigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { PUBLIC_BASE_URL } from "@/lib/site";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -701,7 +702,7 @@ const Admin = () => {
             )}
             {currentTenant && (
               <QRCodeDialog
-                url={`${window.location.origin}/${currentTenant.slug}`}
+                url={`${PUBLIC_BASE_URL}/${currentTenant.slug}`}
                 slug={currentTenant.slug}
               />
             )}
@@ -806,7 +807,7 @@ const Admin = () => {
 
                   {currentTenant && (
                     <QRCodeDialog
-                      url={`${window.location.origin}/${currentTenant.slug}`}
+                      url={`${PUBLIC_BASE_URL}/${currentTenant.slug}`}
                       slug={currentTenant.slug}
                     />
                   )}

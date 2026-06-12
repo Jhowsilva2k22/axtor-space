@@ -148,6 +148,91 @@ Deno.serve(async (req) => {
       // Nem sub nem addon — pagamento órfão
       console.warn("[asaas-webhook] payment %s sem subscription nem addon", paymentId);
     }
+
+    // 4c. GUEST CHECKOUT — pagamento confirmado sem tenant: provisiona conta.
+    const { data: guest } = await supabase
+      .from("guest_checkouts")
+      .select("id, email, display_name, slug, plan_slug")
+      .eq("asaas_payment_id", paymentId)
+      // provisiona qualquer checkout ainda não concluído. 'expired' entra aqui de
+      // propósito: se o pagamento cair logo após o contador zerar, a conta tem que
+      // ser criada do mesmo jeito (rede de segurança contra a corrida do timer).
+      .in("status", ["pending", "expired"])
+      .maybeSingle();
+
+    if (guest) {
+      try {
+        // a) cria o usuário (email confirmado — acessa via magic link)
+        const { data: createdUser, error: cuErr } = await supabase.auth.admin.createUser({
+          email: guest.email,
+          email_confirm: true,
+        });
+        if (cuErr || !createdUser?.user) throw new Error(cuErr?.message ?? "createUser falhou");
+        const newUserId = createdUser.user.id;
+
+        // b) cria o tenant com o plano pago (RPC admin que aceita user_id)
+        const { data: tRes, error: tErr } = await supabase.rpc("create_tenant_for_user_admin", {
+          _user_id: newUserId,
+          _slug: guest.slug,
+          _display_name: guest.display_name,
+          _plan: guest.plan_slug,
+        });
+        if (tErr) throw new Error("create_tenant: " + tErr.message);
+        const newTenantId = (tRes as { tenant_id?: string } | null)?.tenant_id;
+
+        // c) assinatura ativa + concede créditos do plano
+        const periodEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+        await supabase.from("tenant_subscriptions").insert({
+          tenant_id: newTenantId,
+          plan_slug: guest.plan_slug,
+          billing_cycle: "monthly",
+          gateway: "asaas",
+          gateway_subscription_id: paymentId,
+          final_price_brl: Number(payment?.value ?? 0),
+          status: "active",
+          current_period_end: periodEnd,
+        });
+        await supabase.rpc("grant_plan_credits", { p_tenant: newTenantId });
+
+        // d) magic link de acesso (dispara o email padrão de magic link)
+        const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+        if (anonKey) {
+          const anon = createClient(supabaseUrl, anonKey);
+          await anon.auth.signInWithOtp({
+            email: guest.email,
+            options: {
+              shouldCreateUser: false,
+              // guest cai na recepção (/bem-vindo) com o plano certo, igual ao
+              // fluxo de quem compra logado. De lá ela segue pro /painel.
+              emailRedirectTo: `https://axtor.space/bem-vindo?type=plan&slug=${guest.plan_slug}`,
+            },
+          });
+        }
+
+        // e) marca provisionado
+        await supabase
+          .from("guest_checkouts")
+          .update({
+            status: "provisioned",
+            tenant_id: newTenantId,
+            user_id: newUserId,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", guest.id);
+
+        console.log("[asaas-webhook] guest %s provisionado → tenant %s", guest.id, newTenantId);
+      } catch (e) {
+        console.error("[asaas-webhook] guest provision falhou", e);
+        await supabase
+          .from("guest_checkouts")
+          .update({
+            status: "failed",
+            error: e instanceof Error ? e.message : "erro",
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", guest.id);
+      }
+    }
   } else if (event === "PAYMENT_OVERDUE") {
     await supabase
       .from("tenant_subscriptions")

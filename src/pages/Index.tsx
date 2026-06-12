@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { ArrowRight, Sparkles, Lock, CheckCircle2, AlertTriangle, Loader2, Instagram, TrendingUp, Target, Zap, SearchX, Share2, Clock, Check, Crown, MessageCircle, ExternalLink } from "lucide-react";
 import { validateEmail, validateName, validatePhone, maskPhone, suggestEmailDomain, COUNTRIES, normalizeWhatsappUrl, type CountryCode } from "@/lib/validators";
 import { trackPageView, trackFunnel } from "@/lib/analytics";
+import { PUBLIC_BASE_URL } from "@/lib/site";
 import { useEffect } from "react";
 import FeedbackWidget from "@/components/FeedbackWidget";
 import {
@@ -752,8 +753,8 @@ const ShareButton = ({
 }) => {
   const [copied, setCopied] = useState(false);
   const url = diagnosticId
-    ? `${window.location.origin}/d/${diagnosticId}`
-    : window.location.origin;
+    ? `${PUBLIC_BASE_URL}/d/${diagnosticId}`
+    : PUBLIC_BASE_URL;
   const text = score
     ? `Acabei de descobrir que meu Instagram tá com nota ${score}/100 nesse diagnóstico. Faz o seu, é em 30 segundos:`
     : `Faz o diagnóstico do seu Instagram em 30 segundos:`;
@@ -797,7 +798,7 @@ const ResultStep = ({ data, onRestart, partnerCtas, tenant, bioCfg, primaryFunne
   const score = d.score_geral ?? 0;
 
   // Resolve CTAs: parceiro (se UTM válido) > defaults (Stefany Mello)
-  const ORIGIN = typeof window !== "undefined" ? window.location.origin : "https://axtor.space";
+  const ORIGIN = PUBLIC_BASE_URL;
 
   // NOME: Parceiro > Bio Config > Fallback Stefany
   const partnerName = partnerCtas?.display_name?.split(" ")[0]
