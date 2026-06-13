@@ -215,7 +215,7 @@ Deno.serve(async (req) => {
     // Busca o funnel incluindo briefing para contexto da IA
     const { data: funnel } = await admin
       .from("deep_funnels")
-      .select("id, tenant_id, name, is_published, briefing")
+      .select("id, tenant_id, name, is_published, briefing, cenario")
       .eq("id", funnel_id)
       .maybeSingle();
     if (!funnel || !funnel.is_published) {
@@ -321,6 +321,15 @@ Deno.serve(async (req) => {
       benefits: p.benefits,
     })).join("\n");
 
+    // Severidade/tom do veredict conforme o cenário do funil (autonomia Fase 2b).
+    const cenario = (funnel.cenario as string) || "equilibrado";
+    const cenarioDir =
+      cenario === "educar"
+        ? "CENÁRIO = EDUCAR. Severidade BAIXA: tom leve e didático, foco em ENSINAR o próximo passo, sem dramatizar o gap. Convide sem pressão."
+        : cenario === "conversao"
+        ? "CENÁRIO = CONVERSÃO. Severidade ALTA: mais afiado e direto sobre o custo de NÃO agir, com urgência REAL e honesta (nunca inventada). Foco em ação imediata, sem prometer milagre."
+        : "CENÁRIO = EQUILIBRADO. Severidade MÉDIA: honesto sobre o gap, equilibrando ensinar e mover pra ação.";
+
     const userMessage = `Briefing do dono:
 - Negócio: ${business_name}
 - Nicho: ${niche}
@@ -341,7 +350,9 @@ ${productsBlock}
 
 Lead: ${lead_name || "anônimo"} @${instagram_handle || "—"}
 
-Gere o veredict persuasivo agora.`;
+${cenarioDir}
+
+Gere o veredict persuasivo agora (respeitando a diretriz de severidade acima).`;
 
     // Crédito: conclusão do imersivo gasta 1 do dono. Sem saldo, pula a IA
     // e cai no veredict-template (fallback) — o lead NÃO fica sem resposta e
