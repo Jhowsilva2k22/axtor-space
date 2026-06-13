@@ -186,7 +186,7 @@ export const MyLinksCard = ({ slug, tenantId }: Props) => {
           )}
 
           {partners.map((p) => {
-            const partnerUrl = `${ORIGIN}/diagnostico?utm_source=${encodeURIComponent(p.utm_source)}&utm_medium=instagram`;
+            const partnerUrl = `${ORIGIN}/diagnostico/${encodeURIComponent(p.utm_source)}?utm_medium=instagram`;
             const partnerName = p.note || p.utm_source;
             return (
               <div key={p.id} className="group flex flex-col gap-3 rounded-[24px] border border-gold/20 bg-card/40 p-5 transition-all hover:bg-card/50">
@@ -231,7 +231,7 @@ export const MyLinksCard = ({ slug, tenantId }: Props) => {
             <Row
               icon={<Megaphone className="h-4 w-4" />}
               title="Link de captação"
-              url={`${ORIGIN}/diagnostico?utm_source=${encodeURIComponent(slug)}`}
+              url={`${ORIGIN}/diagnostico/${encodeURIComponent(slug)}`}
               hint="Cole no Instagram, no story, no WhatsApp. Leads que entrarem por aqui são atribuídos a você."
               qrSlug={`capture-${slug}`}
               showQr
