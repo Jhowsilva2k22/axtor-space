@@ -243,7 +243,7 @@ export default function DeepFunnelPublic() {
                 </motion.div>
               )}
               <p className="whitespace-pre-line text-lg leading-relaxed text-muted-foreground/80">{funnel.welcome_text}</p>
-              <Button size="lg" className="btn-luxe h-14 rounded-full px-10 text-xs font-bold uppercase tracking-[0.2em] transition-transform hover:scale-[1.02] animate-gold-pulse" onClick={() => setStep("lead")}>
+              <Button size="lg" className="btn-luxe h-14 rounded-xl px-10 text-xs font-bold uppercase tracking-[0.2em] transition-transform hover:scale-[1.02] animate-gold-pulse" onClick={() => setStep("lead")}>
                 Começar agora <ArrowRight className="h-4 w-4" />
               </Button>
             </Card>
@@ -332,7 +332,7 @@ export default function DeepFunnelPublic() {
 
               <Button
                 size="lg"
-                className="btn-luxe h-14 w-full rounded-full text-xs font-bold uppercase tracking-[0.2em] transition-transform hover:scale-[1.02] animate-gold-pulse"
+                className="btn-luxe h-14 w-full rounded-xl text-xs font-bold uppercase tracking-[0.2em] transition-transform hover:scale-[1.02] animate-gold-pulse"
                 onClick={() => {
                   if (!lead.name?.trim()) {
                     toast.error("Preencha seu nome antes de continuar.");
@@ -421,7 +421,7 @@ export default function DeepFunnelPublic() {
                       whileTap={{ scale: mediaLocked ? 1 : 0.98 }}
                       disabled={mediaLocked}
                       onClick={() => handleAnswer(q, oi)}
-                      className="w-full rounded-full border border-gold/20 bg-card/30 px-6 py-4 text-left text-sm font-light transition-all hover:border-gold/50 hover:bg-gold/5 hover:shadow-gold/10 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="w-full rounded-xl border border-gold/20 bg-card/30 px-6 py-4 text-left text-sm font-light transition-all hover:border-gold/50 hover:bg-gold/5 hover:shadow-gold/10 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <div className="flex items-center gap-4">
                         <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-gold/30 text-[10px] text-gold/60">
@@ -623,7 +623,7 @@ export default function DeepFunnelPublic() {
                           <Button
                             size="lg"
                             variant={isExclusive ? "default" : "outline"}
-                            className={isExclusive ? "btn-luxe w-full gap-2 h-14 uppercase tracking-widest text-xs font-bold rounded-full" : "w-full gap-2 h-12 rounded-full"}
+                            className={isExclusive ? "btn-luxe w-full gap-2 h-14 uppercase tracking-widest text-xs font-bold rounded-xl" : "w-full gap-2 h-12 rounded-xl"}
                             asChild
                           >
                             <a
@@ -639,7 +639,7 @@ export default function DeepFunnelPublic() {
                         )}
                         {/* Último fallback: nem checkout nem whatsapp → tenta número direto do tenant ou mensagem neutra */}
                         {!chkUrl && !wppUrl && tenant?.whatsapp_number && (
-                          <Button size="lg" className="w-full gap-2 h-12 rounded-full bg-green-600 hover:bg-green-700 animate-pulse" asChild>
+                          <Button size="lg" className="w-full gap-2 h-12 rounded-xl bg-green-600 hover:bg-green-700 animate-pulse" asChild>
                             <a
                               href={`https://wa.me/${(tenant.whatsapp_number ?? "").replace(/\D/g, "")}?text=${encodeURIComponent("Olá! Acabei de fazer o diagnóstico e quero saber mais.")}`}
                               target="_blank"
@@ -651,7 +651,7 @@ export default function DeepFunnelPublic() {
                           </Button>
                         )}
                         {!chkUrl && !wppUrl && !tenant?.whatsapp_number && (
-                          <Button size="lg" variant="outline" className="w-full gap-2 h-12 rounded-full border-gold/40 text-gold hover:border-gold hover:bg-gold/5" asChild>
+                          <Button size="lg" variant="outline" className="w-full gap-2 h-12 rounded-xl border-gold/40 text-gold hover:border-gold hover:bg-gold/5" asChild>
                             <a
                               href={`/${tenant?.slug ?? ""}`}
                               target="_blank"
@@ -751,7 +751,7 @@ export default function DeepFunnelPublic() {
               className="mt-12 border-t border-gold/20 pt-6 text-center"
             >
               <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground/60">
-                Funil criado com <span className="text-gold/80 font-bold">Axtor</span> — você acabou de vivenciar a mesma jornada que é entregue aos clientes.
+                Funil criado com <span className="text-gold/80 font-bold">Axtor</span>. Você acabou de vivenciar a mesma jornada que é entregue aos clientes.
               </p>
               <p className="mt-3 text-[10px] uppercase tracking-[0.3em] text-muted-foreground/40">
                 <Link to="/termos" className="transition-colors hover:text-primary">Termos</Link>
@@ -762,7 +762,7 @@ export default function DeepFunnelPublic() {
                 <div className="mt-3">
                   <Button
                     variant="ghost"
-                    className="h-8 rounded-full text-[10px] uppercase tracking-widest text-gold/70 hover:text-gold"
+                    className="h-8 rounded-xl text-[10px] uppercase tracking-widest text-gold/70 hover:text-gold"
                     asChild
                   >
                     <a href={`/${tenant.slug}`} target="_blank" rel="noreferrer">
