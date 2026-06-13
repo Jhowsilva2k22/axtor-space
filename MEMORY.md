@@ -2,8 +2,8 @@
 
 > Leia este arquivo no início de cada conversa para entender o estado atual.
 > Memória aditiva: nunca substituir, sempre acrescentar.
-> 2026-06-13 (rota + leads unificados): rota /diagnostico/:slug por PATH (#187, mergeado/deploy) — identidade do parceiro no path, /diagnostico puro = axtor-labs neutro, fallbacks de Pai Presente removidos. LEADS UNIFICADOS Fase A APLICADA em prod (dedup 95→43 contatos; colunas status/last_activity_at/diagnostics_count; imersivos religados; 17 "quente"). Índice único adiado pra Fase B (entra junto do upsert). Backups _bak_*_20260613. Falta Fase B (upsert+notify) e C (painel). Ver docs/PLANO-leads-unificados.md.
-> 2026-06-13 (deploys + crédito + autonomia): edge functions alinhadas ao `main` (NÃO sobem no merge — deploy via CLI Supabase). Redeploy em prod: generate-deep-funnel v29, analyze-deep v15, analyze-instagram v21, proxy-image v12. DÉBITO DE CRÉDITO #158 agora ATIVO. Fase 1 (#184) e Fase 2a (#185) mergeadas. Próximo: rota /diagnostico (atribuição por path, não utm). REGRA NOVA: nunca passar de fase sem conferir cada deploy/merge/doc. Ver docs/CHECKPOINT-2026-06-13.md.
+> 2026-06-13 (rota + leads unificados): rota /diagnostico/:slug por PATH (#187). LEADS UNIFICADOS COMPLETO (A=#188 dedup 95→43 + colunas; B=#189 RPC upsert_lead_contact + índice único + notificação só no 1º contato + fix aiResp nulo; C=#190 painel lê `leads` com origem/diag/quente + paginação 7-15). Contato único por (tenant,email); perfil privado não cobra crédito; backups _bak_*_20260613 a limpar depois de validar. Ver docs/PLANO-leads-unificados.md.
+> 2026-06-13 (deploys + crédito + autonomia): edge functions alinhadas ao `main` (NÃO sobem no merge — deploy via CLI Supabase). Redeploy em prod: generate-deep-funnel v29, analyze-deep v15, analyze-instagram v21, proxy-image v12. DÉBITO DE CRÉDITO #158 agora ATIVO. Fase 1 (#184) e Fase 2a (#185) mergeadas. REGRA NOVA: nunca passar de fase sem conferir cada deploy/merge/doc. Ver docs/CHECKPOINT-2026-06-13.md.
 > Última atualização: 2026-06-12 (sessão perf mobile: #176→#179). Desempenho mobile de /vendas e /planos investigado a fundo e ENCERRADO: a nota ~60 é teto da stack (SPA React pesado) — prerender NÃO roda no build da Vercel e renderia só ~70 mesmo. Shipados ganhos reais (sem pipeline) + copy. NÃO re-tentar prerender/SSR sem decisão de migrar stack. Ver docs/CHECKPOINT-2026-06-12-perf-mobile.md.
 > Antes (mesmo dia): #173 guest checkout Pix + domínio + GlowPanel + mobile-first do painel; #174 fix do link do diagnóstico /→/diagnostico + lazy do fundo 3D + jargão. Ver docs/CHECKPOINT-2026-06-12.md.
 
@@ -62,16 +62,19 @@ RLS sempre ativa. Sem emoji em UI, sem visual de chatbot.
 - Diagnóstico imersivo (Deep Funnel): IA, página pública, resultado + CTA.
 - Landing comercial: `/` = página de VENDAS (diagnóstico como oferta principal,
   "pra qualquer nicho"); `/planos` (Landing) com pricing animado; `/diagnostico`
-  = diagnóstico imersivo (Index). Tenant padrão de divulgação = `axtor-labs`.
+  = diagnóstico de Instagram (Index). Rota por path `/diagnostico/:slug` (parceiro);
+  `/diagnostico` puro = vitrine `axtor-labs` neutra.
 - Loja `/loja` (e `/painel/loja`): mostra Pro E Premium + "Pacotes avulsos".
   Lê `?plan=pro|premium`. Checkout Pix via Asaas. Logado-out → login com redirect.
-- Motor de créditos (Fases 1-3 no ar): saldo por tenant, débito nas 3 funções de
-  IA (sem perder lead em falha), provisão de crédito ao pagar (plano+pacote),
+- Motor de créditos (Fases 1-4 no ar): saldo por tenant, débito nas 3 funções de
+  IA (sem perder lead em falha; perfil privado não cobra), provisão ao pagar,
   cron mensal. Planos: Free 5cr / Pro R$47-75cr / Premium R$127-200cr (margem ≥75%).
+- LEADS UNIFICADOS (no ar): `leads` = contato único por (tenant,email); os dois
+  diagnósticos ligam por `lead_id`; captura via RPC `upsert_lead_contact` (1º contato
+  notifica, retorno enriquece+quente sem 2º email); painel "Leads" lista contatos.
 - Preview de link por tenant (OG): `api/og.ts` (edge) + rewrite por user-agent no
-  `vercel.json`. Crawler em `axtor.space/:slug` → foto+nome+headline do tenant
-  (não mais o genérico da Axtor). Validado em prod (#166).
-- Painel: Leads, Métricas (MVP), Mídia, Configurações.
+  `vercel.json`. Validado em prod (#166).
+- Painel: Leads (contatos unificados), Métricas (MVP), Mídia, Configurações.
 - Admin Hub: convites, landing partners, templates, analytics, diagnósticos, melhorias por IA.
 - Onboarding: auto-provisionamento de tenant + boas-vindas.
 - Infra de email: notify.axtor.space, queues pgmq, cron, templates PT-BR, unsubscribe/suppression.
@@ -104,25 +107,31 @@ RLS sempre ativa. Sem emoji em UI, sem visual de chatbot.
   alimenta partnerCtas + atribuição do lead (utm.source = pathSlug), então métrica
   e notifyLead (por tenant_id) ficam certas SEM mexer na edge function. Links do
   painel (`MyLinksCard`, `AdminLandingPartners`) geram `/diagnostico/<slug>`.
-  ResultStep: removidos fallbacks fixos de Pai Presente (Stefany/handle/número);
-  sem dado, botão WhatsApp e bloco Instagram somem. Validado: bare = axtor-labs,
-  `/diagnostico/joanderson` = parceiro certo + email.
-- LEADS UNIFICADOS Fase A (banco) APLICADA em prod (migration `20260613060000`,
-  via conector, transacional, backups `_bak_*_20260613`): `leads` é o contato único.
-  Dedup por (tenant,lower(email)) **95 → 43 contatos** (joanderson 67→26), 0
-  diagnóstico perdido (89→89, religados). Colunas novas: `status`/`last_activity_at`/
-  `diagnostics_count`. Imersivos com email religados (9 = 3 existentes + 6 órfãos
-  viraram contato); 21 sem email ficaram intactos. "quente" (2+ diagnósticos) = 17.
-  Índice único (tenant,email) ADIADO pra Fase B (quebraria o INSERT atual). 
-- DESCOBERTA: a aba "Leads" do painel (`useLeads`) lê `deep_diagnostics` (imersivo),
-  por isso os leads de Instagram (tabela `leads`) nunca apareciam ali. A Fase C corrige.
+  ResultStep: removidos fallbacks fixos de Pai Presente (Stefany/handle/número).
+- LEADS UNIFICADOS — COMPLETO (A+B+C). Plano: docs/PLANO-leads-unificados.md.
+  - Fase A (#188, banco, migration `20260613060000` via conector + backups
+    `_bak_*_20260613`): `leads` é o contato único. Dedup por (tenant,lower(email))
+    **95 → 43 contatos** (joanderson 67→26), 0 diagnóstico perdido (89→89). Colunas
+    `status`/`last_activity_at`/`diagnostics_count`. Imersivos com email religados
+    (9); 21 sem email intactos. "quente" (2+) = 17.
+  - Fase B (#189, edge fns, migration `20260613070000`): RPC `upsert_lead_contact`
+    (retorna lead_id + was_new) + ÍNDICE ÚNICO `(tenant,lower(email))` ativo.
+    `analyze-instagram` e `analyze-deep` fazem upsert (dedup), setam `lead_id`,
+    notificam o dono SÓ no 1º contato (was_new). Retorno = enriquece + "quente",
+    SEM 2º email. Duplicata exata = nada. Perfil privado = `private_profile`, NÃO
+    cobra crédito. Fix: `aiResp` nulo (sem crédito) não estoura mais 500.
+  - Fase C (#190, painel): `useLeads` lê `leads` (1 linha/contato), colunas
+    Nome/E-mail/Telefone/Instagram/Origem/Diag./Status(badge quente)/Última atividade.
+    Paginação 7/10/15 (padrão 7). Devolveu os leads de Instagram que sumiam.
+  - FALTA (opcional): Fase C.2 = modal de histórico de diagnósticos por contato
+    (Instagram/imersivo, score, dor) via `lead_id`. Limpar `_bak_*_20260613` após validar.
 
 ## Resolvido em 2026-06-13 (sessão deploys + crédito + autonomia)
 
 - Edge functions estavam atrasadas vs `main` (NÃO sobem no merge; só o front via
   Vercel — deploy é CLI Supabase). REDEPLOYADAS em prod (ref pybgqassjzcynzaakzhz):
-  generate-deep-funnel v29 (Fase 2a #185), analyze-deep v15 + analyze-instagram v21
-  (débito de crédito #158), proxy-image v12 (CORS #123).
+  generate-deep-funnel v29 (Fase 2a #185), analyze-deep + analyze-instagram
+  (débito de crédito #158), proxy-image (CORS #123).
 - CRÉDITO #158 AGORA ATIVO em prod: cada diagnóstico (instagram/imersivo) consome 1
   crédito do dono. Instagram sem saldo → lead retido (status `no_credit`, cache 12h);
   imersivo sem saldo → veredito-template (fallback), lead nunca fica sem resposta.
@@ -130,8 +139,7 @@ RLS sempre ativa. Sem emoji em UI, sem visual de chatbot.
   #184 (Fase 1 migration autonomia `20260613020000` + plano) mergeados.
 - generate-icon: CONFIRMADO morto no front (IconPicker só tem aba Biblioteca/Lucide;
   handleGenerate/invoke sem gatilho na UI). Não precisa deploy. Limpar quando der.
-- LIÇÃO: o `origin/main` em cache do sandbox estava STALE (mostrava #183 quando o
-  main já estava em #185). Conferir merge/branch sempre pelo GitHub, não pelo sandbox.
+- LIÇÃO: o `origin/main` em cache do sandbox estava STALE. Conferir merge/branch sempre pelo GitHub.
 
 ## Resolvido em 2026-06-12 (sessão perf mobile)
 
@@ -139,130 +147,68 @@ Investigação completa do desempenho mobile de /vendas e /planos (estava ~60).
 Sequência de PRs (todos mergeados/deploy):
 
 - #176: prerender de /vendas e /planos (HTML pronto via Chromium). FUNCIONOU local
-  (~72), mas no build da Vercel o Chromium NÃO sobe (falta libnss3) → prerender
-  pulado em produção, sem ganho. @sparticuz/chromium também falhou no build.
-- #177: REVERTE o prerender (peso morto na Vercel + erros de hidratação) e volta
-  o 3D no mobile. Removidos puppeteer/script.
-- #178 (no ar): ganhos REAIS sem pipeline — (a) `Bio` lazy + lucide fora do
-  manualChunk `vendor-ui` (582→52 kB; ícones 530 kB só na bio/editor, fora de
-  vendas/planos/login/signup/loja); (b) título do hero instantâneo no MOBILE
-  (AnimatedTitle na Vendas, HeroPaths na /planos) — desktop mantém animação;
-  (c) `index.html` com fundo escuro desde o 1º byte (mata flash branco).
-- #179 (no ar): copy de clareza na /vendas — card "Direcionamento" (produto/
-  serviço/conteúdo certo pro resultado) + seção "Você decide" (são dois
-  diagnósticos, ative o que faz sentido ou use os dois).
+  (~72), mas no build da Vercel o Chromium NÃO sobe (falta libnss3) → sem ganho.
+- #177: REVERTE o prerender e volta o 3D no mobile.
+- #178 (no ar): ganhos REAIS sem pipeline — `Bio` lazy + lucide fora do manualChunk;
+  título do hero instantâneo no MOBILE; `index.html` com fundo escuro desde o 1º byte.
+- #179 (no ar): copy de clareza na /vendas.
 
-LIÇÃO/DECISÃO: a nota mobile de laboratório é TETO desta stack (SPA React +
-CSS render-blocking + LCP de fonte). Nem prerender nem cortar three.js/ícones
-movem a nota de forma relevante (FCP/LCP seguem presos); o three.js e os ícones
-já eram lazy. O único lever real é SSR de verdade (migrar p/ Next ou similar) —
-fora de escopo. NÃO re-tentar prerender/SSR sem decisão explícita de migrar.
-Ganho entregue = experiência real (menos dados, sem flash, título na hora).
+LIÇÃO/DECISÃO: a nota mobile de laboratório é TETO desta stack (SPA React). O único
+lever real é SSR de verdade (migrar stack) — fora de escopo. NÃO re-tentar prerender/SSR.
 
 ## Resolvido em 2026-06-11
 
-- #168 (mergeado/deploy): CTAs da página de Vendas (`/`) apontam pra `/signup`
-  em vez de `/planos` — mata o loop entre as duas telas quase idênticas. E
-  padronização de TODAS as telas externas no design do login (`/admin/login`):
-  `/signup`, `/forgot-password`, `/reset-password` e 404 usam fundo navy +
-  `DottedSurface` + `useBrasilLockedTheme` + `data-glow` + card arredondado.
-  Antes forgot/reset eram gold-noir (`useAdminLockedTheme`) com auroras.
-  Spec de copy: `docs/COPY-CTA-vendas-planos.md`.
-- #169 (mergeado/deploy): hero da `/planos` virou modo DECISÃO ("Escolha seu
-  plano e comece hoje") — não é mais clone da Vendas. Escassez real ("+30% ao
-  chegar a 1.000 assinantes"). Link "Ver planos" no hero da Vendas. Componente
-  novo `StickyCTA` (barra fixa de CTA mobile, `md:hidden`) em `/` e `/planos`.
-  Card do signup no tamanho do login, mais compacto.
-- #170 (mergeado/deploy): FASE 4 frontend de créditos. Hook `useCredits` (lê
-  `tenant_credits` via RLS owner-select). `CreditsCard` no header do painel
-  (saldo + renovação; âmbar + "Recarregar" quando ≤6; "Ilimitado" pra dono).
-  Badge "Premium" no `PLAN_LABELS`. `CreditsBlockModal` ao gerar funil sem os 6
-  créditos (proativo + backstop no 402). Loja blindada: separa packs de crédito
-  (`grants_credits`) dos addons de função (seção "Recursos avulsos" só aparece
-  se houver addon de função ativo).
-- Lógica de funil firmada: Vendas (`/`) = desejo → ativação (`/signup`).
-  Planos (`/planos`) = decisão → checkout (`/loja?plan=`). Telas internas
-  (Painel/Admin) = gold-noir; telas externas = design do login.
-- SEGURANÇA (refino): a investigação a fundo do histórico mostrou que o `.env`
-  que vazou continha SÓ chaves `VITE_` públicas (anon/publishable + URL +
-  project_id). service_role/Anthropic/Asaas nunca tiveram valor real no git (só
-  placeholder no `.env.example`). Anon é pública por design (vai no bundle JS,
-  protegida por RLS). Logo a rotação vira higiene opcional de baixo risco, não
-  emergência — a "prioridade 1" anterior estava superestimada.
+- #168 CTAs da Vendas → `/signup` + padronização das telas externas no design do login.
+- #169 hero da `/planos` modo DECISÃO + `StickyCTA` mobile.
+- #170 FASE 4 frontend de créditos (`useCredits`, `CreditsCard`, `CreditsBlockModal`, loja blindada).
+- Lógica de funil firmada: Vendas (`/`) = desejo → `/signup`; Planos = decisão → `/loja?plan=`.
+- SEGURANÇA (refino): o `.env` que vazou tinha SÓ chaves `VITE_` públicas; rotação = higiene de baixo risco.
 
 ## Resolvido em 2026-06-10
 
-- #158 tema azul-copa global + Loja Pro/Premium/pacotes + pontilhado interno +
-  funil (redirect de intenção no login/signup; CTAs de planos → /loja?plan=).
-- #159 foto de perfil maior e quadrada-arredondada + cropper rect.
-- #161 home `/` = vendas; `/diagnostico`; tenant padrão `axtor-labs`.
-- #162 (middleware OG — abordagem morta, removida depois) · #163 `/api/og`
-  edge function + rewrite por user-agent; remove middleware morto.
-- #166 fix OG: lê `VITE_SUPABASE_PUBLISHABLE_KEY` (nome correto da env). Preview
-  por tenant validado em produção (título/descrição/avatar do tenant).
+- #158 tema azul-copa global + Loja + pontilhado + funil. #159 foto perfil quadrada.
+- #161 home `/` = vendas; tenant padrão `axtor-labs`. #163/#166 OG por tenant.
 - Motor de créditos fases 1-3 (banco, débito, provisão ao pagar, cron mensal).
 
 ## Resolvido em 2026-06-09 (auditoria)
 
-- A2 config no banco certo (#142) · A1 RLS deep_diagnostics escopada (#144)
-  · M1 listagem de buckets públicos removida (#144) · B1 search_path (#144)
-  · A3 texto migrado p/ Anthropic (#145) · A3 imagem desativada (#146)
-  · deps: npm audit fix, 0 vulnerabilidades (#147) · build Vite 8 verde.
+- A2 config no banco certo (#142) · A1 RLS deep_diagnostics (#144) · A3 Anthropic (#145)
+  · A3 imagem desativada (#146) · npm audit 0 vulns (#147) · build Vite 8 verde.
 
 ## Pendências conhecidas
 
-- ✓ RESOLVIDO 2026-06-13 (#187): rota /diagnostico/:slug — identidade do parceiro
-  por PATH, /diagnostico puro = axtor-labs neutro, utm legado mantido, fallbacks de
-  Pai Presente removidos no ResultStep. Atribuição de lead/crédito correta.
-  Pendente só: publicar funil-demo + WhatsApp no axtor-labs pro CTA do /diagnostico puro.
-- ⚠️ EM ANDAMENTO 2026-06-13: LEADS UNIFICADOS (docs/PLANO-leads-unificados.md).
-  Fase A (banco) APLICADA em prod: `leads` é o contato único; dedup
-  (tenant,lower(email)) 95→43; colunas status/last_activity_at/diagnostics_count;
-  imersivos com email religados (9); "quente"=2+ (17). Índice único (tenant,email)
-  ADIADO pra Fase B (quebraria o INSERT atual; entra junto do upsert). Backups
-  _bak_*_20260613 no banco (limpar após validar). FALTA: Fase B (upsert + política
-  de notificação em analyze-instagram/analyze-deep: 1º contato notifica; retorno
-  enriquece e marca "quente" SEM 2º email; duplicata exata = nada; reintroduzir
-  índice único) e Fase C (painel useLeads lê `leads`, 1 linha/contato com histórico
-  + origem + badge quente — devolve os leads de Instagram).
+- ✓ RESOLVIDO 2026-06-13 (#187): rota /diagnostico/:slug por PATH. Pendente só:
+  publicar funil-demo + WhatsApp no axtor-labs pro CTA do /diagnostico puro.
+- ✓ RESOLVIDO 2026-06-13 (A #188 / B #189 / C #190): LEADS UNIFICADOS (dedup +
+  upsert + notificação 1º contato + painel de contatos). FALTA (opcional): Fase C.2
+  (modal de histórico por contato) + LIMPAR backups `_bak_*_20260613` após validar.
 - Fase 6: QA ponta a ponta + 1 pagamento Pix REAL de teste antes de cliente pagar.
-  (O caminho pagamento → ativação → /bem-vindo JÁ está construído no front.)
-- ✓ RESOLVIDO 2026-06-12 (#173): Etapa B / guest checkout "Caminho Y" (paga primeiro,
-  cria conta depois) — NO AR. Validado com Pix real de R$6 (conta provisionada, Premium ativo).
-- ⚠️ EM ABERTO 2026-06-12: desempenho MOBILE de `/vendas` e `/planos` (~60; desktop 93-96).
-  Lazy do fundo 3D NÃO resolveu. Gargalo = SPA client-side (HTML vazio até o JS rodar).
-  Lever real = SSR de verdade (migrar stack). Ver checkpoint 2026-06-12.
-- M2: ativar "leaked password protection" no painel Supabase (Auth). Ação do dono.
-  CONFIRMADO AINDA DESLIGADO via advisors 2026-06-11.
-- ✓ RESOLVIDO 2026-06-11: A4 logos de email — templates apontam pra
-  `axtor.space/email/axtor-logo(.png|-light.png)`, assets em `public/email/`.
-- ✓ CONFIRMADO 2026-06-11: tenant `axtor-labs` está em `azul-copa` (active_theme_slug).
-- OG por tenant: CÓDIGO pronto/validado (#163/#166). Falta só teste manual num
-  WhatsApp real + "Scrape Again" no depurador do FB pra limpar cache de links antigos.
-- B2/B3/B4/B5: higiene de baixa prioridade, sem risco de produção (ver auditoria).
+- ✓ RESOLVIDO 2026-06-12 (#173): guest checkout "Caminho Y" — validado com Pix real R$6.
+- ⚠️ EM ABERTO 2026-06-12: desempenho MOBILE de `/vendas` e `/planos` (~60). Lever real = SSR (migrar stack).
+- M2: ativar "leaked password protection" no painel Supabase (Auth). Ação do dono. AINDA DESLIGADO.
+- ✓ RESOLVIDO 2026-06-11: A4 logos de email em `public/email/`.
+- OG por tenant: validado; falta só teste num WhatsApp real + "Scrape Again" no FB.
 - Cópia local pode estar atrasada vs `main`: SEMPRE `git pull` antes de codar.
 
 ## Atrito de ambiente (importante pro próximo chat)
 
 - O git RODA bem no Windows do dono, MAS o lock fantasma `.git/index.lock` aparece
   (resolver: fechar IDE/GitHub Desktop e `Remove-Item ...\.git\index.lock -Force`).
-  O git dentro do sandbox do agente fica dessincronizado (lock que não dá pra
-  apagar, `origin/main` em cache STALE). NÃO confiar no `git status` do sandbox;
-  conferir merge/branch pelo GitHub e commitar pelo Windows.
+  O git do sandbox fica dessincronizado (`origin/main` em cache STALE). NÃO confiar
+  no `git status` do sandbox; conferir merge/branch pelo GitHub e commitar pelo Windows.
 - PowerShell quebra `stash@{0}` (interpreta `@{}`); usar aspas: `git checkout "stash@{0}" -- <arquivos>`.
-- Repo SEM `.gitattributes` e arquivos são CRLF — NÃO subir arquivo existente via API
-  do GitHub (vira churn de fim de linha); editar arquivo existente é melhor pelo Windows.
+- Repo SEM `.gitattributes` e arquivos são CRLF — NÃO subir arquivo EXISTENTE via API
+  do GitHub (vira churn de fim de linha); editar existente é melhor pelo Windows.
   Arquivos NOVOS via API são OK.
-- Edição de arquivo (Read/Write/Edit) grava no Windows e funciona normalmente.
-- Cache do `/api/og`: `s-maxage=300, stale-while-revalidate=86400`. WhatsApp tem
-  cache próprio — usar o depurador do Facebook ("Scrape Again") pra forçar.
+- Fluxo de commit que funcionou: editar no sandbox (Write/Edit) → `git switch -c <branch>`
+  no Windows → `git add <arquivos>` → commit → push → eu abro/mergeio o PR pelo GitHub.
+- Edge function: deploy via CLI Supabase (não sobe no merge). Migration: aplicar via conector + versionar.
 
 ## Ponteiros
 
 - Plano leads unificados: [docs/PLANO-leads-unificados.md](docs/PLANO-leads-unificados.md)
 - Plano autonomia diagnóstico: [docs/PLANO-autonomia-diagnostico.md](docs/PLANO-autonomia-diagnostico.md)
 - Checkpoint de hoje: [docs/CHECKPOINT-2026-06-13.md](docs/CHECKPOINT-2026-06-13.md)
-- Checkpoint anterior: [docs/CHECKPOINT-2026-06-12.md](docs/CHECKPOINT-2026-06-12.md)
 - Auditoria completa: [docs/AUDITORIA-2026-06-09.md](docs/AUDITORIA-2026-06-09.md)
 - Memórias temáticas: [mem/index.md](mem/index.md)
 - Regras do agente: [CLAUDE.md](CLAUDE.md)
