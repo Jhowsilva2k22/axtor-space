@@ -6,7 +6,7 @@ import { peekCredits, consumeCredits } from "../_shared/credits.ts";
 
 const SYSTEM_PROMPT_QUIZ = `Você é especialista em funis de vendas de alta conversão e diagnóstico de negócios digitais.
 Seu trabalho: a partir de um briefing profundo do dono de um negócio (criador, coach, infoprodutor, agência, mentor, etc),
-gerar um QUIZ DE QUALIFICAÇÃO de 12 perguntas que detecta a DOR DOMINANTE do lead em 5 categorias:
+gerar um QUIZ DE QUALIFICAÇÃO (a quantidade de perguntas é definida no pedido do usuário) que detecta a DOR DOMINANTE do lead em 5 categorias:
 marketing, gestao, vendas, ia, estrutura.
 
 Cada opção de resposta deve ter pesos numéricos (pain_weights) somando aproximadamente 4-6 pontos distribuídos entre as 5 dores.
@@ -161,7 +161,10 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { tenant_id, briefing, funnel_id, keep_products } = body ?? {};
+    const { tenant_id, briefing, funnel_id, keep_products, num_perguntas, cenario, objetivo } = body ?? {};
+    // Autonomia (defaults = comportamento atual): valida quantidade e cenario.
+    const numPerguntas = [5, 8, 12].includes(Number(num_perguntas)) ? Number(num_perguntas) : 12;
+    const cenarioVal = ["educar", "equilibrado", "conversao"].includes(cenario) ? cenario : "equilibrado";
     if (!tenant_id || !briefing) {
       return new Response(JSON.stringify({ error: "missing_params" }), {
         status: 400,
@@ -229,6 +232,13 @@ Deno.serve(async (req) => {
 
     // Chama Claude em paralelo: quiz e produtos simultaneamente (~55s vs ~100s serial)
     const briefingMsg = `Briefing do dono:\n\n${JSON.stringify(briefing, null, 2)}`;
+    // Diretriz de tom conforme o cenário escolhido pelo dono.
+    const cenarioDir = ({
+      educar: "TOM: acolhedor e didático. As perguntas educam; o result_intro encoraja e mostra o caminho.",
+      equilibrado: "TOM: honesto, direto e equilibrado.",
+      conversao: "TOM: afiado. As perguntas expõem os gaps REAIS do lead; o result_intro cria urgência honesta e empurra pro próximo passo. Nunca invente gaps — só os reais.",
+    } as Record<string, string>)[cenarioVal];
+    const quizUserMsg = `${briefingMsg}\n\nGere APENAS o quiz (welcome_text, result_intro e ${numPerguntas} perguntas). ${cenarioDir}`;
     const anthropicHeaders = {
       "x-api-key": ANTHROPIC_API_KEY,
       "anthropic-version": "2023-06-01",
@@ -245,7 +255,7 @@ Deno.serve(async (req) => {
           model: "claude-sonnet-4-5",
           max_tokens: 6000,
           system: SYSTEM_PROMPT_QUIZ,
-          messages: [{ role: "user", content: briefingMsg + "\n\nGere APENAS o quiz (welcome_text, result_intro e 12 perguntas)." }],
+          messages: [{ role: "user", content: quizUserMsg }],
           tools: TOOLS_QUIZ,
           tool_choice: { type: "tool", name: "create_quiz" },
         }),
@@ -259,7 +269,7 @@ Deno.serve(async (req) => {
             model: "claude-sonnet-4-5",
             max_tokens: 6000,
             system: SYSTEM_PROMPT_QUIZ,
-            messages: [{ role: "user", content: briefingMsg + "\n\nGere APENAS o quiz (welcome_text, result_intro e 12 perguntas)." }],
+            messages: [{ role: "user", content: quizUserMsg }],
             tools: TOOLS_QUIZ,
             tool_choice: { type: "tool", name: "create_quiz" },
           }),
@@ -358,6 +368,9 @@ Deno.serve(async (req) => {
           name: briefing.business_name || `${tenant.display_name} — Diagnóstico`,
           slug,
           briefing,
+          objetivo: objetivo ?? null,
+          num_perguntas: numPerguntas,
+          cenario: cenarioVal,
           welcome_text: quizArgs.welcome_text,
           result_intro: quizArgs.result_intro ?? null,
           is_published: false,
@@ -374,6 +387,9 @@ Deno.serve(async (req) => {
         .from("deep_funnels")
         .update({
           briefing,
+          objetivo: objetivo ?? null,
+          num_perguntas: numPerguntas,
+          cenario: cenarioVal,
           welcome_text: quizArgs.welcome_text,
           result_intro: quizArgs.result_intro ?? null,
         })
@@ -402,9 +418,16 @@ Deno.serve(async (req) => {
     for (const bp of briefingProducts) {
       if (bp?.name && bp?.link) linkByName.set(bp.name.trim().toLowerCase(), bp.link);
     }
+    // Metadados do destino (tipo/capa/principal) vindos do briefing, por nome.
+    const metaByName = new Map<string, { tipo?: string; imagem_url?: string; is_principal?: boolean }>();
+    for (const bp of briefingProducts as Array<Record<string, unknown>>) {
+      const nm = typeof bp?.name === "string" ? bp.name : "";
+      if (nm) metaByName.set(nm.trim().toLowerCase(), { tipo: bp?.tipo as string, imagem_url: bp?.imagem_url as string, is_principal: bp?.is_principal as boolean });
+    }
     const validPains = new Set(["marketing", "gestao", "vendas", "ia", "estrutura"]);
     const productsRows = dedupedProducts.map((p: any, i: number) => {
       const checkout = p.checkout_url || linkByName.get(String(p.name ?? "").trim().toLowerCase()) || null;
+      const meta = metaByName.get(String(p.name ?? "").trim().toLowerCase());
       // Aceita comma-separated: filtra só as dores válidas, fallback "vendas"
       const rawTags = String(p.pain_tag ?? "").split(",").map((t: string) => t.trim()).filter((t: string) => validPains.has(t));
       const painTag = rawTags.length > 0 ? rawTags.join(",") : "vendas";
@@ -426,6 +449,9 @@ Deno.serve(async (req) => {
         urgency_text: p.urgency_text ?? null,
         cta_label: p.cta_label ?? null,
         cta_secondary_label: p.cta_secondary_label ?? null,
+        tipo: meta?.tipo || "produto",
+        imagem_url: meta?.imagem_url ?? null,
+        is_principal: !!meta?.is_principal,
       };
     });
 
