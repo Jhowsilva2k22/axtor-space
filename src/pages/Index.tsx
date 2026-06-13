@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { applyTenantTheme } from "@/lib/applyTenantTheme";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -128,6 +129,7 @@ const Index = () => {
 
       if (t) {
         setTenant(t);
+        applyTenantTheme(t.id); // lead vê a cor do dono do funil (igual o imersivo)
         const { data: bc } = await supabase
           .from("bio_config")
           .select("*")
@@ -302,12 +304,6 @@ const Index = () => {
         <div className="flex items-center gap-2">
           <span className="font-display text-xl tracking-wide">Diagnóstico Premium</span>
         </div>
-        <Link
-          to="/admin/login"
-          className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground/60 transition-colors hover:text-primary"
-        >
-          Entrar
-        </Link>
       </header>
 
       <main className="relative z-10 mx-auto max-w-4xl px-6 pb-24 pt-12 sm:pt-20 py-[40px]">
@@ -558,7 +554,7 @@ const LeadStep = ({ handle, email, setEmail, phone, setPhone, country, setCountr
       Onde você quer<br />receber seu <span className="text-gold italic">diagnóstico</span>?
     </h2>
     <p className="mt-4 text-muted-foreground">
-      Vamos enviar o relatório completo e seu plano de ação. Sem spam — palavra.
+      Vamos enviar o relatório completo e seu plano de ação. Sem spam, palavra.
     </p>
 
     <form onSubmit={onSubmit} className="mt-8 space-y-4">
@@ -669,7 +665,7 @@ const PrivateStep = ({ data, onRetry }: { data: DiagnosisData; onRetry: () => vo
     </div>
     <h2 className="mt-6 font-display text-4xl">Seu perfil está <span className="text-gold italic">privado</span></h2>
     <p className="mt-4 text-muted-foreground">
-      Já salvamos seus dados — vamos te avisar assim que rodarmos a análise. Para gerar o diagnóstico real <strong>agora</strong>, abra seu perfil temporariamente:
+      Já salvamos seus dados. Vamos te avisar assim que rodarmos a análise. Para gerar o diagnóstico real <strong>agora</strong>, abra seu perfil temporariamente:
     </p>
     <div className="mt-8 rounded-[32px] border-gold-gradient p-6 text-left text-sm font-light">
       <ol className="space-y-3 text-muted-foreground">
@@ -694,7 +690,7 @@ const NotFoundStep = ({ handle, onRetry }: { handle: string; onRetry: () => void
       Não encontramos <span className="text-gold italic">@{handle}</span>
     </h2>
     <p className="mt-4 text-muted-foreground">
-      Esse perfil não existe ou está indisponível no Instagram. Verifique se o @ está escrito corretamente — sem espaços, acentos ou caracteres especiais.
+      Esse perfil não existe ou está indisponível no Instagram. Verifique se o @ está escrito corretamente, sem espaços, acentos ou caracteres especiais.
     </p>
     <div className="mt-8 rounded-[32px] border-gold-gradient p-6 text-left text-sm font-light">
       <ol className="space-y-3 text-muted-foreground">
@@ -830,58 +826,75 @@ const ResultStep = ({ data, onRestart, partnerCtas, tenant, bioCfg, primaryFunne
     : null;
 
   const isPartner = !!partnerCtas;
+  // Upsell do Axtor (criar a propria bio) aparece em contas FREE e na(s)
+  // conta(s) de divulgacao do Axtor. Conta paga = funil white-label, sem upsell.
+  const SHOWCASE_SLUGS = ["axtor-labs"];
+  const isFreePlan =
+    !tenant?.plan || tenant.plan === "free" || SHOWCASE_SLUGS.includes(tenant?.slug ?? "");
 
   return (
     <div className="animate-fade-up space-y-12">
-      {/* Header perfil */}
-      <div className="flex flex-col items-center gap-6 text-center sm:flex-row sm:items-start sm:gap-8 sm:text-left">
-        {p.profilePicUrl && (
-          <div className="relative shrink-0">
-            <img
-              src={proxied(p.profilePicUrl)}
-              alt={p.username}
-              className="h-24 w-24 rounded-full border border-primary/40 object-cover"
-              onError={(e) => ((e.currentTarget.style.display = "none"))}
-            />
-            <div className="absolute -inset-1 -z-10 rounded-full bg-primary/20 blur-xl" />
-          </div>
-        )}
-        <div className="min-w-0 flex-1">
-          <p className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground">diagnóstico de</p>
-          <h2 className="mt-1 break-all font-display text-3xl leading-none sm:text-4xl">
-            @{p.username}
-          </h2>
-          {p.fullName && <p className="mt-2 text-sm text-muted-foreground">{p.fullName}</p>}
-        </div>
-        <div className="flex shrink-0 gap-8 text-center sm:text-right">
-          <Stat label="Seguidores" value={fmt(p.followersCount)} />
-          <Stat label="Posts" value={fmt(p.postsCount)} />
-        </div>
-      </div>
-
-      {/* Score hero */}
-      <div className="relative overflow-hidden rounded-[32px] border-gold-gradient p-10 text-center shadow-deep">
-        <div className="pointer-events-none absolute inset-0 bg-gradient-gold-soft opacity-60" />
+      {/* Resultado — card principal (perfil + nota). Sub-notas flutuam abaixo. */}
+      <div className="relative overflow-hidden rounded-[32px] border-gold-gradient p-6 text-center shadow-deep sm:p-8">
+        <div className="pointer-events-none absolute inset-0 bg-gradient-gold-soft opacity-40" />
         <div className="pointer-events-none absolute -top-24 left-1/2 h-48 w-96 -translate-x-1/2 rounded-full bg-primary/20 blur-3xl" />
-        <div className="relative">
-        <p className="text-xs uppercase tracking-[0.4em] text-muted-foreground">Sua nota geral</p>
-        <div className="mt-4 font-display text-8xl text-gold sm:text-9xl">{score}</div>
-        <p className="text-sm text-muted-foreground">de 100</p>
-        <p className="mx-auto mt-6 max-w-2xl text-base italic text-foreground/90 sm:text-lg">
-          "{d.veredicto}"
-        </p>
+        <div className="relative space-y-8">
+
+          {/* Perfil */}
+          <div className="flex flex-col items-center gap-3">
+            {p.profilePicUrl && (
+              <div className="relative">
+                <img
+                  src={proxied(p.profilePicUrl)}
+                  alt={p.username}
+                  className="h-20 w-20 rounded-2xl border border-primary/40 object-cover"
+                  onError={(e) => ((e.currentTarget.style.display = "none"))}
+                />
+                <div className="absolute -inset-1 -z-10 rounded-2xl bg-primary/20 blur-xl" />
+              </div>
+            )}
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground">diagnóstico de</p>
+              <h2 className="mt-1 break-all font-display text-2xl leading-none sm:text-3xl">@{p.username}</h2>
+              {p.fullName && <p className="mt-1 text-sm text-muted-foreground">{p.fullName}</p>}
+            </div>
+            <div className="flex gap-10">
+              <Stat label="Seguidores" value={fmt(p.followersCount)} />
+              <Stat label="Posts" value={fmt(p.postsCount)} />
+            </div>
+          </div>
+
+          {/* Nota geral */}
+          <div className="border-t border-gold/15 pt-8">
+            <p className="text-xs uppercase tracking-[0.4em] text-muted-foreground">Seu resultado</p>
+            <div className="mt-2 font-display text-7xl leading-none text-gold sm:text-8xl">{score}</div>
+            <p className="text-sm text-muted-foreground">de 100</p>
+            {d.veredicto && (
+              <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-foreground/90 sm:text-lg">
+                {d.veredicto}
+              </p>
+            )}
+          </div>
+
         </div>
       </div>
 
-      {/* Scores breakdown */}
-      <div>
-        <h3 className="font-display text-2xl">Análise por dimensão</h3>
-        <div className="mt-6 space-y-4">
+      {/* Sub-notas flutuando — cards separados, fora do card principal */}
+      {Object.keys(d.scores ?? {}).length > 0 && (
+        <div className="grid grid-cols-3 gap-2 sm:gap-3">
           {Object.entries(d.scores ?? {}).map(([key, val]) => (
-            <ScoreBar key={key} label={labelFor(key)} value={val} />
+            <div
+              key={key}
+              className="rounded-2xl border border-gold/15 bg-card/40 p-3 text-center backdrop-blur sm:p-4"
+            >
+              <div className="font-display text-2xl leading-none text-gold sm:text-3xl">{val}</div>
+              <p className="mt-1.5 text-[9px] uppercase leading-tight tracking-[0.1em] text-muted-foreground sm:text-[10px]">
+                {labelFor(key)}
+              </p>
+            </div>
           ))}
         </div>
-      </div>
+      )}
 
       {/* Pontos fortes / gaps */}
       <div className="grid gap-6 md:grid-cols-2">
@@ -902,113 +915,112 @@ const ResultStep = ({ data, onRestart, partnerCtas, tenant, bioCfg, primaryFunne
         </ol>
       </div>
 
-      {/* Bio Preview — Converte diagnóstico em cadastro axtor */}
+      {/* Bio Preview — upsell do Axtor: SO em contas free / divulgacao */}
+      {isFreePlan && (
       <div className="relative overflow-hidden rounded-[32px] border border-gold/30 bg-card/40 backdrop-blur-xl p-8 sm:p-10">
         <div className="pointer-events-none absolute inset-0 bg-gradient-gold-soft opacity-20" />
         <div className="relative z-10 flex flex-col gap-8 md:flex-row md:items-start">
 
-          {/* Mock de bio card */}
-          <div className="mx-auto w-full max-w-[256px] shrink-0 rounded-[28px] border border-gold/30 bg-background/60 p-5 shadow-xl">
-            <div className="flex flex-col items-center gap-3 text-center">
-              {p.profilePicUrl ? (
-                <img
-                  src={proxied(p.profilePicUrl)}
-                  alt={p.username}
-                  className="h-16 w-16 rounded-full border border-gold/30 object-cover"
-                  onError={(e) => ((e.currentTarget.style.display = "none"))}
-                />
-              ) : (
-                <div className="h-16 w-16 rounded-full border border-gold/20 bg-gradient-to-br from-primary/30 to-primary/10" />
-              )}
-              <div>
-                <p className="font-display text-base leading-tight text-foreground">{p.fullName || p.username}</p>
-                <p className="text-[11px] text-muted-foreground">@{p.username}</p>
+          {/* Mock de bio — mini celular realista (estilo do mockup da /vendas) */}
+          <div className="mx-auto w-full max-w-[210px] shrink-0">
+            <div className="relative aspect-[9/19] w-full rounded-[2rem] border border-primary/20 bg-black p-2 shadow-[0_30px_70px_-25px_rgba(0,0,0,0.9)]">
+              <div className="absolute left-1/2 top-2 z-10 h-4 w-14 -translate-x-1/2 rounded-b-lg bg-black" />
+              <div className="h-full w-full overflow-hidden rounded-[1.5rem] bg-[radial-gradient(ellipse_at_top,hsl(var(--card)),hsl(var(--background)))] px-4 pt-7">
+                <div className="flex flex-col items-center gap-2.5 text-center">
+                  <img
+                    src="/mockup/leandro.webp"
+                    alt="Leandro Hucman"
+                    className="h-14 w-14 rounded-2xl border border-primary/40 object-cover"
+                  />
+                  <div>
+                    <p className="font-display text-sm leading-tight text-foreground">Leandro Hucman</p>
+                    <p className="text-[10px] text-muted-foreground">@leandrohucman</p>
+                  </div>
+                  <div className="mt-1 w-full space-y-2">
+                    <div className="flex h-9 w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-primary to-primary-glow shadow-[0_6px_16px_-6px_hsl(var(--primary)/0.6)] animate-gold-pulse">
+                      <MessageCircle className="h-3.5 w-3.5 text-primary-foreground" />
+                      <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-primary-foreground">Falar no WhatsApp</span>
+                    </div>
+                    <div className="flex h-9 w-full items-center justify-center gap-1.5 rounded-xl border border-primary/20 bg-white/[0.03]">
+                      <Clock className="h-3.5 w-3.5 text-primary" />
+                      <span className="text-[10px] uppercase tracking-[0.1em] text-foreground/75">Agendar agora</span>
+                    </div>
+                    <div className="flex h-9 w-full items-center justify-center gap-1.5 rounded-xl border border-primary/20 bg-white/[0.03]">
+                      <Zap className="h-3.5 w-3.5 text-primary" />
+                      <span className="text-[10px] uppercase tracking-[0.1em] text-foreground/75">Diagnóstico grátis</span>
+                    </div>
+                  </div>
+                  <p className="mt-1 text-[8px] uppercase tracking-[0.2em] text-muted-foreground/40">axtor.space/leandrohucman</p>
+                </div>
               </div>
-              <div className="w-full space-y-2">
-                <div className="flex h-9 w-full items-center justify-center rounded-full border border-gold/50 bg-card/60">
-                  <span className="text-[10px] uppercase tracking-[0.15em] text-primary/80">Meu WhatsApp</span>
-                </div>
-                <div className="flex h-9 w-full items-center justify-center rounded-full border border-white/10 bg-white/5">
-                  <span className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground/50">Portfólio</span>
-                </div>
-                <div className="flex h-9 w-full items-center justify-center rounded-full border border-white/10 bg-white/5">
-                  <span className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground/50">Oferta Principal</span>
-                </div>
-              </div>
-              <p className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground/30">axtor.space/{p.username}</p>
             </div>
           </div>
 
           {/* Copy + CTAs */}
           <div className="flex flex-1 flex-col justify-center gap-5">
             <div>
-              <span className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">resolva isso agora</span>
+              <span className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">você também pode ter</span>
               <h3 className="mt-2 font-display text-3xl leading-tight">
-                Sua presença digital em <span className="text-gold italic">um link só</span>
+                Seu próprio <span className="text-gold italic">diagnóstico de captura</span>, no seu link na bio.
               </h3>
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                {(d.scores?.bio_e_cta ?? 100) < 60
-                  ? `Sua bio está perdendo conversões. Centralize links, contatos e ofertas em axtor.space/@${p.username} — e resolva isso hoje.`
-                  : `Amplifique o que já funciona. Bio profissional, links centralizados e design que passa autoridade.`}
+                Foi isso que você acabou de viver. Crie o seu: um link na bio que captura, qualifica e direciona cada visitante, no seu nicho.
               </p>
             </div>
             <div className="space-y-3">
               <div className="flex items-start gap-3 text-sm text-foreground/80">
                 <Zap className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                <span>Publicada em axtor.space/@{p.username} em segundos</span>
+                <span>Publicado no seu domínio (axtor.space/@{p.username}) em segundos</span>
               </div>
               <div className="flex items-start gap-3 text-sm text-foreground/80">
                 <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                <span>Design premium que passa autoridade antes da primeira palavra</span>
+                <span>Um diagnóstico que conduz cada visitante ao próximo passo</span>
               </div>
-              {score < 70 && (
-                <div className="flex items-start gap-3 text-sm text-foreground/80">
-                  <TrendingUp className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                  <span>Analytics de cliques + campanhas com IA (plano Pro)</span>
-                </div>
-              )}
+              <div className="flex items-start gap-3 text-sm text-foreground/80">
+                <TrendingUp className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                <span>Leads qualificados, com contexto, na sua mão</span>
+              </div>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link
                 to="/signup"
-                className="btn-luxe inline-flex h-12 items-center justify-center gap-2 rounded-full px-7 text-xs font-bold uppercase tracking-[0.15em]"
+                className="btn-luxe inline-flex h-12 items-center justify-center gap-2 rounded-xl px-7 text-xs font-bold uppercase tracking-[0.15em]"
               >
-                Criar minha bio grátis <ArrowRight className="h-4 w-4" />
+                Criar o meu grátis <ArrowRight className="h-4 w-4" />
               </Link>
-              {score < 70 && (
-                <Link
-                  to="/loja"
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-gold/40 bg-transparent px-6 text-xs font-semibold uppercase tracking-[0.15em] text-gold transition-colors hover:bg-gold/5"
-                >
-                  <Crown className="h-3.5 w-3.5" /> Pro — R$47/mês
-                </Link>
-              )}
+              <Link
+                to="/planos"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-gold/40 bg-transparent px-6 text-xs font-semibold uppercase tracking-[0.15em] text-gold transition-colors hover:bg-gold/5"
+              >
+                Ver planos
+              </Link>
             </div>
             <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/50">
-              grátis para sempre · sem cartão de crédito
+              grátis para começar · sem cartão de crédito
             </p>
           </div>
         </div>
       </div>
+      )}
 
       {/* CTA final — Transição estratégica para o Funil Profundo */}
-      <div className="relative overflow-hidden rounded-[32px] border border-gold/40 bg-card/40 p-8 text-center sm:p-12 shadow-2xl backdrop-blur-xl">
+      <div className="relative overflow-hidden rounded-[32px] border border-gold/40 bg-card/40 p-6 text-center sm:p-8 shadow-2xl backdrop-blur-xl">
         <div className="pointer-events-none absolute inset-0 bg-gradient-gold-soft opacity-40" />
         <div className="relative z-10">
-          <span className="inline-flex items-center gap-2 rounded-full border border-gold/50 bg-gold/5 px-4 py-1.5 text-[10px] uppercase tracking-[0.3em] text-gold font-bold">
+          <span className="inline-flex items-center gap-2 rounded-full border border-gold/50 bg-gold/5 px-4 py-1.5 text-[10px] uppercase tracking-[0.3em] text-gold font-medium">
             <Sparkles className="h-3 w-3" /> Análise de Perfil Concluída
           </span>
-          <h3 className="mt-6 font-display text-4xl leading-tight sm:text-6xl">
+          <h3 className="mt-4 font-display text-2xl leading-tight sm:text-3xl">
             A análise do seu perfil é apenas a <span className="text-gold italic">ponta do iceberg</span>.
           </h3>
-          <p className="mx-auto mt-6 max-w-2xl text-base text-muted-foreground leading-relaxed sm:text-lg">
-            Agora, leve apenas <span className="text-foreground font-bold">2 minutos</span> para fazer sua <span className="text-gold italic">Análise Estratégica Completa</span>. No final, você terá não apenas uma solução para o Instagram, mas clareza absoluta sobre seus próximos passos de escala.
+          <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground leading-relaxed sm:text-base">
+            Agora, leve apenas <span className="text-foreground font-bold">2 minutos</span> para fazer sua <span className="text-gold italic">Análise Estratégica Completa</span> e ter clareza dos próximos passos de escala.
           </p>
 
-          <div className="mx-auto mt-10 flex max-w-xl flex-col items-stretch gap-4">
+          <div className="mx-auto mt-6 flex max-w-md flex-col items-stretch gap-4">
             <Button
               size="lg"
-              className="btn-luxe h-16 w-full gap-3 rounded-full text-xs font-bold uppercase tracking-[0.2em] animate-gold-pulse"
+              className="btn-luxe h-14 w-full gap-3 rounded-xl text-xs font-bold uppercase tracking-[0.2em] animate-gold-pulse"
               asChild
             >
               {primaryFunnelSlug ? (
@@ -1027,10 +1039,10 @@ const ResultStep = ({ data, onRestart, partnerCtas, tenant, bioCfg, primaryFunne
             </p>
           </div>
 
-          <div className="mx-auto mt-12 flex max-w-md items-center gap-4 rounded-2xl border border-gold/20 bg-background/40 p-4 text-left">
+          <div className="mx-auto mt-6 flex max-w-md items-center gap-4 rounded-2xl border border-gold/20 bg-background/40 p-4 text-left">
             <Instagram className="h-5 w-5 shrink-0 text-gold" />
             <div className="flex-1 text-xs">
-              <p className="font-bold text-foreground">Gostou desse primeiro diagnóstico?</p>
+              <p className="font-medium text-foreground">Gostou desse primeiro diagnóstico?</p>
               <p className="font-light text-muted-foreground">Segue {igOwnerLabel} no Instagram para insights diários.</p>
             </div>
             <a
@@ -1043,7 +1055,7 @@ const ResultStep = ({ data, onRestart, partnerCtas, tenant, bioCfg, primaryFunne
             </a>
           </div>
 
-          <div className="mt-8 opacity-60 grayscale hover:grayscale-0 transition-all">
+          <div className="mt-6 opacity-60 grayscale hover:grayscale-0 transition-all">
             <ShareButton diagnosticId={data.diagnostic_id} handle={p.username} score={score} />
           </div>
         </div>
