@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { applyTenantTheme } from "@/lib/applyTenantTheme";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -84,6 +84,7 @@ const Index = () => {
   const [bioCfg, setBioCfg] = useState<any>(null);
   const [captureCfg, setCaptureCfg] = useState<any>(null);
   const [primaryFunnelSlug, setPrimaryFunnelSlug] = useState<string | null>(null);
+  const { slug: pathSlug } = useParams();
 
   useEffect(() => {
     trackPageView("/");
@@ -108,7 +109,7 @@ const Index = () => {
 
     (async () => {
       // 1. Tentar carregar do Cache Local (Instantâneo, TTL 60s pra invalidar dado velho)
-      const cacheKey = `bio-cache-${utm || "global"}`;
+      const cacheKey = `bio-cache-${pathSlug || utm || "global"}`;
       const CACHE_TTL_MS = 60 * 1000;
       const cached = sessionStorage.getItem(cacheKey);
       if (cached) {
@@ -121,7 +122,7 @@ const Index = () => {
       }
 
       // 2. Buscar atualização em segundo plano
-      const slug = utm || "joanderson";
+      const slug = pathSlug || utm || "axtor-labs";
       // Usar RPC SECURITY DEFINER pra que anon consiga resolver tenant pelo slug
       // (RLS direta em tenants bloqueia leitura anônima)
       const { data: tenantRows } = await (supabase as any).rpc("resolve_tenant_by_slug", { _slug: slug });
@@ -163,12 +164,13 @@ const Index = () => {
         }
       }
 
-      if (!utm) return;
-      const { data: rows } = await (supabase as any).rpc("get_landing_partner_ctas", { _utm_source: utm });
+      const partnerKey = pathSlug || utm;
+      if (!partnerKey) return;
+      const { data: rows } = await (supabase as any).rpc("get_landing_partner_ctas", { _utm_source: partnerKey });
       const row = Array.isArray(rows) ? rows[0] : null;
       if (row) setPartnerCtas(row as PartnerCtas);
     })();
-  }, []);
+  }, [pathSlug]);
 
   const handleSubmitHandle = (e: React.FormEvent) => {
     e.preventDefault();
@@ -229,7 +231,7 @@ const Index = () => {
       // Captura UTMs da URL pra atribuir o lead ao tenant parceiro correto
       const params = new URLSearchParams(window.location.search);
       const utm = {
-        source: params.get("utm_source") || params.get("ref") || null,
+        source: pathSlug || params.get("utm_source") || params.get("ref") || null,
         medium: params.get("utm_medium") || null,
         campaign: params.get("utm_campaign") || null,
       };
@@ -793,13 +795,14 @@ const ResultStep = ({ data, onRestart, partnerCtas, tenant, bioCfg, primaryFunne
   const p = data.profile!;
   const score = d.score_geral ?? 0;
 
-  // Resolve CTAs: parceiro (se UTM válido) > defaults (Stefany Mello)
+  // Resolve CTAs: parceiro > bio do tenant (sem defaults pessoais)
   const ORIGIN = PUBLIC_BASE_URL;
 
-  // NOME: Parceiro > Bio Config > Fallback Stefany
+  // NOME: Parceiro > Bio Config > Tenant (sem fallback pessoal)
   const partnerName = partnerCtas?.display_name?.split(" ")[0]
     || bioCfg?.display_name?.split(" ")[0]
-    || "Stefany";
+    || tenant?.name?.split(" ")[0]
+    || "";
 
   const bioHref = partnerCtas
     ? (partnerCtas.bio_url || `${ORIGIN}/${partnerCtas.slug}`)
@@ -807,14 +810,14 @@ const ResultStep = ({ data, onRestart, partnerCtas, tenant, bioCfg, primaryFunne
 
   const bioLabel = `Ver bio de ${partnerName}`;
 
-  // INSTAGRAM: Parceiro > Bio Config > Fallback
-  const igHandleRaw = partnerCtas?.instagram_handle || bioCfg?.instagram_handle || "stefany.mello_";
+  // INSTAGRAM: Parceiro > Bio Config (sem fallback pessoal). Sem handle = esconde o bloco.
+  const igHandleRaw = partnerCtas?.instagram_handle || bioCfg?.instagram_handle || "";
   const igHandle = igHandleRaw.replace(/^@+/, "");
-  const igHref = `https://instagram.com/${igHandle}`;
-  const igOwnerLabel = `a ${partnerName}`;
+  const igHref = igHandle ? `https://instagram.com/${igHandle}` : null;
+  const igOwnerLabel = partnerName ? `a ${partnerName}` : "a gente";
 
-  // WHATSAPP: Parceiro > Tenant > Fallback informado pelo usuário
-  const waNumber = (partnerCtas?.whatsapp_number || tenant?.whatsapp_number || "5511976300904").replace(/\D/g, "");
+  // WHATSAPP: Parceiro > Tenant (sem fallback pessoal). Sem número = botão escondido.
+  const waNumber = (partnerCtas?.whatsapp_number || tenant?.whatsapp_number || "").replace(/\D/g, "");
   const waMessage = partnerCtas?.whatsapp_message
     || bioCfg?.whatsapp_message
     || "Acabei de fazer o diagnóstico e quero estratégia personalizada";
@@ -1029,7 +1032,7 @@ const ResultStep = ({ data, onRestart, partnerCtas, tenant, bioCfg, primaryFunne
                 </Link>
               ) : (
                 <a href={waHref ?? bioHref} target="_blank" rel="noopener noreferrer">
-                  Falar com {partnerName} <ArrowRight className="h-4 w-4" />
+                  {partnerName ? `Falar com ${partnerName}` : "Falar agora"} <ArrowRight className="h-4 w-4" />
                 </a>
               )}
             </Button>
@@ -1039,6 +1042,7 @@ const ResultStep = ({ data, onRestart, partnerCtas, tenant, bioCfg, primaryFunne
             </p>
           </div>
 
+          {igHref && (
           <div className="mx-auto mt-6 flex max-w-md items-center gap-4 rounded-2xl border border-gold/20 bg-background/40 p-4 text-left">
             <Instagram className="h-5 w-5 shrink-0 text-gold" />
             <div className="flex-1 text-xs">
@@ -1054,6 +1058,7 @@ const ResultStep = ({ data, onRestart, partnerCtas, tenant, bioCfg, primaryFunne
               Seguir
             </a>
           </div>
+          )}
 
           <div className="mt-6 opacity-60 grayscale hover:grayscale-0 transition-all">
             <ShareButton diagnosticId={data.diagnostic_id} handle={p.username} score={score} />

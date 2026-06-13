@@ -126,7 +126,7 @@ const AdminLandingPartners = () => {
   };
 
   const copyLink = async (utm: string) => {
-    const url = `${ORIGIN}/diagnostico?utm_source=${encodeURIComponent(utm)}&utm_medium=instagram`;
+    const url = `${ORIGIN}/diagnostico/${encodeURIComponent(utm)}?utm_medium=instagram`;
     try {
       await navigator.clipboard.writeText(url);
       toast.success("link copiado");
@@ -163,9 +163,9 @@ const AdminLandingPartners = () => {
       <main className="mx-auto max-w-5xl space-y-8 px-6 pb-16">
         <section className="rounded-sm border-gold-gradient p-6">
           <p className="text-sm text-muted-foreground">
-            Cada parceiro recebe um <span className="text-primary">utm_source</span> único. Quando alguém acessa{" "}
-            <span className="font-mono text-primary">{ORIGIN}/diagnostico?utm_source=...</span>, o lead vai pro tenant do parceiro.
-            Sem UTM (ou UTM desconhecido) = lead vai pro tenant principal.
+            Cada parceiro recebe um <span className="text-primary">slug</span> único. Quando alguém acessa{" "}
+            <span className="font-mono text-primary">{`${ORIGIN}/diagnostico/<slug>`}</span>, o lead vai pro tenant do parceiro.
+            Links antigos com <span className="font-mono text-primary">?utm_source=</span> seguem funcionando. Sem slug (ou desconhecido) = lead vai pro tenant de divulgação (axtor-labs).
           </p>
         </section>
 
@@ -263,7 +263,7 @@ const PartnerRowItem = ({ partner: p, onToggleActive, onCopy, onRemove, onSaveCt
     secondary_cta_url: p.secondary_cta_url ?? "",
   });
 
-  const captureUrl = `${ORIGIN}/diagnostico?utm_source=${encodeURIComponent(p.utm_source)}&utm_medium=instagram`;
+  const captureUrl = `${ORIGIN}/diagnostico/${encodeURIComponent(p.utm_source)}?utm_medium=instagram`;
   const hasCtas =
     !!(p.bio_url || p.instagram_handle || p.whatsapp_number || p.secondary_cta_url);
 
