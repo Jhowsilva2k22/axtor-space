@@ -928,7 +928,7 @@ const ResultStep = ({ data, onRestart, partnerCtas, tenant, bioCfg, primaryFunne
               <div className="h-full w-full overflow-hidden rounded-[1.5rem] bg-[radial-gradient(ellipse_at_top,hsl(var(--card)),hsl(var(--background)))] px-4 pt-7">
                 <div className="flex flex-col items-center gap-2.5 text-center">
                   <img
-                    src="/mockup/leandro.webp"
+                    src="/mockup/leandro_av.webp"
                     alt="Leandro Hucman"
                     className="h-14 w-14 rounded-2xl border border-primary/40 object-cover"
                   />
