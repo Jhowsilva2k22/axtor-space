@@ -60,12 +60,17 @@ type Addon = {
 type Analytics = {
   leads_total: number;
   leads_7d: number;
+  leads_prev7d: number;
   diagnostics_total: number;
   diagnostics_7d: number;
+  diagnostics_prev7d: number;
   bio_clicks_total: number;
   bio_clicks_7d: number;
+  bio_clicks_prev7d: number;
   page_views_total: number;
   page_views_7d: number;
+  page_views_prev7d: number;
+  active_subs: number;
 };
 
 type Module = "financeiro" | "tenants" | "monitoramento" | "analytics";
@@ -94,12 +99,14 @@ const KpiCard = ({
   sub,
   icon: Icon,
   color = "zinc",
+  trend,
 }: {
   label: string;
   value: string | number;
   sub?: string;
   icon: React.ElementType;
   color?: "zinc" | "emerald" | "blue" | "amber" | "rose";
+  trend?: number | null;
 }) => {
   const accent = {
     zinc: "text-zinc-400",
@@ -114,7 +121,14 @@ const KpiCard = ({
         <Icon className={`w-4 h-4 ${accent}`} />
         <span className="text-xs text-zinc-400 uppercase tracking-wide">{label}</span>
       </div>
-      <p className={`text-2xl font-bold text-white`}>{value}</p>
+      <div className="flex items-end justify-between gap-2">
+        <p className={`text-2xl font-bold text-white`}>{value}</p>
+        {trend != null && (
+          <span className={`text-xs font-medium ${trend > 0 ? "text-emerald-400" : trend < 0 ? "text-rose-400" : "text-zinc-500"}`}>
+            {trend > 0 ? "▲" : trend < 0 ? "▼" : "—"} {Math.abs(trend)}%
+          </span>
+        )}
+      </div>
       {sub && <p className="text-xs text-zinc-500">{sub}</p>}
     </div>
   );
@@ -456,8 +470,23 @@ const ModuloMonitoramento = ({ subs }: { subs: Subscription[] }) => {
 
 // ─── módulo analytics ─────────────────────────────────────────────────────────
 
+const pctTrend = (curr: number, prev: number) =>
+  prev > 0 ? Math.round(((curr - prev) / prev) * 100) : curr > 0 ? 100 : 0;
+
+const FunnelStep = ({ label, value, conv }: { label: string; value: number; conv: number | null }) => (
+  <div className="flex items-center gap-3">
+    <div className="w-28 shrink-0 text-xs uppercase tracking-wide text-zinc-400">{label}</div>
+    <div className="h-7 flex-1 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center px-3">
+      <span className="text-sm font-semibold text-white">{value.toLocaleString("pt-BR")}</span>
+    </div>
+    <div className="w-16 shrink-0 text-right text-xs text-zinc-500">{conv != null ? `${conv}%` : ""}</div>
+  </div>
+);
+
 const ModuloAnalytics = ({ data }: { data: Analytics | null }) => {
   if (!data) return <p className="text-zinc-500 text-sm">Carregando analytics...</p>;
+
+  const conv = (num: number, den: number) => (den > 0 ? Math.round((num / den) * 100) : 0);
 
   return (
     <div className="space-y-8">
@@ -470,12 +499,23 @@ const ModuloAnalytics = ({ data }: { data: Analytics | null }) => {
         </div>
       </Section>
 
-      <Section title="Acumulado — últimos 7 dias">
+      <Section title="Últimos 7 dias — vs 7 dias anteriores">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <KpiCard label="Leads (7d)" value={data.leads_7d} icon={Users} color="blue" />
-          <KpiCard label="Diagnósticos (7d)" value={data.diagnostics_7d} icon={Activity} color="emerald" />
-          <KpiCard label="Cliques (7d)" value={data.bio_clicks_7d} icon={BarChart3} color="amber" />
-          <KpiCard label="Views (7d)" value={data.page_views_7d} icon={TrendingUp} color="zinc" />
+          <KpiCard label="Leads (7d)" value={data.leads_7d} icon={Users} color="blue" trend={pctTrend(data.leads_7d, data.leads_prev7d)} sub={`${data.leads_prev7d} no período anterior`} />
+          <KpiCard label="Diagnósticos (7d)" value={data.diagnostics_7d} icon={Activity} color="emerald" trend={pctTrend(data.diagnostics_7d, data.diagnostics_prev7d)} sub={`${data.diagnostics_prev7d} no período anterior`} />
+          <KpiCard label="Cliques (7d)" value={data.bio_clicks_7d} icon={BarChart3} color="amber" trend={pctTrend(data.bio_clicks_7d, data.bio_clicks_prev7d)} sub={`${data.bio_clicks_prev7d} no período anterior`} />
+          <KpiCard label="Views (7d)" value={data.page_views_7d} icon={TrendingUp} color="zinc" trend={pctTrend(data.page_views_7d, data.page_views_prev7d)} sub={`${data.page_views_prev7d} no período anterior`} />
+        </div>
+      </Section>
+
+      <Section title="Funil de conversão (total acumulado)">
+        <div className="space-y-2.5 rounded-xl border border-zinc-700 bg-zinc-800/40 p-5">
+          <FunnelStep label="Page views" value={data.page_views_total} conv={null} />
+          <FunnelStep label="Cliques bio" value={data.bio_clicks_total} conv={conv(data.bio_clicks_total, data.page_views_total)} />
+          <FunnelStep label="Leads" value={data.leads_total} conv={conv(data.leads_total, data.bio_clicks_total)} />
+          <FunnelStep label="Diagnósticos" value={data.diagnostics_total} conv={conv(data.diagnostics_total, data.leads_total)} />
+          <FunnelStep label="Assinaturas" value={data.active_subs} conv={conv(data.active_subs, data.diagnostics_total)} />
+          <p className="pt-1 text-[11px] text-zinc-500">% = conversão da etapa anterior.</p>
         </div>
       </Section>
     </div>
@@ -510,6 +550,7 @@ export default function AdminHub() {
     try {
       setError(null);
       const ago7d = new Date(Date.now() - 7 * 86_400_000).toISOString();
+      const ago14d = new Date(Date.now() - 14 * 86_400_000).toISOString();
 
       const [
         tenantsRes,
@@ -523,6 +564,10 @@ export default function AdminHub() {
         clicks7d,
         viewsTotal,
         views7d,
+        leadsPrev7d,
+        diagPrev7d,
+        clicksPrev7d,
+        viewsPrev7d,
       ] = await Promise.all([
         supabase
           .from("tenants")
@@ -542,6 +587,10 @@ export default function AdminHub() {
         supabase.from("bio_clicks").select("id", { count: "exact", head: true }).gte("created_at", ago7d),
         supabase.from("page_views").select("id", { count: "exact", head: true }),
         supabase.from("page_views").select("id", { count: "exact", head: true }).gte("created_at", ago7d),
+        supabase.from("leads").select("id", { count: "exact", head: true }).gte("created_at", ago14d).lt("created_at", ago7d),
+        supabase.from("deep_diagnostics").select("id", { count: "exact", head: true }).gte("created_at", ago14d).lt("created_at", ago7d),
+        supabase.from("bio_clicks").select("id", { count: "exact", head: true }).gte("created_at", ago14d).lt("created_at", ago7d),
+        supabase.from("page_views").select("id", { count: "exact", head: true }).gte("created_at", ago14d).lt("created_at", ago7d),
       ]);
 
       if (tenantsRes.error) throw tenantsRes.error;
@@ -570,12 +619,17 @@ export default function AdminHub() {
         analytics: {
           leads_total: leadsTotal.count ?? 0,
           leads_7d: leads7d.count ?? 0,
+          leads_prev7d: leadsPrev7d.count ?? 0,
           diagnostics_total: diagTotal.count ?? 0,
           diagnostics_7d: diag7d.count ?? 0,
+          diagnostics_prev7d: diagPrev7d.count ?? 0,
           bio_clicks_total: clicksTotal.count ?? 0,
           bio_clicks_7d: clicks7d.count ?? 0,
+          bio_clicks_prev7d: clicksPrev7d.count ?? 0,
           page_views_total: viewsTotal.count ?? 0,
           page_views_7d: views7d.count ?? 0,
+          page_views_prev7d: viewsPrev7d.count ?? 0,
+          active_subs: normSubs.filter((s) => s.status === "active").length,
         },
       });
     } catch (e) {
