@@ -27,17 +27,17 @@ import {
 import { useLeads, type LeadsFilters } from "@/hooks/useLeads";
 
 const STATUS_LABELS: Record<string, string> = {
-  completed: "Concluído",
-  pending: "Pendente",
-  failed: "Com erro",
+  novo: "Novo",
+  quente: "Quente",
+  cliente: "Cliente",
+  descartado: "Descartado",
 };
 
-const PAIN_LABELS: Record<string, string> = {
-  gestao: "Gestão",
-  marketing: "Marketing",
-  vendas: "Vendas",
-  financeiro: "Financeiro",
-  operacoes: "Operações",
+const SOURCE_LABELS: Record<string, string> = {
+  instagram: "Instagram",
+  imersivo: "Imersivo",
+  landing_diagnostico: "Diagnóstico",
+  diagnostico: "Diagnóstico",
 };
 
 // Campo de data próprio (Popover + Calendar). Substitui o <input type="date">
@@ -92,6 +92,8 @@ export const LeadsTable = ({ tenantId }: { tenantId: string }) => {
     exportCsv,
     deleteLeads,
     refresh,
+    pageSize,
+    setPageSize,
   } = useLeads(tenantId);
 
   const [draft, setDraft] = useState<LeadsFilters>(filters);
@@ -138,16 +140,17 @@ export const LeadsTable = ({ tenantId }: { tenantId: string }) => {
     const selected = leads.filter((l) => selectedIds.has(l.id));
     if (selected.length === 0) return;
 
-    const headers = ["ID", "Nome", "E-mail", "Telefone", "Instagram", "Dor detectada", "Status", "Data"];
+    const headers = ["ID", "Nome", "E-mail", "Telefone", "Instagram", "Origem", "Diagnósticos", "Status", "Última atividade"];
     const rows = selected.map((r) => [
       r.id,
       r.lead_name ?? "",
       r.lead_email ?? "",
       r.lead_phone ?? "",
       r.instagram_handle ?? "",
-      r.pain_detected ?? "",
+      r.source ?? "",
+      String(r.diagnostics_count ?? 0),
       r.status ?? "",
-      new Date(r.created_at).toLocaleString("pt-BR"),
+      new Date(r.last_activity_at ?? r.created_at).toLocaleString("pt-BR"),
     ]);
 
     const csv = [headers, ...rows]
@@ -192,14 +195,15 @@ export const LeadsTable = ({ tenantId }: { tenantId: string }) => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="_all">Todos</SelectItem>
-                <SelectItem value="completed">Concluído</SelectItem>
-                <SelectItem value="pending">Pendente</SelectItem>
-                <SelectItem value="failed">Com erro</SelectItem>
+                <SelectItem value="novo">Novo</SelectItem>
+                <SelectItem value="quente">Quente</SelectItem>
+                <SelectItem value="cliente">Cliente</SelectItem>
+                <SelectItem value="descartado">Descartado</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          <div className="col-span-2 min-w-0 space-y-1.5 sm:col-auto">
+          <div className="col-span-2 min-w-0 flex flex-col gap-1.5 sm:col-auto">
             <Label className="text-xs">De</Label>
             <DateField
               value={draft.dateFrom}
@@ -208,7 +212,7 @@ export const LeadsTable = ({ tenantId }: { tenantId: string }) => {
             />
           </div>
 
-          <div className="col-span-2 min-w-0 space-y-1.5 sm:col-auto">
+          <div className="col-span-2 min-w-0 flex flex-col gap-1.5 sm:col-auto">
             <Label className="text-xs">Até</Label>
             <DateField
               value={draft.dateTo}
@@ -301,9 +305,10 @@ export const LeadsTable = ({ tenantId }: { tenantId: string }) => {
                     <th className="px-4 py-3 text-left font-medium text-muted-foreground">E-mail</th>
                     <th className="px-4 py-3 text-left font-medium text-muted-foreground">Telefone</th>
                     <th className="px-4 py-3 text-left font-medium text-muted-foreground">Instagram</th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Dor</th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Origem</th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Diag.</th>
                     <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Data</th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Última atividade</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -336,19 +341,22 @@ export const LeadsTable = ({ tenantId }: { tenantId: string }) => {
                         )}
                       </td>
                       <td className="px-4 py-3">
-                        {lead.pain_detected ? (
-                          <span className="rounded-xl bg-primary/10 px-2 py-0.5 text-xs text-primary">
-                            {PAIN_LABELS[lead.pain_detected] ?? lead.pain_detected}
+                        {lead.source ? (
+                          <span className="rounded-xl bg-muted/50 px-2 py-0.5 text-xs text-muted-foreground">
+                            {SOURCE_LABELS[lead.source] ?? lead.source}
                           </span>
                         ) : (
                           "—"
                         )}
                       </td>
+                      <td className="px-4 py-3 text-xs text-muted-foreground">
+                        {lead.diagnostics_count ?? 0}
+                      </td>
                       <td className="px-4 py-3">
                         <StatusBadge status={lead.status} />
                       </td>
                       <td className="px-4 py-3 text-xs text-muted-foreground">
-                        {new Date(lead.created_at).toLocaleString("pt-BR", {
+                        {new Date(lead.last_activity_at ?? lead.created_at).toLocaleString("pt-BR", {
                           day: "2-digit",
                           month: "2-digit",
                           year: "2-digit",
@@ -368,25 +376,40 @@ export const LeadsTable = ({ tenantId }: { tenantId: string }) => {
                 {total} lead{total !== 1 ? "s" : ""} · página {page + 1} de{" "}
                 {Math.max(totalPages, 1)}
               </p>
-              <div className="flex items-center gap-1">
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-7 w-7 rounded-xl"
-                  disabled={page === 0}
-                  onClick={() => setPage(page - 1)}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-7 w-7 rounded-xl"
-                  disabled={page >= totalPages - 1}
-                  onClick={() => setPage(page + 1)}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-muted-foreground">por página</span>
+                  <Select value={String(pageSize)} onValueChange={(v) => setPageSize(Number(v))}>
+                    <SelectTrigger className="h-7 w-[64px] rounded-xl border-gold/20 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="7">7</SelectItem>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="15">15</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7 rounded-xl"
+                    disabled={page === 0}
+                    onClick={() => setPage(page - 1)}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7 rounded-xl"
+                    disabled={page >= totalPages - 1}
+                    onClick={() => setPage(page + 1)}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
           </>
@@ -493,9 +516,10 @@ const StatusBadge = ({ status }: { status: string | null }) => {
   if (!status) return <span className="text-muted-foreground">—</span>;
 
   const colorMap: Record<string, string> = {
-    completed: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-    pending: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
-    failed: "bg-destructive/10 text-destructive",
+    quente: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+    cliente: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+    descartado: "bg-destructive/10 text-destructive",
+    novo: "bg-muted/50 text-muted-foreground",
   };
 
   return (
