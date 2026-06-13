@@ -108,18 +108,20 @@ const Index = () => {
     } catch {}
 
     (async () => {
-      // 1. Tentar carregar do Cache Local (Instantâneo, TTL 60s pra invalidar dado velho)
+      // 1. Cache local (instantâneo no F5: mostra bio + foto da captura na hora e
+      //    revalida em segundo plano). localStorage com TTL longo pra a foto não sumir.
       const cacheKey = `bio-cache-${pathSlug || utm || "global"}`;
-      const CACHE_TTL_MS = 60 * 1000;
-      const cached = sessionStorage.getItem(cacheKey);
-      if (cached) {
-        try {
+      const CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6h
+      try {
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) {
           const parsed = JSON.parse(cached);
-          if (parsed?.timestamp && Date.now() - parsed.timestamp < CACHE_TTL_MS && parsed.data) {
-            setBioCfg(parsed.data);
+          if (parsed?.timestamp && Date.now() - parsed.timestamp < CACHE_TTL_MS) {
+            if (parsed.bio) setBioCfg(parsed.bio);
+            if (parsed.capture) setCaptureCfg(parsed.capture);
           }
-        } catch {} // cache corrompido ou formato antigo, ignora e busca fresh
-      }
+        }
+      } catch {} // cache corrompido/formato antigo: ignora e busca fresh
 
       // 2. Buscar atualização em segundo plano
       const slug = pathSlug || utm || "axtor-labs";
@@ -137,10 +139,7 @@ const Index = () => {
           .eq("tenant_id", t.id)
           .maybeSingle();
 
-        if (bc) {
-          setBioCfg(bc);
-          sessionStorage.setItem(cacheKey, JSON.stringify({ data: bc, timestamp: Date.now() }));
-        }
+        if (bc) setBioCfg(bc);
 
         // Campos de conteúdo exclusivos da página de captura (fallback via bio_config se null)
         const { data: cc } = await (supabase as any)
@@ -149,6 +148,11 @@ const Index = () => {
           .eq("tenant_id", t.id)
           .maybeSingle();
         if (cc) setCaptureCfg(cc);
+
+        // Atualiza o cache local (bio + captura juntos) pra próxima carga ser instantânea.
+        try {
+          localStorage.setItem(cacheKey, JSON.stringify({ bio: bc ?? null, capture: cc ?? null, timestamp: Date.now() }));
+        } catch {}
 
         // Resolve qual funil imersivo o lead deve cair ao clicar "Fazer Análise Completa".
         // Pega o mais recente publicado pro tenant carregado — antes era hardcoded pra Stefany.
