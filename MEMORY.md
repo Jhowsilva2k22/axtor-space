@@ -2,6 +2,7 @@
 
 > Leia este arquivo no início de cada conversa para entender o estado atual.
 > Memória aditiva: nunca substituir, sempre acrescentar.
+> 2026-06-13 (rota + leads unificados): rota /diagnostico/:slug por PATH (#187, mergeado/deploy) — identidade do parceiro no path, /diagnostico puro = axtor-labs neutro, fallbacks de Pai Presente removidos. LEADS UNIFICADOS Fase A APLICADA em prod (dedup 95→43 contatos; colunas status/last_activity_at/diagnostics_count; imersivos religados; 17 "quente"). Índice único adiado pra Fase B (entra junto do upsert). Backups _bak_*_20260613. Falta Fase B (upsert+notify) e C (painel). Ver docs/PLANO-leads-unificados.md.
 > 2026-06-13 (deploys + crédito + autonomia): edge functions alinhadas ao `main` (NÃO sobem no merge — deploy via CLI Supabase). Redeploy em prod: generate-deep-funnel v29, analyze-deep v15, analyze-instagram v21, proxy-image v12. DÉBITO DE CRÉDITO #158 agora ATIVO. Fase 1 (#184) e Fase 2a (#185) mergeadas. Próximo: rota /diagnostico (atribuição por path, não utm). REGRA NOVA: nunca passar de fase sem conferir cada deploy/merge/doc. Ver docs/CHECKPOINT-2026-06-13.md.
 > Última atualização: 2026-06-12 (sessão perf mobile: #176→#179). Desempenho mobile de /vendas e /planos investigado a fundo e ENCERRADO: a nota ~60 é teto da stack (SPA React pesado) — prerender NÃO roda no build da Vercel e renderia só ~70 mesmo. Shipados ganhos reais (sem pipeline) + copy. NÃO re-tentar prerender/SSR sem decisão de migrar stack. Ver docs/CHECKPOINT-2026-06-12-perf-mobile.md.
 > Antes (mesmo dia): #173 guest checkout Pix + domínio + GlowPanel + mobile-first do painel; #174 fix do link do diagnóstico /→/diagnostico + lazy do fundo 3D + jargão. Ver docs/CHECKPOINT-2026-06-12.md.
@@ -95,6 +96,27 @@ RLS sempre ativa. Sem emoji em UI, sem visual de chatbot.
 8. Ao fechar algo importante: ATUALIZAR os docs do sistema no mesmo fluxo.
 9. Nunca passar de fase sem conferir item a item cada deploy/merge/doc (nada pra trás).
 
+## Resolvido em 2026-06-13 (rota + leads unificados)
+
+- #187 (mergeado/deploy): rota `/diagnostico/:slug` — identidade do parceiro por
+  PATH (não mais `?utm_source=`, frágil). Ordem de resolução no Index:
+  `path → utm (legado) → axtor-labs neutro` (não mais `joanderson`). O path
+  alimenta partnerCtas + atribuição do lead (utm.source = pathSlug), então métrica
+  e notifyLead (por tenant_id) ficam certas SEM mexer na edge function. Links do
+  painel (`MyLinksCard`, `AdminLandingPartners`) geram `/diagnostico/<slug>`.
+  ResultStep: removidos fallbacks fixos de Pai Presente (Stefany/handle/número);
+  sem dado, botão WhatsApp e bloco Instagram somem. Validado: bare = axtor-labs,
+  `/diagnostico/joanderson` = parceiro certo + email.
+- LEADS UNIFICADOS Fase A (banco) APLICADA em prod (migration `20260613060000`,
+  via conector, transacional, backups `_bak_*_20260613`): `leads` é o contato único.
+  Dedup por (tenant,lower(email)) **95 → 43 contatos** (joanderson 67→26), 0
+  diagnóstico perdido (89→89, religados). Colunas novas: `status`/`last_activity_at`/
+  `diagnostics_count`. Imersivos com email religados (9 = 3 existentes + 6 órfãos
+  viraram contato); 21 sem email ficaram intactos. "quente" (2+ diagnósticos) = 17.
+  Índice único (tenant,email) ADIADO pra Fase B (quebraria o INSERT atual). 
+- DESCOBERTA: a aba "Leads" do painel (`useLeads`) lê `deep_diagnostics` (imersivo),
+  por isso os leads de Instagram (tabela `leads`) nunca apareciam ali. A Fase C corrige.
+
 ## Resolvido em 2026-06-13 (sessão deploys + crédito + autonomia)
 
 - Edge functions estavam atrasadas vs `main` (NÃO sobem no merge; só o front via
@@ -108,10 +130,6 @@ RLS sempre ativa. Sem emoji em UI, sem visual de chatbot.
   #184 (Fase 1 migration autonomia `20260613020000` + plano) mergeados.
 - generate-icon: CONFIRMADO morto no front (IconPicker só tem aba Biblioteca/Lucide;
   handleGenerate/invoke sem gatilho na UI). Não precisa deploy. Limpar quando der.
-- IDENTIFICADO (próxima etapa): /diagnostico atribui parceiro por `?utm_source=`
-  (frágil; some fácil) e o fallback sem utm cai em `joanderson` (Pai Presente) —
-  vaza marca + atribui lead/crédito errado. Plano: identidade por PATH
-  (`/diagnostico/:slug`), bare /diagnostico = axtor-labs neutro, utm vira legado.
 - LIÇÃO: o `origin/main` em cache do sandbox estava STALE (mostrava #183 quando o
   main já estava em #185). Conferir merge/branch sempre pelo GitHub, não pelo sandbox.
 
@@ -191,49 +209,33 @@ Ganho entregue = experiência real (menos dados, sem flash, título na hora).
   · A3 texto migrado p/ Anthropic (#145) · A3 imagem desativada (#146)
   · deps: npm audit fix, 0 vulnerabilidades (#147) · build Vite 8 verde.
 
-## Prioridade do próximo chat (ERROS/RISCOS primeiro, depois features)
-
-PRIORIDADE 1 — erros e riscos (resolver antes de tudo):
-1. SEGURANÇA: repo é PÚBLICO. Checar se `.env` real já esteve no histórico do git;
-   se esteve, ROTACIONAR chaves (service_role Supabase, Anthropic, Asaas). Mergear
-   o PR #150 (untrack `.env` + `.env.example`). Fechar #160 (duplicado). Apagar
-   branch `fix/og-rpc`.
-2. INTEGRIDADE LOCAL: rodar `git status` no Windows e confirmar working tree limpa
-   — checar se nada de real se perdeu no `git reset --hard` de ontem (havia ~16
-   arquivos "modified", provavelmente só ruído de CRLF, mas CONFIRMAR).
-3. OG real: testar o preview num WhatsApp de verdade; usar o depurador do Facebook
-   ("Scrape Again") nos links já compartilhados (cache do WhatsApp).
-4. Mobile: conferir telas novas (vendas, planos, loja, bio) — possíveis quebras.
-
-PRIORIDADE 2 — features e pendências antigas:
-- Etapa B (guest checkout) e M2 (leaked password protection) seguem abertos.
-  Fase 4, A4 e tema do `axtor-labs` foram RESOLVIDOS/CONFIRMADOS em 2026-06-11.
-
 ## Pendências conhecidas
 
-- ✓ RESOLVIDO 2026-06-11 (#170): Fase 4 frontend de créditos — card de saldo no
-  painel, modal de bloqueio ao gerar funil sem saldo, loja blindada (packs vs addons).
+- ✓ RESOLVIDO 2026-06-13 (#187): rota /diagnostico/:slug — identidade do parceiro
+  por PATH, /diagnostico puro = axtor-labs neutro, utm legado mantido, fallbacks de
+  Pai Presente removidos no ResultStep. Atribuição de lead/crédito correta.
+  Pendente só: publicar funil-demo + WhatsApp no axtor-labs pro CTA do /diagnostico puro.
+- ⚠️ EM ANDAMENTO 2026-06-13: LEADS UNIFICADOS (docs/PLANO-leads-unificados.md).
+  Fase A (banco) APLICADA em prod: `leads` é o contato único; dedup
+  (tenant,lower(email)) 95→43; colunas status/last_activity_at/diagnostics_count;
+  imersivos com email religados (9); "quente"=2+ (17). Índice único (tenant,email)
+  ADIADO pra Fase B (quebraria o INSERT atual; entra junto do upsert). Backups
+  _bak_*_20260613 no banco (limpar após validar). FALTA: Fase B (upsert + política
+  de notificação em analyze-instagram/analyze-deep: 1º contato notifica; retorno
+  enriquece e marca "quente" SEM 2º email; duplicata exata = nada; reintroduzir
+  índice único) e Fase C (painel useLeads lê `leads`, 1 linha/contato com histórico
+  + origem + badge quente — devolve os leads de Instagram).
 - Fase 6: QA ponta a ponta + 1 pagamento Pix REAL de teste antes de cliente pagar.
   (O caminho pagamento → ativação → /bem-vindo JÁ está construído no front.)
 - ✓ RESOLVIDO 2026-06-12 (#173): Etapa B / guest checkout "Caminho Y" (paga primeiro,
   cria conta depois) — NO AR. Validado com Pix real de R$6 (conta provisionada, Premium ativo).
-- ⚠️ EM ABERTO 2026-06-13: rota /diagnostico identifica parceiro por query param
-  (`?utm_source=`), frágil (some em bio/encurtador/recópia); sem utm cai em
-  `joanderson` (Pai Presente) → vaza marca + atribui lead/crédito errado. Plano:
-  identidade por PATH (`/diagnostico/:slug`), bare /diagnostico = axtor-labs neutro,
-  utm vira legado. Pré-req: axtor-labs sem whatsapp_number e sem funil publicado;
-  ResultStep tem fallbacks fixos de Pai Presente (Stefany) a neutralizar. Ver
-  docs/CHECKPOINT-2026-06-13.md.
 - ⚠️ EM ABERTO 2026-06-12: desempenho MOBILE de `/vendas` e `/planos` (~60; desktop 93-96).
   Lazy do fundo 3D NÃO resolveu. Gargalo = SPA client-side (HTML vazio até o JS rodar).
-  Lever real = PRÉ-RENDERIZAR essas páginas (SSG/prerender no build). Não destrutivo. Ver checkpoint 2026-06-12.
+  Lever real = SSR de verdade (migrar stack). Ver checkpoint 2026-06-12.
 - M2: ativar "leaked password protection" no painel Supabase (Auth). Ação do dono.
-  CONFIRMADO AINDA DESLIGADO via advisors 2026-06-11. (Auditoria de segurança no
-  mesmo dia: 0 ERROR; os WARNs são INSERT públicos por design — cliques/diagnósticos/
-  leads — e RPCs security-definer com search_path fixo. Nada crítico.)
+  CONFIRMADO AINDA DESLIGADO via advisors 2026-06-11.
 - ✓ RESOLVIDO 2026-06-11: A4 logos de email — templates apontam pra
-  `axtor.space/email/axtor-logo(.png|-light.png)`, assets em `public/email/`, não
-  mais o bucket antigo. Resíduo inofensivo: `inviterAvatarUrl` de EXEMPLO em 2 convites.
+  `axtor.space/email/axtor-logo(.png|-light.png)`, assets em `public/email/`.
 - ✓ CONFIRMADO 2026-06-11: tenant `axtor-labs` está em `azul-copa` (active_theme_slug).
 - OG por tenant: CÓDIGO pronto/validado (#163/#166). Falta só teste manual num
   WhatsApp real + "Scrape Again" no depurador do FB pra limpar cache de links antigos.
@@ -242,25 +244,25 @@ PRIORIDADE 2 — features e pendências antigas:
 
 ## Atrito de ambiente (importante pro próximo chat)
 
-- O git RODA bem no Windows do dono. O git dentro do sandbox do agente pode
-  ficar dessincronizado (lock fantasma `.git/index.lock`, visão "No commits yet",
-  `origin/main` em cache STALE). Quando isso acontecer: NÃO confiar no `git status`
-  do sandbox; conferir merge/branch pelo GitHub e fazer commit/push pelo Windows.
+- O git RODA bem no Windows do dono, MAS o lock fantasma `.git/index.lock` aparece
+  (resolver: fechar IDE/GitHub Desktop e `Remove-Item ...\.git\index.lock -Force`).
+  O git dentro do sandbox do agente fica dessincronizado (lock que não dá pra
+  apagar, `origin/main` em cache STALE). NÃO confiar no `git status` do sandbox;
+  conferir merge/branch pelo GitHub e commitar pelo Windows.
+- PowerShell quebra `stash@{0}` (interpreta `@{}`); usar aspas: `git checkout "stash@{0}" -- <arquivos>`.
+- Repo SEM `.gitattributes` e arquivos são CRLF — NÃO subir arquivo existente via API
+  do GitHub (vira churn de fim de linha); editar arquivo existente é melhor pelo Windows.
+  Arquivos NOVOS via API são OK.
 - Edição de arquivo (Read/Write/Edit) grava no Windows e funciona normalmente.
-- Lição OG: env com prefixo `VITE_` configurada como Production+Preview no Vercel
-  FICA disponível no runtime da edge function via `process.env` — desde que o NOME
-  bata exato. A função tinha `VITE_SUPABASE_ANON_KEY` (inexistente) → genérico.
-- Cache do `/api/og`: `s-maxage=300, stale-while-revalidate=86400`. Após deploy,
-  slug já cacheado pode mostrar o antigo por alguns minutos. WhatsApp tem cache
-  próprio — usar o depurador do Facebook ("Scrape Again") pra forçar.
+- Cache do `/api/og`: `s-maxage=300, stale-while-revalidate=86400`. WhatsApp tem
+  cache próprio — usar o depurador do Facebook ("Scrape Again") pra forçar.
 
 ## Ponteiros
 
+- Plano leads unificados: [docs/PLANO-leads-unificados.md](docs/PLANO-leads-unificados.md)
+- Plano autonomia diagnóstico: [docs/PLANO-autonomia-diagnostico.md](docs/PLANO-autonomia-diagnostico.md)
 - Checkpoint de hoje: [docs/CHECKPOINT-2026-06-13.md](docs/CHECKPOINT-2026-06-13.md)
 - Checkpoint anterior: [docs/CHECKPOINT-2026-06-12.md](docs/CHECKPOINT-2026-06-12.md)
-- Checkpoint anterior: [docs/CHECKPOINT-2026-06-10.md](docs/CHECKPOINT-2026-06-10.md)
-- Fixes da auditoria: [docs/CHECKPOINT-2026-06-09-auditoria-fixes.md](docs/CHECKPOINT-2026-06-09-auditoria-fixes.md)
 - Auditoria completa: [docs/AUDITORIA-2026-06-09.md](docs/AUDITORIA-2026-06-09.md)
-- Estado até #140: [docs/CHECKPOINT-2026-06-09.md](docs/CHECKPOINT-2026-06-09.md)
 - Memórias temáticas: [mem/index.md](mem/index.md)
 - Regras do agente: [CLAUDE.md](CLAUDE.md)
