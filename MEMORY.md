@@ -3,7 +3,7 @@
 > Leia este arquivo no início de cada conversa para entender o estado atual.
 > Memória aditiva: nunca substituir, sempre acrescentar.
 > 2026-06-13 (rota + leads unificados): rota /diagnostico/:slug por PATH (#187). LEADS UNIFICADOS COMPLETO (A=#188 dedup 95→43 + colunas; B=#189 RPC upsert_lead_contact + índice único + notificação só no 1º contato + fix aiResp nulo; C=#190 painel lê `leads` com origem/diag/quente + paginação 7-15). Contato único por (tenant,email); perfil privado não cobra crédito; backups _bak_*_20260613 a limpar depois de validar. Ver docs/PLANO-leads-unificados.md.
-> 2026-06-13 (deploys + crédito + autonomia): edge functions alinhadas ao `main` (NÃO sobem no merge — deploy via CLI Supabase). Redeploy em prod: generate-deep-funnel v29, analyze-deep, analyze-instagram, proxy-image. DÉBITO DE CRÉDITO #158 agora ATIVO. Autonomia: Fase 1 (#184), 2a (#185) e 2b (#192, severidade do veredict por cenário) mergeadas; falta só Fase 3 (wizard). REGRA NOVA: nunca passar de fase sem conferir cada deploy/merge/doc. Ver docs/CHECKPOINT-2026-06-13.md.
+> 2026-06-13 (deploys + crédito + autonomia): edge functions alinhadas ao `main` (NÃO sobem no merge — deploy via CLI Supabase). Redeploy em prod: generate-deep-funnel v29, analyze-deep, analyze-instagram, proxy-image. DÉBITO DE CRÉDITO #158 agora ATIVO. AUTONOMIA COMPLETA: Fase 1 (#184), 2a (#185), 2b (#192) e 3 (#194, wizard 4 passos no painel) mergeadas. REGRA NOVA: nunca passar de fase sem conferir cada deploy/merge/doc. Ver docs/CHECKPOINT-2026-06-13.md.
 > Última atualização: 2026-06-12 (sessão perf mobile: #176→#179). Desempenho mobile de /vendas e /planos investigado a fundo e ENCERRADO: a nota ~60 é teto da stack (SPA React pesado) — prerender NÃO roda no build da Vercel e renderia só ~70 mesmo. Shipados ganhos reais (sem pipeline) + copy. NÃO re-tentar prerender/SSR sem decisão de migrar stack. Ver docs/CHECKPOINT-2026-06-12-perf-mobile.md.
 > Antes (mesmo dia): #173 guest checkout Pix + domínio + GlowPanel + mobile-first do painel; #174 fix do link do diagnóstico /→/diagnostico + lazy do fundo 3D + jargão. Ver docs/CHECKPOINT-2026-06-12.md.
 
@@ -50,6 +50,8 @@ RLS sempre ativa. Sem emoji em UI, sem visual de chatbot.
   `:root` do index.css (mata FOUC). Login/signup usam `useBrasilLockedTheme`.
   Exceção: painel admin do dono = gold-noir (`useAdminLockedTheme`).
 - Cliente só troca de tema APÓS plano pago. Modo claro/ThemeToggle livre removidos.
+- Caixas = retangular de cantos arredondados, bordas douradas, sem quinas: cards
+  `rounded-2xl border-gold/20`, botões `rounded-xl`. Padrão do sistema inteiro.
 - Fundo pontilhado estático (`BGPattern`, variant dots) em todas as telas internas.
   Reflexo de brilho no hover (`data-glow` + `useGlowEffect`), só em mouse.
 
@@ -60,7 +62,8 @@ RLS sempre ativa. Sem emoji em UI, sem visual de chatbot.
   Foto de perfil maior e quadrada-arredondada (cropper rect).
 - Página de captura: foto própria, crop, checklist, link por slug.
 - Diagnóstico imersivo (Deep Funnel): IA, página pública, resultado + CTA. Veredict
-  com severidade por cenário (educar/equilibrado/conversão).
+  com severidade por cenário (educar/equilibrado/conversão). DONO cria/edita via
+  wizard de 4 passos (objetivo → briefing → destinos → config).
 - Landing comercial: `/` = página de VENDAS (diagnóstico como oferta principal,
   "pra qualquer nicho"); `/planos` (Landing) com pricing animado; `/diagnostico`
   = diagnóstico de Instagram (Index). Rota por path `/diagnostico/:slug` (parceiro);
@@ -136,13 +139,18 @@ RLS sempre ativa. Sem emoji em UI, sem visual de chatbot.
 - CRÉDITO #158 AGORA ATIVO em prod: cada diagnóstico (instagram/imersivo) consome 1
   crédito do dono. Instagram sem saldo → lead retido (status `no_credit`, cache 12h);
   imersivo sem saldo → veredito-template (fallback), lead nunca fica sem resposta.
-- AUTONOMIA DO DIAGNÓSTICO (plano docs/PLANO-autonomia-diagnostico.md):
+- AUTONOMIA DO DIAGNÓSTICO — COMPLETA (plano docs/PLANO-autonomia-diagnostico.md):
   - #184 (Fase 1): migration `20260613020000` (deep_funnels: objetivo/num_perguntas/
     cenario; deep_funnel_products: tipo/imagem_url/is_principal) + plano.
   - #185 (Fase 2a): generate-deep-funnel usa num_perguntas/cenario/objetivo + destinos.
   - #192 (Fase 2b): analyze-deep ajusta a SEVERIDADE do veredict pelo `cenario`
     (educar=leve, equilibrado=médio, conversão=afiado-honesto). Sem migration.
-  - FALTA: Fase 3 = painel/wizard pro dono criar/editar o próprio diagnóstico (UI).
+  - #194 (Fase 3): `BriefingWizard` virou wizard de 4 passos no painel (Objetivo →
+    Briefing enxuto → Destinos 1 principal + até 2 → Config 5/8/12 + cenário). Manda
+    objetivo/num_perguntas/cenario + destinos (tipo/is_principal/imagem_url) pra IA.
+    Barra de progresso, seleção sutil, padrão retangular dourado. Follow-ups
+    opcionais: uploader de capa com crop; prefill de objetivo/cenário/quantidade no
+    modo edição (depende do painel passar os valores salvos).
 - generate-icon: CONFIRMADO morto no front (IconPicker só tem aba Biblioteca/Lucide;
   handleGenerate/invoke sem gatilho na UI). Não precisa deploy. Limpar quando der.
 - LIÇÃO: o `origin/main` em cache do sandbox estava STALE. Conferir merge/branch sempre pelo GitHub.
@@ -188,10 +196,9 @@ lever real é SSR de verdade (migrar stack) — fora de escopo. NÃO re-tentar p
 - ✓ RESOLVIDO 2026-06-13 (A #188 / B #189 / C #190): LEADS UNIFICADOS (dedup +
   upsert + notificação 1º contato + painel de contatos). FALTA (opcional): Fase C.2
   (modal de histórico por contato) + LIMPAR backups `_bak_*_20260613` após validar.
-- ⚠️ EM ABERTO: AUTONOMIA Fase 3 = painel/wizard pro dono criar/editar o próprio
-  diagnóstico (UI). Backend pronto (Fase 1 #184 / 2a #185 / 2b #192). Plano em
-  docs/PLANO-autonomia-diagnostico.md. Reestrutura o BriefingWizard: objetivo →
-  briefing → destino(s) → config (5/8/12 perguntas, cenário) → gerar IA → editar/publicar.
+- ✓ RESOLVIDO 2026-06-13 (#194): AUTONOMIA Fase 3 (wizard de 4 passos no painel).
+  Autonomia completa (1/2a/2b/3). Follow-ups opcionais: uploader de capa com crop;
+  prefill de objetivo/cenário/quantidade no modo edição.
 - Fase 6: QA ponta a ponta + 1 pagamento Pix REAL de teste antes de cliente pagar.
 - ✓ RESOLVIDO 2026-06-12 (#173): guest checkout "Caminho Y" — validado com Pix real R$6.
 - ⚠️ EM ABERTO 2026-06-12: desempenho MOBILE de `/vendas` e `/planos` (~60). Lever real = SSR (migrar stack).
