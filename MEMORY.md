@@ -2,6 +2,7 @@
 
 > Leia este arquivo no início de cada conversa para entender o estado atual.
 > Memória aditiva: nunca substituir, sempre acrescentar.
+> 2026-06-13 (deploys + crédito + autonomia): edge functions alinhadas ao `main` (NÃO sobem no merge — deploy via CLI Supabase). Redeploy em prod: generate-deep-funnel v29, analyze-deep v15, analyze-instagram v21, proxy-image v12. DÉBITO DE CRÉDITO #158 agora ATIVO. Fase 1 (#184) e Fase 2a (#185) mergeadas. Próximo: rota /diagnostico (atribuição por path, não utm). REGRA NOVA: nunca passar de fase sem conferir cada deploy/merge/doc. Ver docs/CHECKPOINT-2026-06-13.md.
 > Última atualização: 2026-06-12 (sessão perf mobile: #176→#179). Desempenho mobile de /vendas e /planos investigado a fundo e ENCERRADO: a nota ~60 é teto da stack (SPA React pesado) — prerender NÃO roda no build da Vercel e renderia só ~70 mesmo. Shipados ganhos reais (sem pipeline) + copy. NÃO re-tentar prerender/SSR sem decisão de migrar stack. Ver docs/CHECKPOINT-2026-06-12-perf-mobile.md.
 > Antes (mesmo dia): #173 guest checkout Pix + domínio + GlowPanel + mobile-first do painel; #174 fix do link do diagnóstico /→/diagnostico + lazy do fundo 3D + jargão. Ver docs/CHECKPOINT-2026-06-12.md.
 
@@ -17,6 +18,9 @@ separada de Habithus e de Pai Presente. Copy e naming neutros, voz SaaS.
   `team_Mf3vr6oYlp373wrEsowhFQT8`). Deploy automático a partir do `main`. ESTE é
   o CI/CD. Lovable NÃO é mais usado.
 - O que está no ar = último commit no `main`. Hoje: `#170` (Fase 4 créditos).
+- IMPORTANTE: o merge no `main` só sobe o FRONT (Vercel). Edge function NÃO sobe no
+  merge — deploy é via CLI Supabase (`npx supabase functions deploy <nome>
+  --project-ref pybgqassjzcynzaakzhz`). Sempre conferir versão deployada vs `main`.
 
 ## Ambientes Supabase
 
@@ -89,6 +93,27 @@ RLS sempre ativa. Sem emoji em UI, sem visual de chatbot.
 6. Sem moralismo, sem clichê de coach, sem emoji em UI.
 7. Antes de implementar feature: grep no projeto pra não duplicar.
 8. Ao fechar algo importante: ATUALIZAR os docs do sistema no mesmo fluxo.
+9. Nunca passar de fase sem conferir item a item cada deploy/merge/doc (nada pra trás).
+
+## Resolvido em 2026-06-13 (sessão deploys + crédito + autonomia)
+
+- Edge functions estavam atrasadas vs `main` (NÃO sobem no merge; só o front via
+  Vercel — deploy é CLI Supabase). REDEPLOYADAS em prod (ref pybgqassjzcynzaakzhz):
+  generate-deep-funnel v29 (Fase 2a #185), analyze-deep v15 + analyze-instagram v21
+  (débito de crédito #158), proxy-image v12 (CORS #123).
+- CRÉDITO #158 AGORA ATIVO em prod: cada diagnóstico (instagram/imersivo) consome 1
+  crédito do dono. Instagram sem saldo → lead retido (status `no_credit`, cache 12h);
+  imersivo sem saldo → veredito-template (fallback), lead nunca fica sem resposta.
+- #185 (Fase 2a generate-deep-funnel: num_perguntas/cenario/objetivo + destinos) e
+  #184 (Fase 1 migration autonomia `20260613020000` + plano) mergeados.
+- generate-icon: CONFIRMADO morto no front (IconPicker só tem aba Biblioteca/Lucide;
+  handleGenerate/invoke sem gatilho na UI). Não precisa deploy. Limpar quando der.
+- IDENTIFICADO (próxima etapa): /diagnostico atribui parceiro por `?utm_source=`
+  (frágil; some fácil) e o fallback sem utm cai em `joanderson` (Pai Presente) —
+  vaza marca + atribui lead/crédito errado. Plano: identidade por PATH
+  (`/diagnostico/:slug`), bare /diagnostico = axtor-labs neutro, utm vira legado.
+- LIÇÃO: o `origin/main` em cache do sandbox estava STALE (mostrava #183 quando o
+  main já estava em #185). Conferir merge/branch sempre pelo GitHub, não pelo sandbox.
 
 ## Resolvido em 2026-06-12 (sessão perf mobile)
 
@@ -192,6 +217,13 @@ PRIORIDADE 2 — features e pendências antigas:
   (O caminho pagamento → ativação → /bem-vindo JÁ está construído no front.)
 - ✓ RESOLVIDO 2026-06-12 (#173): Etapa B / guest checkout "Caminho Y" (paga primeiro,
   cria conta depois) — NO AR. Validado com Pix real de R$6 (conta provisionada, Premium ativo).
+- ⚠️ EM ABERTO 2026-06-13: rota /diagnostico identifica parceiro por query param
+  (`?utm_source=`), frágil (some em bio/encurtador/recópia); sem utm cai em
+  `joanderson` (Pai Presente) → vaza marca + atribui lead/crédito errado. Plano:
+  identidade por PATH (`/diagnostico/:slug`), bare /diagnostico = axtor-labs neutro,
+  utm vira legado. Pré-req: axtor-labs sem whatsapp_number e sem funil publicado;
+  ResultStep tem fallbacks fixos de Pai Presente (Stefany) a neutralizar. Ver
+  docs/CHECKPOINT-2026-06-13.md.
 - ⚠️ EM ABERTO 2026-06-12: desempenho MOBILE de `/vendas` e `/planos` (~60; desktop 93-96).
   Lazy do fundo 3D NÃO resolveu. Gargalo = SPA client-side (HTML vazio até o JS rodar).
   Lever real = PRÉ-RENDERIZAR essas páginas (SSG/prerender no build). Não destrutivo. Ver checkpoint 2026-06-12.
@@ -211,9 +243,9 @@ PRIORIDADE 2 — features e pendências antigas:
 ## Atrito de ambiente (importante pro próximo chat)
 
 - O git RODA bem no Windows do dono. O git dentro do sandbox do agente pode
-  ficar dessincronizado (lock fantasma `.git/index.lock`, visão "No commits yet").
-  Quando isso acontecer: NÃO confiar no `git status` do sandbox; fazer commit/push
-  pelo Windows. Locks fantasma do mount não aparecem no Windows.
+  ficar dessincronizado (lock fantasma `.git/index.lock`, visão "No commits yet",
+  `origin/main` em cache STALE). Quando isso acontecer: NÃO confiar no `git status`
+  do sandbox; conferir merge/branch pelo GitHub e fazer commit/push pelo Windows.
 - Edição de arquivo (Read/Write/Edit) grava no Windows e funciona normalmente.
 - Lição OG: env com prefixo `VITE_` configurada como Production+Preview no Vercel
   FICA disponível no runtime da edge function via `process.env` — desde que o NOME
@@ -224,7 +256,8 @@ PRIORIDADE 2 — features e pendências antigas:
 
 ## Ponteiros
 
-- Checkpoint de hoje: [docs/CHECKPOINT-2026-06-12.md](docs/CHECKPOINT-2026-06-12.md)
+- Checkpoint de hoje: [docs/CHECKPOINT-2026-06-13.md](docs/CHECKPOINT-2026-06-13.md)
+- Checkpoint anterior: [docs/CHECKPOINT-2026-06-12.md](docs/CHECKPOINT-2026-06-12.md)
 - Checkpoint anterior: [docs/CHECKPOINT-2026-06-10.md](docs/CHECKPOINT-2026-06-10.md)
 - Fixes da auditoria: [docs/CHECKPOINT-2026-06-09-auditoria-fixes.md](docs/CHECKPOINT-2026-06-09-auditoria-fixes.md)
 - Auditoria completa: [docs/AUDITORIA-2026-06-09.md](docs/AUDITORIA-2026-06-09.md)
