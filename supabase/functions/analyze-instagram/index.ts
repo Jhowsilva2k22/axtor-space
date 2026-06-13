@@ -415,24 +415,24 @@ Deno.serve(async (req) => {
       }
     }
 
-    // 1. Cria/atualiza lead
-    const { data: lead, error: leadErr } = await supabase
-      .from("leads")
-      .insert({
-        instagram_handle: handle,
-        email,
-        phone,
-        full_name: fullName,
-        utm_source: utm.source ?? null,
-        utm_medium: utm.medium ?? null,
-        utm_campaign: utm.campaign ?? null,
-        tenant_id: resolvedTenantId,
-      })
-      .select()
-      .single();
+    // 1. Upsert do contato (dedup por tenant+email). was_new = 1º contato (gate da notificação).
+    const { data: upRows, error: leadErr } = await supabase.rpc("upsert_lead_contact", {
+      p_tenant: resolvedTenantId,
+      p_email: email,
+      p_phone: phone,
+      p_name: fullName,
+      p_handle: handle,
+      p_source: "instagram",
+      p_utm_source: utm.source ?? null,
+      p_utm_medium: utm.medium ?? null,
+      p_utm_campaign: utm.campaign ?? null,
+    });
+    const lead = Array.isArray(upRows) ? upRows[0] : upRows;
+    const leadId: string | null = lead?.lead_id ?? null;
+    const leadWasNew: boolean = lead?.was_new === true;
 
     if (leadErr) {
-      console.error("Erro ao salvar lead:", leadErr);
+      console.error("Erro ao salvar lead (upsert):", leadErr);
     }
 
     // 1.5 Crédito: a captura (lead) já foi salva acima e NUNCA se perde.
@@ -443,7 +443,7 @@ Deno.serve(async (req) => {
       const { data: blockedDiag } = await supabase
         .from("diagnostics")
         .insert({
-          lead_id: lead?.id ?? null,
+          lead_id: leadId,
           instagram_handle: handle,
           status: "no_credit",
           error_message: "Tenant sem créditos no momento",
@@ -479,7 +479,7 @@ Deno.serve(async (req) => {
       const { data: diag } = await supabase
         .from("diagnostics")
         .insert({
-          lead_id: lead?.id ?? null,
+          lead_id: leadId,
           instagram_handle: handle,
           status: "failed",
           error_message: msg,
@@ -501,11 +501,11 @@ Deno.serve(async (req) => {
 
     // 3. Perfil privado -> retorna instrução
     if (isPrivate) {
-      await supabase.from("leads").update({ profile_is_private: true }).eq("id", lead?.id);
+      await supabase.from("leads").update({ profile_is_private: true }).eq("id", leadId);
       const { data: diag } = await supabase
         .from("diagnostics")
         .insert({
-          lead_id: lead?.id ?? null,
+          lead_id: leadId,
           instagram_handle: handle,
           is_private: true,
           profile_data: profile,
@@ -543,7 +543,7 @@ Deno.serve(async (req) => {
       const { data: failedDiag } = await supabase
         .from("diagnostics")
         .insert({
-          lead_id: lead?.id ?? null,
+          lead_id: leadId,
           instagram_handle: handle,
           is_private: false,
           profile_data: profile,
@@ -566,7 +566,7 @@ Deno.serve(async (req) => {
     const { data: diag } = await supabase
       .from("diagnostics")
       .insert({
-        lead_id: lead?.id ?? null,
+        lead_id: leadId,
         instagram_handle: handle,
         is_private: false,
         profile_data: profile,
@@ -588,8 +588,8 @@ Deno.serve(async (req) => {
     // (Se Apify/IA falham, o fluxo já retornou antes daqui = não cobra.)
     void consumeCredits(supabase, resolvedTenantId, 1, "diag_instagram", diag?.id ?? null);
 
-    // 5. Notifica o dono do tenant — best-effort, não bloqueia response
-    void notifyLead(resolvedTenantId, {
+    // 5. Notifica o dono — best-effort. SÓ no 1º contato do lead (was_new); retorno não re-notifica.
+    if (leadWasNew) void notifyLead(resolvedTenantId, {
       source: "capture",
       tenant_id: resolvedTenantId,
       lead_name: fullName ?? null,

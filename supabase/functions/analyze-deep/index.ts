@@ -364,8 +364,31 @@ Gere o veredict persuasivo agora.`;
       }),
     }) : null;
 
+    // Upsert do contato (dedup por tenant+email). Liga o imersivo ao lead e
+    // notifica o dono SÓ no 1º contato (voltar/aprofundar não manda 2º email).
+    let leadId: string | null = null;
+    let leadWasNew = false;
+    if (lead_email && String(lead_email).trim()) {
+      const { data: upRows } = await admin.rpc("upsert_lead_contact", {
+        p_tenant: funnel.tenant_id,
+        p_email: lead_email,
+        p_phone: lead_phone ?? null,
+        p_name: lead_name ?? null,
+        p_handle: instagram_handle ?? null,
+        p_source: "imersivo",
+        p_utm_source: utm_source ?? null,
+        p_utm_medium: utm_medium ?? null,
+        p_utm_campaign: utm_campaign ?? null,
+      });
+      const c = Array.isArray(upRows) ? upRows[0] : upRows;
+      leadId = c?.lead_id ?? null;
+      leadWasNew = c?.was_new === true;
+    } else {
+      leadWasNew = true; // sem email: nao da pra deduplicar, trata como novo (notifica)
+    }
+
     if (!aiResp || !aiResp.ok) {
-      const txt = await aiResp.text();
+      const txt = aiResp ? await aiResp.text() : "sem credito (sem chamada de IA)";
       console.error("AI error:", aiResp.status, txt);
       const fallback = pickBestProduct(products, pain_scores);
       const cleanName = (lead_name ?? "").toString().trim().split(/\s+/)[0] ?? "";
@@ -379,6 +402,7 @@ Gere o veredict persuasivo agora.`;
           id: diagnostic_id ?? undefined,
           funnel_id,
           tenant_id: funnel.tenant_id,
+          lead_id: leadId,
           session_id,
           lead_name,
           lead_email,
@@ -399,7 +423,7 @@ Gere o veredict persuasivo agora.`;
 
       // Só entrega o lead ao dono se ele TINHA crédito (IA falhou de verdade).
       // Sem crédito = lead retido (não notifica) → vira gatilho de recarga.
-      if (temCreditoConclusao) {
+      if (temCreditoConclusao && leadWasNew) {
         void notifyLead(funnel.tenant_id ?? null, {
           source: "imersivo",
           tenant_id: funnel.tenant_id ?? null,
@@ -488,8 +512,8 @@ Gere o veredict persuasivo agora.`;
     // Débito de 1 crédito — só aqui (IA concluiu com sucesso).
     void consumeCredits(admin, funnel.tenant_id ?? "", 1, "funnel_conclusion", saved?.id ?? null);
 
-    // Notifica o dono do tenant — best-effort, não bloqueia response
-    void notifyLead(funnel.tenant_id ?? null, {
+    // Notifica o dono — best-effort. SÓ no 1º contato do lead (was_new).
+    if (leadWasNew) void notifyLead(funnel.tenant_id ?? null, {
       source: "imersivo",
       tenant_id: funnel.tenant_id ?? null,
       lead_name: lead_name ?? null,
