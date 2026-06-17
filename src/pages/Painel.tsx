@@ -221,7 +221,7 @@ export default function Painel() {
     <div className="relative isolate min-h-screen bg-background">
       <BGPattern />
       {/* pb extra no mobile pra nada ficar escondido atrás do bottom nav fixo */}
-      <div className="relative mx-auto max-w-6xl px-4 pb-28 pt-6 sm:px-6 sm:py-8">
+      <div className="relative mx-auto max-w-6xl px-4 pb-28 pt-[calc(env(safe-area-inset-top)+1.5rem)] sm:px-6 sm:py-8">
         {/* Header desktop — layout original preservado (≥ sm) */}
         <header className="mb-8 hidden flex-wrap items-start justify-between gap-4 sm:flex">
           <div>
@@ -265,9 +265,6 @@ export default function Painel() {
                   {planLabel}
                 </span>
               </div>
-              <p className="mt-0.5 truncate font-mono text-xs text-muted-foreground">
-                /{current.slug}
-              </p>
             </div>
             <CreditsCard compact />
           </div>
@@ -429,7 +426,7 @@ const MobileBottomNav = ({
             aria-current={isActive ? "page" : undefined}
             onClick={() => onSelect(value)}
             className={cn(
-              "relative flex min-w-0 flex-1 flex-col items-center gap-1 pb-2 pt-2.5 transition-colors",
+              "relative flex min-w-0 flex-1 flex-col items-center gap-1 pb-2.5 pt-3 transition-colors",
               isActive ? "text-primary" : "text-muted-foreground",
               !canAccess && "cursor-not-allowed opacity-40",
             )}
@@ -442,12 +439,12 @@ const MobileBottomNav = ({
               />
             )}
             <span className="relative">
-              <Icon className="h-5 w-5" aria-hidden />
+              <Icon className="h-6 w-6" aria-hidden />
               {!canAccess && (
                 <Lock className="absolute -right-2 -top-1 h-3 w-3" aria-hidden />
               )}
             </span>
-            <span className="max-w-full truncate px-0.5 text-[11px] leading-none">
+            <span className="max-w-full truncate px-0.5 text-xs leading-none">
               {label}
             </span>
           </button>
