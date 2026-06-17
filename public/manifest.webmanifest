@@ -2,7 +2,7 @@
   "name": "Axtor Labs",
   "short_name": "Axtor",
   "description": "Bio links, diagnósticos e automação — Axtor Labs.",
-  "start_url": "/",
+  "start_url": "/painel",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
