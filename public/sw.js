@@ -1,6 +1,6 @@
 // Axtor Space — service worker (PWA)
 // Estrategia:
-//  - Navegacao (HTML): NetworkFirst -> cache -> pagina offline (sempre fresco online)
+//  - Navegacao (HTML): NetworkFirst -> cache da rota -> casca do app -> offline
 //  - Assets com hash (/assets/*): CacheFirst (imutaveis; deploy gera nome novo)
 //  - Imagens: StaleWhileRevalidate (storage/proxy incluso) -> mata flicker e segura 4G
 //  - Supabase (REST/RPC/functions) e websockets: PASSAM DIRETO, nunca cacheados
@@ -12,10 +12,17 @@ const STATIC_CACHE = `axtor-static-${VERSION}`;
 const IMAGE_CACHE = `axtor-img-${VERSION}`;
 const PAGE_CACHE = `axtor-pages-${VERSION}`;
 const OFFLINE_URL = "/offline.html";
+const APP_SHELL = "/"; // index.html (a SPA boota a partir daqui)
 const KEEP = [STATIC_CACHE, IMAGE_CACHE, PAGE_CACHE];
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(PAGE_CACHE).then((c) => c.add(OFFLINE_URL)));
+  // Pre-cacheia a casca do app e a tela offline ja no install,
+  // pra navegacao offline funcionar mesmo no 1o acesso sem controle previo.
+  event.waitUntil(
+    caches.open(PAGE_CACHE).then((c) =>
+      c.addAll([APP_SHELL, OFFLINE_URL]).catch(() => c.add(OFFLINE_URL)),
+    ),
+  );
   self.skipWaiting();
 });
 
@@ -43,7 +50,7 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(req.url);
 
-  // 1) Navegacao (HTML): NetworkFirst -> cache da rota -> offline.html
+  // 1) Navegacao (HTML): NetworkFirst -> cache da rota -> casca -> offline
   if (req.mode === "navigate") {
     event.respondWith(
       (async () => {
@@ -54,8 +61,11 @@ self.addEventListener("fetch", (event) => {
           return fresh;
         } catch {
           const cache = await caches.open(PAGE_CACHE);
-          const cached = await cache.match(req);
-          return cached || (await cache.match(OFFLINE_URL));
+          const cached =
+            (await cache.match(req)) ||
+            (await cache.match(APP_SHELL)) ||
+            (await cache.match(OFFLINE_URL));
+          return cached || Response.error();
         }
       })(),
     );
