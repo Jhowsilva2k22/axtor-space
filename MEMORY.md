@@ -2,7 +2,7 @@
 
 > Leia este arquivo no início de cada conversa para entender o estado atual.
 > Memória aditiva: nunca substituir, sempre acrescentar.
-> 2026-06-17 (PWA): app virou PWA de verdade — service worker próprio (#201). Antes só tinha o manifesto (instalável). Agora: offline + cache de assets/imagens, SW sem dependência nova. Ver docs/CHECKPOINT-2026-06-17.md.
+> 2026-06-17 (PWA + identidade): PWA de verdade — service worker próprio (#201, fix do offline #203). `start_url` do app instalado = `/painel` (#205). Identidade visual profissional: ícone AXTR + banner OG (#204); favicon CLARO na aba + ícone ESCURO do app (#206). Ver docs/CHECKPOINT-2026-06-17.md.
 > 2026-06-13 (Hub + limpeza): Hub admin (/admin/hub) ganhou variação % (7d vs 7d anterior, ▲/▼) + FUNIL de conversão cross-tenant (views→cliques→leads→diagnósticos→assinaturas) (#196). DADOS DE TESTE LIMPOS em prod: 11 addons + 2 assinaturas apagados (backups `_bak_tenant_addons_20260613` / `_bak_tenant_subscriptions_20260613`). MRR agora = **R$0** = verdade pré-lançamento (NÃO é bug). Follow-up: dropar os `_bak_*` após validar; Hub pode ganhar sparkline diário + monitoramento real das functions (erros/latência via logs).
 > 2026-06-13 (rota + leads unificados): rota /diagnostico/:slug por PATH (#187). LEADS UNIFICADOS COMPLETO (A=#188 dedup 95→43 + colunas; B=#189 RPC upsert_lead_contact + índice único + notificação só no 1º contato + fix aiResp nulo; C=#190 painel lê `leads` com origem/diag/quente + paginação 7-15). Contato único por (tenant,email); perfil privado não cobra crédito.
 > 2026-06-13 (deploys + crédito + autonomia): edge functions alinhadas ao `main` (NÃO sobem no merge — deploy via CLI Supabase). DÉBITO DE CRÉDITO #158 ATIVO. AUTONOMIA COMPLETA: Fase 1 (#184), 2a (#185), 2b (#192) e 3 (#194, wizard 4 passos no painel). REGRA NOVA: nunca passar de fase sem conferir cada deploy/merge/doc. Ver docs/CHECKPOINT-2026-06-13.md.
@@ -48,6 +48,9 @@ RLS sempre ativa. Sem emoji em UI, sem visual de chatbot.
 - Caixas = retangular de cantos arredondados, bordas douradas, sem quinas: cards
   `rounded-2xl border-gold/20`, botões `rounded-xl`. Padrão do sistema inteiro.
 - Fundo pontilhado estático (`BGPattern`, variant dots) nas telas internas; brilho no hover.
+- IDENTIDADE/ÍCONES (#204/#206): app instalado = ícone ESCURO (#100F0F) com lettermark
+  AXTR; favicon da aba = CLARO. Logo-mestre `public/axtor-logo.png` é OPACO (quadriculado
+  pintado, sem transparência real) — extrair por cor (azul) se precisar recompor.
 
 ## Estado atual — o que está pronto e no ar
 
@@ -65,10 +68,13 @@ RLS sempre ativa. Sem emoji em UI, sem visual de chatbot.
   ligam por `lead_id`; captura via RPC `upsert_lead_contact`; painel "Leads" lista contatos.
 - Hub admin (/admin/hub): Financeiro (MRR/ARR/assinaturas/extras), Clientes, Monitoramento,
   Analytics (visão cross-tenant + variação % 7d + funil de conversão).
-- PWA (#201): manifesto + service worker próprio (`public/sw.js`, sem dependência nova).
+- PWA (#201, fix #203): manifesto + service worker próprio (`public/sw.js`, sem dependência nova).
   Instalável + offline. Estratégia: navegação NetworkFirst→casca→offline; assets-hash
   CacheFirst; imagens StaleWhileRevalidate; Supabase/websockets NUNCA cacheados.
-  Registro só em produção (`src/main.tsx`). Push notification = fase 2 (não feito).
+  Registro só em produção (`src/main.tsx`). `start_url`=/painel (#205). Push notification = fase 2 (não feito).
+- IDENTIDADE VISUAL (#204/#206): ícone AXTR (lettermark, fundo escuro) no app instalado
+  (`icon-512.png` + `apple-touch-icon.png`); favicon CLARO na aba (`favicon.png`/`favicon.ico`);
+  banner OG profissional (`og-image.png`) + texto OG neutro (voz SaaS) no `index.html`.
 - Preview de link por tenant (OG) validado em prod (#166).
 - Admin Hub, Onboarding, Infra de email, Legal (LGPD), Segurança (rate limit/CORS/Sentry).
 
@@ -107,9 +113,37 @@ RLS sempre ativa. Sem emoji em UI, sem visual de chatbot.
 - Const `VERSION` no topo do `sw.js`: subir pra purgar caches num deploy crítico (o
   `activate` apaga as antigas). Validado em build local (`npx serve dist`): SW
   activated, offline servindo tela cacheada, botão "Instalar" no Chrome.
+- #203 (3b1a7cf): FIX do offline. O squash do #201 capturou o 1º commit (sw.js ANTIGO,
+  sem o fix) → produção subiu com offline quebrado (ERR_FAILED). #203 reaplica a versão
+  validada (install pré-cacheia `/`+offline.html via `addAll`; navegação offline cai em
+  rota→casca→offline.html). LIÇÃO: depois de pushar fix numa branch de PR, CONFERIR que
+  o head do PR atualizou (e o conteúdo do arquivo) ANTES de mergear; não mergear logo após o push.
+- #205 (d5e0e4f): `start_url` do manifesto = `/painel` (workspace; cai no login se
+  deslogado), não mais a landing `/`. iOS usa a PÁGINA ATUAL como launch URL e costuma
+  ignorar o `start_url` → no iPhone instalar a partir de axtor.space/painel. Android/Chrome
+  respeitam o `start_url`.
 - FALTA (opcional): push notification (fase 2, precisa backend de push); teto no
   cache de imagens. Atrito: mount do sandbox serviu cópia TRUNCADA do sw.js → não
   confiar no `node --check` do sandbox pra arquivo recém-editado.
+
+## Resolvido em 2026-06-17 (identidade visual)
+
+- PROBLEMA: ícone do app, favicon e preview de compartilhamento saíam todos do mesmo
+  quadrado, e o `public/axtor-logo.png` NÃO tem transparência real (o "quadriculado" é
+  pintado, fundo opaco) → ícones com fundo feio (pior no iOS e no WhatsApp).
+- SOLUÇÃO: logo extraída por COR (azul: blueness = B - max(R,G)) com Pillow/numpy no sandbox.
+- #204 (50d1615): ícone = lettermark AXTR (sem "LABS", crop até o gap em x~1501) em fundo
+  escuro #100F0F com glow azul → apple-touch-icon.png(180), favicon.png(512), favicon.ico.
+  Banner og-image.png 1200x630 (logo + "Link na bio, funil e diagnóstico com IA" +
+  axtor.space, fonte Poppins). `index.html`: og/twitter title+description neutros (voz SaaS),
+  no lugar do texto antigo de diagnóstico.
+- #206 (a2fc981): favicon CLARO na aba (`favicon.png`/`favicon.ico` brancos, azul salta a
+  16-32px) + ícone ESCURO dedicado do app instalado (`icon-512.png`, NOVO). Manifesto aponta
+  o 512 (any+maskable) pro `icon-512.png`; apple-touch-icon segue escuro. ATRITO: `.gitignore`
+  tem `*.png` → PNG NOVO precisa `git add -f` (os antigos já eram tracked). Decisão do dono:
+  marca é "Axtor" mas o mark visual AXTR da logo difundida pode ser usado.
+- Caches pra ver o novo: aba (Ctrl+F5), iPhone (remover/readicionar o atalho), WhatsApp
+  (depurador do Facebook → "Scrape Again").
 
 ## Resolvido em 2026-06-13 (Hub + limpeza de dados)
 
@@ -177,7 +211,8 @@ RLS sempre ativa. Sem emoji em UI, sem visual de chatbot.
 
 ## Pendências conhecidas
 
-- ✓ RESOLVIDO 2026-06-17 (#201): PWA/service worker. FALTA (opcional): push notification (fase 2); teto no cache de imagens.
+- ✓ RESOLVIDO 2026-06-17 (#201/#203/#205): PWA + offline + `start_url` /painel. FALTA (opcional): push notification (fase 2); teto no cache de imagens.
+- ✓ RESOLVIDO 2026-06-17 (#204/#206): identidade visual (ícone do app escuro, favicon claro, banner OG, texto OG neutro).
 - ✓ RESOLVIDO 2026-06-13 (#187): rota /diagnostico/:slug. Pendente: funil-demo + WhatsApp no axtor-labs pro CTA do /diagnostico puro.
 - ✓ RESOLVIDO 2026-06-13 (#188/#189/#190): LEADS UNIFICADOS. FALTA (opcional): Fase C.2 (histórico por contato).
 - ✓ RESOLVIDO 2026-06-13 (#194): AUTONOMIA completa (wizard). Follow-ups: uploader de capa; prefill no modo edição.
@@ -196,7 +231,9 @@ RLS sempre ativa. Sem emoji em UI, sem visual de chatbot.
   O git do sandbox fica STALE (`origin/main` em cache). NÃO confiar no `git status` do sandbox; conferir pelo GitHub e commitar pelo Windows.
 - PowerShell quebra `stash@{0}`; usar aspas: `git checkout "stash@{0}" -- <arquivos>`.
 - Repo SEM `.gitattributes`, arquivos CRLF — NÃO subir arquivo EXISTENTE via API do GitHub (churn de fim de linha); editar existente pelo Windows. Arquivos NOVOS via API OK. (MEMORY.md é exceção: está em LF, edição via API é limpa.)
+- `.gitignore` tem `*.png` → PNG NOVO não entra no `git add` normal; usar `git add -f` (os ícones antigos já eram tracked).
 - O mount do sandbox pode servir cópia TRUNCADA de arquivo recém-escrito — não confiar no `node --check`/leitura do sandbox logo após editar; conferir pelo editor/Windows.
+- Squash de PR pode capturar o head ANTIGO se mergear logo após um push novo (aconteceu no #201, corrigido no #203). Conferir o head/conteúdo do PR antes de mergear.
 - Fluxo que funcionou: editar no sandbox (Write/Edit) → `git switch -c <branch>` no Windows → add/commit/push → eu abro/mergeio o PR pelo GitHub.
 - Migration: aplicar via conector + versionar. Edge function: deploy via CLI Supabase.
 
@@ -204,7 +241,7 @@ RLS sempre ativa. Sem emoji em UI, sem visual de chatbot.
 
 - Plano leads unificados: [docs/PLANO-leads-unificados.md](docs/PLANO-leads-unificados.md)
 - Plano autonomia diagnóstico: [docs/PLANO-autonomia-diagnostico.md](docs/PLANO-autonomia-diagnostico.md)
-- Checkpoint 2026-06-17 (PWA): [docs/CHECKPOINT-2026-06-17.md](docs/CHECKPOINT-2026-06-17.md)
+- Checkpoint 2026-06-17 (PWA + identidade): [docs/CHECKPOINT-2026-06-17.md](docs/CHECKPOINT-2026-06-17.md)
 - Checkpoint 2026-06-13: [docs/CHECKPOINT-2026-06-13.md](docs/CHECKPOINT-2026-06-13.md)
 - Auditoria: [docs/AUDITORIA-2026-06-09.md](docs/AUDITORIA-2026-06-09.md)
 - Memórias temáticas: [mem/index.md](mem/index.md) · Regras: [CLAUDE.md](CLAUDE.md)
