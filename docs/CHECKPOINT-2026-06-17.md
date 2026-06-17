@@ -1,6 +1,6 @@
-# Checkpoint 2026-06-17 — PWA / Service Worker
+# Checkpoint 2026-06-17 — PWA + Identidade Visual
 
-> Fecha o item: app virou PWA de verdade. PR **#201** (squash `5a685ef`), mergeado e deployado na Vercel.
+> PRs do dia: **#201** (SW), **#203** (fix offline), **#205** (start_url), **#204**/**#206** (ícones + banner OG). Todos mergeados e deployados na Vercel.
 
 ## Contexto
 
@@ -56,6 +56,48 @@ Build local (`npm run build` + `npx serve dist`):
   em cadeia).
 - Botão **"Instalar"** apareceu na barra do Chrome (app instalável).
 
+## Fix do offline (#203, `3b1a7cf`)
+
+O squash do #201 capturou o **1º commit** do branch (sw.js antigo, sem o fix do
+offline) — corrida entre o push do fix e o merge. Produção subiu com o SW velho, cujo
+offline dava `ERR_FAILED`. **#203** reaplica a versão validada: install pré-cacheia
+`/` + `offline.html` via `addAll`; navegação offline cai em **rota → casca → offline.html**.
+
+**Lição:** depois de pushar um fix numa branch de PR, conferir que o head do PR (e o
+conteúdo do arquivo) atualizou ANTES de mergear; não mergear logo após o push.
+
+## start_url do app instalado (#205, `d5e0e4f`)
+
+O app instalado abria na landing (`/`). `start_url` do manifesto passou para `/painel`
+(workspace do usuário; cai no login se não autenticado) — padrão de PWA de SaaS.
+
+Nota iOS: o iOS usa a **página atual** como launch URL e costuma ignorar o `start_url`.
+Por isso, no iPhone, instalar a partir de `axtor.space/painel`. Android/Chrome respeitam
+o `start_url`.
+
+## Identidade visual — ícones, favicon e banner OG (#204, #206)
+
+**Problema:** o ícone do app, o favicon e o preview de compartilhamento saíam todos do
+mesmo quadrado; e o `public/axtor-logo.png` NÃO tem transparência real (o "quadriculado"
+é pintado, fundo opaco) → ícones com fundo feio, principalmente no iOS e no WhatsApp.
+
+**Solução:** logo extraída por **cor** (azul: `blueness = B - max(R,G)`) com Pillow/numpy.
+
+- **#204 (`50d1615`):** ícone = lettermark **AXTR** (sem "LABS", crop até o gap em
+  x~1501) em fundo escuro `#100F0F` com glow azul → `apple-touch-icon.png` (180),
+  `favicon.png` (512), `favicon.ico`. Banner `og-image.png` 1200×630 (logo + descritor
+  "Link na bio, funil e diagnóstico com IA" + `axtor.space`, fonte Poppins). `index.html`:
+  og/twitter title e description neutros (voz SaaS) no lugar do texto de diagnóstico.
+- **#206 (`a2fc981`):** favicon **claro** na aba (`favicon.png`/`favicon.ico` brancos —
+  o azul salta a 16–32px) + ícone **escuro** dedicado do app instalado (`icon-512.png`,
+  novo). O `manifest.webmanifest` aponta o ícone 512 (any+maskable) para `icon-512.png`;
+  `apple-touch-icon.png` segue escuro. **Atrito:** `.gitignore` tem `*.png` → PNG novo
+  precisa `git add -f` (os ícones antigos já eram tracked).
+- Decisão do dono: a marca é "Axtor", mas o mark visual **AXTR** da logo difundida pode
+  ser usado no ícone.
+- Caches para ver o novo: aba (Ctrl+F5), iPhone (remover/readicionar o atalho), WhatsApp
+  (depurador do Facebook → "Scrape Again").
+
 ## Fora de escopo / próximos
 
 - **Push notification** = fase 2 separada (precisa backend de push + permissão; iOS
@@ -67,3 +109,4 @@ Build local (`npm run build` + `npx serve dist`):
 - O mount do sandbox serviu uma cópia **truncada** do `sw.js` recém-escrito, fazendo o
   `node --check` falhar lá apesar do arquivo no Windows estar íntegro. Lição: não
   confiar no `node --check`/leitura do sandbox logo após editar; conferir pelo editor.
+- Squash de PR pode capturar o head antigo se mergear logo após um push (vide #201→#203).
