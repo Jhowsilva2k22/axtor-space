@@ -16,6 +16,15 @@ if (sentryDsn) {
 
 installGlobalErrorHandlers();
 
+// PWA: registra o service worker so em producao (evita cache atrapalhar o dev).
+if (import.meta.env.PROD && "serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(() => {
+      // falha de registro nao deve quebrar o app
+    });
+  });
+}
+
 createRoot(document.getElementById("root")!).render(
   <HelmetProvider>
     <App />
